@@ -364,6 +364,7 @@ function render(){
       <label>Moeda principal<select id="ng-m">${allOpts('EUR')}</select></label>
       <div class="actions"><button class="primary">Criar grupo</button></div>
     </form>
+    <label class="scan alt" style="margin:14px 0 6px"><input type="file" accept=".json,application/json" id="impfile" hidden>📥 Importar grupo de ficheiro</label>
     <p class="small">${fs?'Para juntar amigos, abre o grupo e toca em “Partilhar link”. Quem abrir o link entra no grupo.':'Modo local: a app ainda não está ligada ao Firebase, por isso os grupos ficam só neste dispositivo.'}</p>`;
     return}
   const g=G(),b=saldos(g),sc=showCur&&g.taxas[showCur]?showCur:g.base;
@@ -400,7 +401,7 @@ function render(){
     <div class="card"><label>Moeda principal<select id="basecur">${curOpts(g,g.base)}</select></label>
     ${Object.keys(g.taxas).filter(m=>m!==g.base).map(m=>`<div class="inline"><span style="white-space:nowrap">1 ${flag(g.base)} ${esc(g.base)} =</span><input inputmode="decimal" data-rate="${esc(m)}" value="${String(+(g.taxas[m]/g.taxas[g.base]).toFixed(4)).replace('.',',')}"><span style="white-space:nowrap" title="${esc(curName(m))}">${flag(m)} ${esc(m)}</span></div>`).join('')}
     <form id="addc"><label>Juntar outra moeda<select id="ac">${otherOpts(g,'')}</select></label><div class="inline"><span style="white-space:nowrap">1 ${flag(g.base)} ${esc(g.base)} =</span><input id="acr" inputmode="decimal" placeholder="taxa"><span id="ac-code" style="white-space:nowrap"></span></div><div class="actions" style="margin-top:6px"><button>Adicionar moeda</button></div></form></div>
-    <div class="actions"><button id="leaveg">Sair do grupo</button><button class="danger" id="delg">${confirmDel===g.id?'Confirmar: apagar para todos':'Apagar grupo para todos'}</button></div><p class="small">“Sair” só tira o grupo deste telemóvel. “Apagar” apaga-o para toda a gente.</p>`}
+    <div class="actions"><button id="expg">📤 Exportar grupo</button><button id="leaveg">Sair do grupo</button><button class="danger" id="delg">${confirmDel===g.id?'Confirmar: apagar para todos':'Apagar grupo para todos'}</button></div><p class="small">“Sair” só tira o grupo deste telemóvel. “Apagar” apaga-o para toda a gente.</p>`}
   app.innerHTML=h;if(focusAdd){focusAdd=false;const a=$('#am');if(a)a.focus()}}
 
 /* ---------- editor ---------- */
@@ -566,6 +567,7 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
     g.despesas.push({id:uid(),tx:t.dataset.m!==g.base&&g.taxas[t.dataset.m]?{b:g.base,m:t.dataset.m,r:g.taxas[t.dataset.m]/g.taxas[g.base]}:null,titulo:'Reembolso',emoji:'🤝',tipo:'reemb',modo:'valor',moeda:t.dataset.m,total:amt,data:today(),cr:Date.now(),pag:{[de]:amt},div:{[para]:amt},fixP:[],fixD:[],partes:{}});
     save(g);note('Pagamento registado.',2500)}
   else if(t.dataset.rm){g.membros=g.membros.filter(p=>p.id!==t.dataset.rm);save(g)}
+  else if(t.id==='expg'){const data=JSON.stringify({formato:'contas-do-grupo',...clean(g),id:undefined},null,1);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=(g.nome||'grupo').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-').toLowerCase()+'.json';document.body.appendChild(a);a.click();a.remove()}
   else if(t.id==='leaveg'){forget(g.id);note('Saíste do grupo.',3000)}
   else if(t.id==='rates'){updateRates(g)}
   else if(t.id==='delg'){if(confirmDel===g.id){confirmDel=null;removeGroup(g.id)}else{confirmDel=g.id;render()}}});
@@ -597,6 +599,12 @@ app.addEventListener('change',ev=>{const t=ev.target,g=G();
   else if(t.dataset.ren){const p=g.membros.find(x=>x.id===t.dataset.ren),n=t.value.trim();if(p&&n&&n!==p.nome){p.nome=n;save(g)}}
   else if(t.id==='basecur'){g.base=t.value;save(g)}
   else if(t.dataset.rate){const x=parseFloat(t.value.replace(',','.'));if(x>0){g.taxas[t.dataset.rate]=x*g.taxas[g.base];save(g)}else render()}});
+app.addEventListener('change',async ev=>{const t=ev.target;if(t.id!=='impfile')return;const f=t.files&&t.files[0];t.value='';if(!f)return;
+  try{const d=JSON.parse(await f.text());
+    if(!d||typeof d.nome!=='string'||!Array.isArray(d.membros)||!Array.isArray(d.despesas)||typeof d.taxas!=='object')throw 0;
+    const id=gid();const g={nome:d.nome.slice(0,80),emoji:d.emoji||'💸',base:d.base||'EUR',taxas:d.taxas,membros:d.membros,despesas:d.despesas,id,upd:Date.now()};
+    cur=id;tab='desp';save(g);note('Grupo “'+g.nome+'” importado com '+g.despesas.length+' despesas.',4000)}
+  catch(e){note('Este ficheiro não é um grupo válido.',4000)}});
 app.addEventListener('submit',ev=>{ev.preventDefault();const f=ev.target,g=G();
   if(f.id==='newg'){addPending();const n=$('#ng-n').value.trim(),ps=newPeople;
     if(!n){note('Dá um nome ao grupo.',3000);return}if(!ps.length){note('Junta pelo menos uma pessoa.',3000);$('#ng-p').focus();return}const id=gid();cur=id;tab='desp';const ge=newGE;newPeople=[];newName='';newGE='✈️';
