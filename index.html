@@ -379,7 +379,7 @@ const meOf=g=>g&&meMap[g.id]&&g.membros.some(p=>p.id===meMap[g.id])?meMap[g.id]:
 function setMe(gid,mid){if(mid)meMap[gid]=mid;else{delete meMap[gid];if(prof&&prof.eus)delete prof.eus[gid]}try{localStorage.setItem(MEK,JSON.stringify(meMap))}catch(e){}profSave()}
 function meBox(g,b){let me=meOf(g);
   if(!me&&prof&&prof.nome&&!skipMe[g.id]){const p=g.membros.find(x=>norm(x.nome)===norm(prof.nome));if(p){setMe(g.id,p.id);me=p.id}}
-  if(me&&prof){const p=g.membros.find(x=>x.id===me);if(p){if((prof.nome&&p.nome!==prof.nome)||(prof.emoji&&p.emoji!==prof.emoji))setTimeout(()=>propagate(g.id),0);}}
+  if(me&&prof){const p=g.membros.find(x=>x.id===me);if(p){if(prof.emoji&&p.emoji!==prof.emoji){p.emoji=prof.emoji;setTimeout(()=>save(g),0)}}}
   if(me){const v=b[me],p=g.membros.find(x=>x.id===me);
     return `<div class="mebox">Estás como <b>${esc(pn(p))}</b> · ${v>0.5?'recebes <b>'+fmt(toCur(g,v,g.base),g.base)+'</b>':v<-0.5?'deves <b>'+fmt(toCur(g,-v,g.base),g.base)+'</b>':'estás em dia ✓'} <button class="linkbtn" id="chgme">Não és tu?</button>
     </div>`}
@@ -806,8 +806,8 @@ function pfBank(){const b=prof.banco||{},rv=b.tipo==='revolut',pl=b.plano||'stan
   <p class="q">Moeda da conta</p><select id="pf-bm" aria-label="Moeda da tua conta">${allOpts(b.moeda||'EUR')}</select>
   ${LIMITE[pl]?`<p class="q">Este mês já trocaste mais de ${LIMITE[pl]}?</p><div class="chips">${chip('data-pflim','1',!!b.limite,'Sim')}${chip('data-pflim','',!b.limite,'Não')}</div>`:''}`:''}</div>`}
 /* aplica o nome, emoji e banco do perfil em todos os grupos onde estás */
-function propagate(only){if(!prof)return;(only?[only]:mine).forEach(id=>{const g=groups[id],mid=meMap[id];if(!g||!mid)return;const p=g.membros.find(x=>x.id===mid);if(!p)return;let ch=false;
-  if(prof.nome&&p.nome!==prof.nome){p.nome=prof.nome;ch=true}
+function propagate(only,nameToo){if(!prof)return;(only?[only]:mine).forEach(id=>{const g=groups[id],mid=meMap[id];if(!g||!mid)return;const p=g.membros.find(x=>x.id===mid);if(!p)return;let ch=false;
+  if(nameToo&&prof.nome&&p.nome!==prof.nome){p.nome=prof.nome;ch=true}
   if(prof.emoji&&p.emoji!==prof.emoji){p.emoji=prof.emoji;ch=true}
   if(ch)save(g)})}
 function profMerge(d){const saiu=new Set(d.saiu||[]);let add=0;
@@ -840,7 +840,7 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
   else if(t.id==='opennew'){navPush('new');newOpen=true;render();setTimeout(()=>{const n=$('#ng-n');if(n)n.focus()},50)}
   else if(t.id==='logout'){profOpen=false;signOut(auth).then(()=>note('Saíste da conta. Os grupos continuam neste telemóvel.',4000))}});
 app.addEventListener('change',ev=>{const t=ev.target;if(!prof)return;
-  if(t.id==='pf-nome'){const n=t.value.trim().slice(0,40);if(n){prof.nome=n;profSave();propagate()}else t.value=prof.nome||''}
+  if(t.id==='pf-nome'){const n=t.value.trim().slice(0,40);if(n){prof.nome=n;profSave();propagate(null,true)}else t.value=prof.nome||''}
   else if(t.id==='pf-bm'&&prof.banco){prof.banco.moeda=t.value;profSave();propagate()}});
 /* leitura de recibos: função no servidor (netlify/functions/recibo.mjs) */
 const RECIBO='/.netlify/functions/recibo';
