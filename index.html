@@ -59,6 +59,11 @@ label input,label select{margin-top:6px;color:var(--ink)}
 .bar+.bar{border-top:1px solid var(--line)}
 .track{height:10px;border-radius:5px;background:var(--bg);position:relative;overflow:hidden}
 .track i{position:absolute;top:0;bottom:0;border-radius:5px}
+.newbtn{width:100%;margin-top:14px}
+.pf{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}.pf .pf-t{flex:1;min-width:12em;color:var(--mut);font-size:15px}
+.pf-row{width:100%;text-align:left;background:var(--card);color:var(--ink);flex-wrap:nowrap;padding:14px 18px}
+.pf-row .pf-e{font-size:28px}.pf-row .pf-t{display:flex;flex-direction:column;color:var(--ink);min-width:0}.pf-row .pf-t small{color:var(--mut);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-row .pf-go{color:var(--mut);font-size:24px}
 .you{margin-top:4px}.you.rec{background:#eaf4fb}.you.dev{background:#fff1ea}.you.ok{background:var(--lav)}
 .you-l{margin:0;font-size:14px;color:var(--mut)}.you-big{margin:2px 0 6px;font:600 24px Outfit,sans-serif}
 .you.rec .you-big{color:var(--blued)}.you.dev .you-big{color:var(--peachd)}.you.ok .you-big{color:var(--lavd)}
@@ -247,7 +252,7 @@ const parse=s=>{const n=parseFloat(String(s).replace(/\s/g,'').replace(',','.'))
 const val=c=>(c/100).toFixed(2).replace('.',',');
 const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
 const app=$('#app'),sheet=$('#sheet'),modal=$('#modal');
-let appKey='',payAsk=null;let groups={},cur=null,tab='desp',showCur=null,edit=null,db=null,rowCur={},confirmDel=null,noteT;
+let appKey='',payAsk=null,newOpen=false,joinOpen=false,profOpen=false;let groups={},cur=null,tab='desp',showCur=null,edit=null,db=null,rowCur={},confirmDel=null,noteT;
 const FB_OK=!!(firebaseConfig&&firebaseConfig.apiKey&&!String(firebaseConfig.apiKey).startsWith('COLA'));
 let fs=null,fbApp=null,auth=null;if(FB_OK){try{fbApp=initializeApp(firebaseConfig);fs=getFirestore(fbApp);auth=getAuth(fbApp)}catch(e){console.error(e)}}
 let user=null,prof=null,profT=null;
@@ -377,12 +382,11 @@ function render(){
     $('#sub').textContent='Divide despesas, mesmo quando várias pessoas pagam a mesma conta.';
     $('#hero').innerHTML='';
     const ids=mine.filter(id=>groups[id]).sort((a,b)=>(groups[b].upd||0)-(groups[a].upd||0));
+    const showNew=!ids.length||newOpen||!!newName||newPeople.length>0;
     app.innerHTML=`<div class="list">${ids.length?ids.map(id=>{const g=groups[id];return `<button class="item card" data-open="${esc(id)}"><span class="ic">${esc(g.emoji||'💸')}</span><h3>${esc(g.nome)}</h3><small>${g.membros.length} pessoas · ${g.despesas.length} movimentos</small><span class="amt">${fmt(toCur(g,gasto(g),g.base),g.base)}</span></button>`}).join(''):'<p class="empty">Ainda não há grupos. Cria o primeiro abaixo.</p>'}</div>
-    ${profCard()}
-    <h2 class="sec">🔗 Entrar num grupo</h2><form id="joinlink" class="card"><p class="small" style="margin-top:0">Recebeste um link de um grupo? Cola-o aqui${matchMedia('(display-mode: standalone)').matches?' (na app instalada os links do WhatsApp abrem no navegador, por isso cola-o aqui uma vez)':''}.</p>
-      <div class="inline" style="margin:0"><input id="jl" placeholder="https://…/contas/#g=…" autocomplete="off" enterkeyhint="go" aria-label="Link do grupo"><button class="primary">Entrar</button></div></form>
-    <h2 class="sec">Novo grupo</h2>
-    <form id="newg" class="card">
+    ${showNew?'<h2 class="sec">Novo grupo</h2>':''}
+    ${showNew?'':'<button class="primary newbtn" id="opennew">＋ Novo grupo</button>'}
+    <form id="newg" class="card" ${showNew?'':'hidden'}>
       <label for="ng-n">Nome do grupo</label>
       <div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="ng-emo" data-ein="newg" value="${esc(newGE)}" data-cur="${esc(newGE)}" aria-label="Emoji do grupo: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" id="ng-emo-more" aria-label="Ver lista de emojis"></button></span><input id="ng-n" required value="${esc(newName)}" placeholder="Viagem a Monteverde"></div>
       <div id="ng-emos" hidden>${secPicker(newGE,'newg')}</div>
@@ -392,7 +396,12 @@ function render(){
       <label>Moeda principal<select id="ng-m">${allOpts('EUR')}</select></label>
       <div class="actions"><button class="primary">Criar grupo</button></div>
     </form>
-    <label class="scan alt" style="margin:14px 0 6px"><input type="file" accept=".json,application/json" id="impfile" hidden>📥 Importar grupo de ficheiro</label>
+    ${profCard()}
+    <details class="opts" ${joinOpen?'open':''}><summary>🔗 Tenho um link de um grupo · 📥 Importar</summary>
+<form id="joinlink" class="card"><p class="small" style="margin-top:0">Recebeste um link de um grupo? Cola-o aqui${matchMedia('(display-mode: standalone)').matches?' (na app instalada os links do WhatsApp abrem no navegador, por isso cola-o aqui uma vez)':''}.</p>
+      <div class="inline" style="margin:0"><input id="jl" placeholder="https://…/contas/#g=…" autocomplete="off" enterkeyhint="go" aria-label="Link do grupo"><button class="primary">Entrar</button></div></form>
+        <label class="scan alt" style="margin:10px 0 0"><input type="file" accept=".json,application/json" id="impfile" hidden>📥 Importar grupo de ficheiro</label>
+    </details>
     <p class="small">${fs?'Para juntar amigos, abre o grupo e toca em “Partilhar link”. Quem abrir o link entra no grupo.':'Modo local: a app ainda não está ligada ao Firebase, por isso os grupos ficam só neste dispositivo.'}</p>`;
     return}
   const g=G(),b=saldos(g),sc=showCur&&g.taxas[showCur]?showCur:g.base;
@@ -659,7 +668,7 @@ app.addEventListener('change',async ev=>{const t=ev.target;if(t.id!=='impfile')r
     cur=id;tab='desp';save(g);note('Grupo “'+g.nome+'” importado com '+g.despesas.length+' despesas.',4000)}
   catch(e){note('Este ficheiro não é um grupo válido.',4000)}});
 app.addEventListener('submit',ev=>{ev.preventDefault();const f=ev.target,g=G();
-  if(f.id==='newg'){addPending();const n=$('#ng-n').value.trim(),ps=newPeople;
+  if(f.id==='newg'){newOpen=false;addPending();const n=$('#ng-n').value.trim(),ps=newPeople;
     if(!n){note('Dá um nome ao grupo.',3000);return}if(!ps.length){note('Junta pelo menos uma pessoa.',3000);$('#ng-p').focus();return}const id=gid();cur=id;tab='desp';const ge=newGE;newPeople=[];newName='';newGE='✈️';
     save({id,nome:n,base:$('#ng-m').value,taxas:(()=>{const bm=$('#ng-m').value,t=DEF_RATES[bm]?{...DEF_RATES}:{[bm]:1};if(live){for(const m in t)if(live.rates[m])t[m]=live.rates[m];if(live.rates[bm])t[bm]=live.rates[bm]}return t})(),emoji:ge,membros:ps.map(q=>({id:uid(),nome:q.nome,emoji:q.emoji})),despesas:[],upd:Date.now()})}
   else if(f.id==='addm'){const n=$('#am').value.trim();if(n){focusAdd=true;g.membros.push({id:uid(),nome:n,emoji:PEMO[g.membros.length%PEMO.length]});save(g)}}
@@ -674,11 +683,13 @@ $('#hero').addEventListener('click',async ev=>{if(!ev.target.closest('#share')||
 mine.forEach(sub);fromHash();render();fetchRates(false);
 /* ---------- perfil (opcional, entrar com Google) ---------- */
 function profCard(){if(!auth)return '';
-  if(!user)return `<h2 class="sec">👤 O teu perfil</h2><div class="card"><p class="small" style="margin-top:0">Opcional. Com perfil, os teus grupos aparecem em qualquer telemóvel, a app reconhece-te logo nos grupos e o teu banco fica guardado.</p><div class="actions" style="margin-top:6px"><button class="primary" id="login">Entrar com Google</button></div></div>`;
-  if(!prof)return `<h2 class="sec">👤 O teu perfil</h2><div class="card"><p class="small" style="margin:0">A carregar o perfil…</p></div>`;
-  return `<h2 class="sec">👤 O teu perfil</h2><div class="card"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="pf-emo" data-ein="prof" value="${esc(prof.emoji||'🙂')}" data-cur="${esc(prof.emoji||'🙂')}" aria-label="O teu emoji: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"></span><input id="pf-nome" value="${esc(prof.nome||'')}" placeholder="O teu nome nos grupos" aria-label="O teu nome" enterkeyhint="done"></div>
-  <p class="small">${esc(user.email||'')} · ${prof.banco&&prof.banco.tipo==='revolut'?'🏦 Revolut '+esc((PLANOS[prof.banco.plano]||PLANOS.standard).n):'🏦 Banco: define-o num grupo, em “Estás como”'}</p>
-  <div class="actions" style="margin-top:6px"><button id="logout">Sair da conta</button></div></div>`}
+  if(!user)return `<div class="card pf"><span class="pf-t">👤 Entra para teres os teus grupos em qualquer telemóvel</span><button class="primary" id="login">Entrar com Google</button></div>`;
+  if(!prof)return `<div class="card pf"><span class="pf-t">👤 A carregar o perfil…</span></div>`;
+  const bk=prof.banco&&prof.banco.tipo==='revolut'?' · 🏦 Revolut '+esc((PLANOS[prof.banco.plano]||PLANOS.standard).n):'';
+  if(!profOpen)return `<button class="card pf pf-row" id="pfopen"><span class="pf-e">${esc(prof.emoji||'🙂')}</span><span class="pf-t"><b>${esc(prof.nome||'Sem nome')}</b><small>${esc(user.email||'')}${bk}</small></span><span class="pf-go">›</span></button>`;
+  return `<div class="card"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="pf-emo" data-ein="prof" value="${esc(prof.emoji||'🙂')}" data-cur="${esc(prof.emoji||'🙂')}" aria-label="O teu emoji: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"></span><input id="pf-nome" value="${esc(prof.nome||'')}" placeholder="O teu nome nos grupos" aria-label="O teu nome" enterkeyhint="done"></div>
+  <p class="small">${esc(user.email||'')}${bk||' · 🏦 Banco: define-o num grupo, em “Estás como”'}</p>
+  <div class="actions" style="margin-top:6px"><button id="logout">Sair da conta</button><button class="primary" id="pfclose">Feito</button></div></div>`}
 function profMerge(d){const saiu=new Set(d.saiu||[]);let add=0;
   (d.grupos||[]).forEach(id=>{if(!saiu.has(id)&&!mine.includes(id)){mine.push(id);sub(id);add++}});
   Object.entries(d.eus||{}).forEach(([g,m])=>{if(!meMap[g])meMap[g]=m});try{localStorage.setItem(MEK,JSON.stringify(meMap))}catch(e){}
@@ -689,7 +700,7 @@ if(auth){onAuthStateChanged(auth,u=>{user=u;if(profUnsub){profUnsub();profUnsub=
   profUnsub=onSnapshot(doc(fs,'perfis',u.uid),sn=>{const d=sn.exists()?sn.data():null;
     if(first){first=false;prof=d?{...d}:{nome:(u.displayName||'').split(' ')[0]||'',emoji:'🙂',grupos:[],eus:{},saiu:[]};
       const add=d?profMerge(d):0;cache();profSave(true);if(add)note(add===1?'1 grupo do teu perfil foi adicionado.':add+' grupos do teu perfil foram adicionados.',4000)}
-    else if(d){prof={...prof,nome:d.nome,emoji:d.emoji,banco:d.banco,saiu:d.saiu||prof.saiu}}
+    else if(d){prof={...prof,nome:d.nome,emoji:d.emoji,banco:d.banco,saiu:d.saiu||prof.saiu};const add=profMerge(d);if(add){cache();note(add===1?'Novo grupo adicionado.':add+' grupos novos adicionados.',3500)}}
     if(!edit)render()},e=>{note('Não consegui abrir o perfil ('+(e.code||'erro')+'). Vê as regras do Firestore.',7000)})})}
 async function doLogin(){const pr=new GoogleAuthProvider();pr.setCustomParameters({prompt:'select_account'});
   try{await signInWithPopup(auth,pr)}catch(e){const c=e&&e.code||'';
@@ -699,7 +710,10 @@ async function doLogin(){const pr=new GoogleAuthProvider();pr.setCustomParameter
     else if(c!=='auth/popup-closed-by-user'&&c!=='auth/cancelled-popup-request')note('Não consegui entrar ('+(c||'erro')+').',7000)}}
 app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)return;
   if(t.id==='login')doLogin();
-  else if(t.id==='logout'){signOut(auth).then(()=>note('Saíste da conta. Os grupos continuam neste telemóvel.',4000))}});
+  else if(t.id==='pfopen'){profOpen=true;render()}
+  else if(t.id==='pfclose'){profOpen=false;render()}
+  else if(t.id==='opennew'){newOpen=true;render();setTimeout(()=>{const n=$('#ng-n');if(n)n.focus()},50)}
+  else if(t.id==='logout'){profOpen=false;signOut(auth).then(()=>note('Saíste da conta. Os grupos continuam neste telemóvel.',4000))}});
 app.addEventListener('change',ev=>{const t=ev.target;if(!prof)return;
   if(t.id==='pf-nome'){const n=t.value.trim().slice(0,40);if(n){prof.nome=n;profSave()}else t.value=prof.nome||''}});
 /* leitura de recibos: função no servidor (netlify/functions/recibo.mjs) */
