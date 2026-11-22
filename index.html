@@ -622,7 +622,7 @@ async function scan(f){if(f&&edit&&gkey()&&!(samp&&samp.gem))samp=mkSamp();if(!f
     $('#e-scan').textContent=`Recibo lido${edit.itens.length?': '+edit.itens.length+' artigos':''}. Confirma o total${soma&&soma!==edit.total?' (a soma dos artigos dá '+fmt(soma,edit.moeda)+')':''}.`+msg}
   catch(e){const st=$('#e-scan');const c=e&&e.code;
     if(c==='not_granted'||c==='sampling_disabled'||c==='images_unavailable'||c==='not_declared'){canPhoto=false;if(st)st.textContent='A leitura de recibos não está disponível nesta conta.'}
-    else if(st)st.textContent=c==='gem_key'?'A chave do Gemini deixou de funcionar. Vê em Definições → Leitura de recibos.':c==='busy'?'A Google está sobrecarregada neste momento. Tenta outra vez daqui a um minuto.':c==='rate_limited'?'Demasiados pedidos seguidos. Tenta daqui a pouco.':c==='image_rejected'?'Não consegui usar essa imagem. Tenta outra foto.':c==='cancelled'?'':'Não consegui ler o recibo. Tenta outra vez, com a foto mais nítida.'+(gErr?' ('+gErr+')':'')}
+    else if(st)st.textContent=c==='gem_key'?'A chave do Gemini deixou de funcionar. Vê em Definições → Leitura de recibos.':c==='busy'?'A Google está sobrecarregada neste momento. Tenta outra vez daqui a um minuto.':c==='rate_limited'?'Chegaste ao limite gratuito de leituras da Google por hoje. Amanhã volta a funcionar; até lá, mete a despesa à mão (ou usa a foto na versão do Claude).':c==='image_rejected'?'Não consegui usar essa imagem. Tenta outra foto.':c==='cancelled'?'':'Não consegui ler o recibo. Tenta outra vez, com a foto mais nítida.'+(gErr?' ('+gErr+')':'')}
   finally{sheet.querySelectorAll('.scan').forEach(l=>l.classList.remove('busy'))}}
 function closeEditor(fp){if(!fp&&!modal.hidden)navPop('ed');modal.hidden=true;edit=null;confirmDel=null}
 function saveEditor(){const g=G(),e=edit;let tx=null;if(e.moeda!==g.base){const x=parseFloat(String(e.rx||'').replace(',','.'));if(x>0){tx={b:g.base,m:e.moeda,r:x};g.taxas[e.moeda]=x*g.taxas[g.base]}}const pick=(rows)=>{const o={};order(g,rows).forEach(k=>o[k]=rows[k].v);return o};
@@ -840,8 +840,17 @@ if(fs)try{onSnapshot(doc(fs,'grupos',CFG),sn=>{const d=sn.exists()?sn.data():nul
 function gkey(){let k='';try{k=localStorage.getItem('contas-gemini')||''}catch(e){}if(!k){const g=typeof G==='function'&&cur?G():null;k=(g&&g.iaKey)||''}return k||appKey}
 let gErr='';const GMODELS=['gemini-flash-lite-latest','gemini-2.5-flash-lite','gemini-flash-latest','gemini-2.5-flash','gemini-2.0-flash'];let gModel={},noThink={};
 /* fb=true: usa o projeto Firebase (Firebase AI Logic, Gemini Developer API grátis); fb=false: chave pessoal do Gemini */
-async function gemCall(key,parts,json,fb){let last='upstream_error';const tag=fb?'fb':'k';
-  for(const m of (gModel[tag]?[gModel[tag],...GMODELS.filter(x=>x!==gModel[tag])]:GMODELS)){let r;
+/* lista de modelos atual da Google (os nomes mudam com o tempo) */
+let gList=lsGet('contas-gmodels',null),gListT=0;
+async function gemModels(key,fb){if(fb)return GMODELS;if(gList&&gList.t>Date.now()-864e5)return [...new Set([...gList.m,...GMODELS])];
+  try{const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{headers:{'x-goog-api-key':String(key||'').replace(/[^A-Za-z0-9._\-]/g,'')}});if(r.ok){const j=await r.json();
+    const v=n=>{const m=n.match(/(\d+(?:\.\d+)?)/);return m?parseFloat(m[1]):0};
+    const ms=(j.models||[]).filter(x=>(x.supportedGenerationMethods||[]).includes('generateContent')).map(x=>x.name.replace(/^models\//,'')).filter(n=>/flash/.test(n)&&!/image|tts|audio|live|embed|thinking|exp/.test(n));
+    ms.sort((a,b)=>(/preview/.test(a)-/preview/.test(b))||(v(b)-v(a))||(/lite/.test(b)-/lite/.test(a)));
+    if(ms.length){gList={t:Date.now(),m:ms.slice(0,6)};lsSet('contas-gmodels',gList)}}}catch(e){}
+  return [...new Set([...(gList?gList.m:[]),...GMODELS])]}
+async function gemCall(key,parts,json,fb){let last='upstream_error';const tag=fb?'fb':'k';const all=await gemModels(key,fb);const order=gModel[tag]?[gModel[tag],...all.filter(x=>x!==gModel[tag])]:[...all];const extra=order;
+  for(let i=0;i<order.length&&i<12;i++){const m=order[i];let r;
     const url=fb?'https://firebasevertexai.googleapis.com/v1beta/projects/'+firebaseConfig.projectId+'/models/'+m+':generateContent'
                :'https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent';
     const h={'content-type':'application/json','x-goog-api-key':String(key||'').replace(/[^A-Za-z0-9._\-]/g,'')};if(fb)h['x-firebase-appid']=firebaseConfig.appId;
@@ -851,9 +860,10 @@ async function gemCall(key,parts,json,fb){let last='upstream_error';const tag=fb
     const j=await r.json().catch(()=>({}));const msg=JSON.stringify(j);gErr=r.status+' '+m+': '+((j.error&&j.error.message)||msg).slice(0,160);
     if(r.status===400&&!/API_KEY|API key/i.test(msg)&&!noThink[m]){noThink[m]=1;return gemCall(key,parts,json,fb)}
     if(r.status===400&&!/API_KEY|API key/i.test(msg)){last='upstream_error';continue}
-    if(r.status>=500){last='busy';continue}
-    if(r.status===404||(r.status===429&&/limit: ?0\b/.test(msg))){last=r.status===429?'rate_limited':'upstream_error';continue}
-    if(r.status===429)throw {code:'rate_limited'};
+    {const sug=msg.match(/models\/(gemini-[a-z0-9.\-]+)/g);if(r.status===404&&sug)sug.map(x=>x.replace('models/','').replace(/[.\-]+$/,'')).filter(x=>x!==m&&!extra.includes(x)).forEach(x=>extra.push(x))}
+    if(r.status>=500){if(last!=='rate_limited')last='busy';continue}
+    if(r.status===429){last='rate_limited';continue}
+    if(r.status===404){if(last!=='rate_limited')last='upstream_error';continue}
     if(/SERVICE_DISABLED|has not been used|is disabled|not enabled/i.test(msg))throw {code:'fb_off'};
     if(/API_KEY_INVALID|API key not valid/i.test(msg))throw {code:'bad_key'};
     if(/image|mime|inline/i.test(msg))throw {code:'image_rejected'};
