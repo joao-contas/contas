@@ -71,6 +71,7 @@ label input,label select{margin-top:6px;color:var(--ink)}
 .gi{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center}
 .gmore{width:44px;min-height:44px;padding:0;border-radius:50%;background:transparent;color:var(--mut);font-size:24px;line-height:1}
 .gmenu{display:flex;flex-direction:column;gap:8px;margin:-2px 0 6px}.gmenu p{margin:0 0 2px}
+.offbar{position:fixed;left:0;right:0;bottom:0;z-index:60;background:#24352d;color:#fff;font-size:14px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));text-align:center}.offbar[hidden]{display:none}
 .you{margin-top:4px}.you.rec{background:#eaf4fb}.you.dev{background:#fff1ea}.you.ok{background:var(--lav)}
 .you-l{margin:0;font-size:14px;color:var(--mut)}.you-big{margin:2px 0 6px;font:600 24px Outfit,sans-serif}
 .you.rec .you-big{color:var(--blued)}.you.dev .you-big{color:var(--peachd)}.you.ok .you-big{color:var(--lavd)}
@@ -203,11 +204,12 @@ h2.sec{font-size:21px;margin:30px 0 8px}
   <div id="hero"></div>
 </div></header>
 <main><div class="wrap" id="app"></div></main>
+<div id="offbar" class="offbar" hidden>📴 Sem rede. Podes continuar: tudo fica guardado e é enviado quando houver rede.</div>
 <div id="modal" class="modal" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <div class="note" id="note" role="status"></div>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getFirestore,doc,setDoc,deleteDoc,onSnapshot} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,initializeFirestore,persistentLocalCache,persistentMultipleTabManager,doc,setDoc,deleteDoc,onSnapshot} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {firebaseConfig} from "./config.js";
 {
@@ -261,7 +263,7 @@ const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4)
 const app=$('#app'),sheet=$('#sheet'),modal=$('#modal');
 let appKey='',payAsk=null,newOpen=false,joinOpen=false,profOpen=false;let groups={},cur=null,tab='desp',showCur=null,edit=null,db=null,rowCur={},confirmDel=null,noteT;
 const FB_OK=!!(firebaseConfig&&firebaseConfig.apiKey&&!String(firebaseConfig.apiKey).startsWith('COLA'));
-let fs=null,fbApp=null,auth=null;if(FB_OK){try{fbApp=initializeApp(firebaseConfig);fs=getFirestore(fbApp);auth=getAuth(fbApp)}catch(e){console.error(e)}}
+let fs=null,fbApp=null,auth=null;if(FB_OK){try{fbApp=initializeApp(firebaseConfig);try{fs=initializeFirestore(fbApp,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})})}catch(e){fs=getFirestore(fbApp)}auth=getAuth(fbApp)}catch(e){console.error(e)}}
 let user=null,prof=null,profT=null;
 const LS='contas-cache-v1',MY='contas-meus-grupos';
 function note(t,ms){$('#note').textContent=t||'';clearTimeout(noteT);if(t&&ms)noteT=setTimeout(()=>$('#note').textContent='',ms)}
@@ -287,13 +289,15 @@ function sub(id){if(!fs||subs[id])return;
     if(prof&&groups[id]&&!busy[id])setTimeout(()=>propagate(id),0);
     cache();if(!edit)render();else renderSoft()},
   e=>{note('Sem acesso a este grupo ('+(e.code||'erro')+').',6000);delete subs[id]})}
+function netNote(){const off=!navigator.onLine;document.body.classList.toggle('offline',off);const el=document.getElementById('offbar');if(el)el.hidden=!off}
+addEventListener('online',()=>{netNote();note('De volta à rede: as alterações feitas sem rede foram enviadas.',4000)});addEventListener('offline',netNote);
 function renderSoft(){const sy=scrollY;render();scrollTo(0,sy)}
+const pend={};
 async function save(g){g.upd=Date.now();groups[g.id]=g;if(!mine.includes(g.id))mine.push(g.id);cache();render();
-  if(!fs)return;const id=g.id;if(busy[id]){busy[id].again=true;return}busy[id]={again:false};
-  try{const p=setDoc(doc(fs,'grupos',id),clean(groups[id]));sub(id);await p;
-    while(busy[id].again){busy[id].again=false;if(groups[id])await setDoc(doc(fs,'grupos',id),clean(groups[id]))}}
+  if(!fs)return;const id=g.id;busy[id]=(busy[id]||0)+1;sub(id);
+  try{await setDoc(doc(fs,'grupos',id),clean(groups[id]))}
   catch(e){note('Não foi possível guardar ('+(e.code||'erro')+').',6000)}
-  finally{delete busy[id]}}
+  finally{busy[id]--;if(!busy[id])delete busy[id]}}
 function forget(id){if(prof){prof.saiu=[...new Set([...(prof.saiu||[]),id])].slice(-200)}if(subs[id]){subs[id]();delete subs[id]}delete groups[id];mine=mine.filter(x=>x!==id);if(cur===id)cur=null;cache();render()}
 async function removeGroup(id){forget(id);if(!fs)return;try{await deleteDoc(doc(fs,'grupos',id))}catch(e){note('Não foi possível apagar.',5000)}}
 function fromHash(){const qs=new URLSearchParams(location.search).get('gs');const ml=location.hash.match(/^#gs=([a-z0-9,]{12,})$/)||(qs&&/^[a-z0-9,]{12,}$/.test(qs)?[0,qs]:null);
@@ -813,7 +817,7 @@ function setupGem(){
 /* ver se o projeto Firebase já tem a IA ligada (uma vez por arranque) */
 async function fbCheck(){fbChk='a verificar…';gErr='';try{if(await gemTest(firebaseConfig.apiKey,true)){fbAI=true;fbChk='';setupGem()}else fbChk=gErr||'sem resposta'}catch(e){fbChk=String(e&&e.message||e)}if(cur&&tab==='conf')render()}
 /* Firebase AI Logic fica desligado: o App Check do projeto bloqueia pedidos sem reCAPTCHA */
-setupGem();
+setupGem();netNote();
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 
 /* ---------- câmara dentro da app, com acesso à galeria ---------- */
