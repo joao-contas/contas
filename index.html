@@ -403,7 +403,7 @@ function render(){
     <form id="addc"><label>Juntar outra moeda<select id="ac">${otherOpts(g,'')}</select></label><div class="inline"><span style="white-space:nowrap">1 ${flag(g.base)} ${esc(g.base)} =</span><input id="acr" inputmode="decimal" placeholder="taxa"><span id="ac-code" style="white-space:nowrap"></span></div><div class="actions" style="margin-top:6px"><button>Adicionar moeda</button></div></form></div>
     <h2 class="sec">📷 Leitura de recibos (grátis)</h2><div class="card"><p class="small" style="margin-top:0">${fbAI?'✅ Ativa para todo o grupo (através do projeto Firebase). Não precisas de chave.':gkey()?'✅ Ativa neste telemóvel. O botão 📷 aparece ao criar uma despesa.':'Cria uma chave grátis do Gemini da Google em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (toca em <b>Create API key</b>), copia-a e cola-a aqui. Fica guardada só neste telemóvel.'}</p>
     <div class="inline" style="margin:0"><input id="gkey" type="password" autocomplete="off" placeholder="Colar chave (AIza…)" value="${esc(gkey())}" aria-label="Chave do Gemini"><button id="gkey-ok" type="button">${gkey()?'Mudar':'Guardar'}</button></div>
-    ${gkey()?'<div class="actions" style="margin-top:6px"><button id="gkey-rm" type="button">Remover chave</button></div>':''}<p class="small">No plano grátis a Google pode usar as fotos para melhorar os seus produtos.</p></div>
+    ${gkey()?'<div class="actions" style="margin-top:6px"><button id="gkey-rm" type="button">Remover chave</button></div>':''}${fbAI?'':`<p class="small">Projeto Firebase: ${esc(fbChk)} <button type="button" id="fbretry">Testar outra vez</button></p>`}<p class="small">No plano grátis a Google pode usar as fotos para melhorar os seus produtos.</p></div>
     <div class="actions"><button id="expg">📤 Exportar grupo</button><button id="leaveg">Sair do grupo</button><button class="danger" id="delg">${confirmDel===g.id?'Confirmar: apagar para todos':'Apagar grupo para todos'}</button></div><p class="small">“Sair” só tira o grupo deste telemóvel. “Apagar” apaga-o para toda a gente.</p>`}
   app.innerHTML=h;if(focusAdd){focusAdd=false;const a=$('#am');if(a)a.focus()}}
 
@@ -572,6 +572,7 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
   else if(t.dataset.rm){g.membros=g.membros.filter(p=>p.id!==t.dataset.rm);save(g)}
   else if(t.id==='gkey-ok'){const v=($('#gkey').value||'').trim();if(!v){note('Cola primeiro a chave.');return}
     note('A testar a chave…');gemTest(v,false).then(ok=>{if(ok){try{localStorage.setItem(GK,v)}catch(e){}setupGem();note('Leitura de recibos ativa ✅',3500);render()}else note('A chave não funcionou. Confirma que a copiaste toda.',5000)})}
+  else if(t.id==='fbretry'){fbCheck();render()}
   else if(t.id==='gkey-rm'){try{localStorage.removeItem(GK)}catch(e){}setupGem();render()}
   else if(t.id==='expg'){const data=JSON.stringify({formato:'contas-do-grupo',...clean(g),id:undefined},null,1);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=(g.nome||'grupo').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-').toLowerCase()+'.json';document.body.appendChild(a);a.click();a.remove()}
   else if(t.id==='leaveg'){forget(g.id);note('Saíste do grupo.',3000)}
@@ -637,16 +638,16 @@ async function toJpeg(f){const img=await createImageBitmap(f);const k=Math.min(1
   canPhoto=true;if(edit&&!modal.hidden)drawEditor()}catch(e){}})();
 /* leitura de recibos grátis: Gemini da Google com chave guardada no telemóvel */
 const GK='contas-gemini';function gkey(){try{return localStorage.getItem('contas-gemini')||''}catch(e){return ''}}
-const GMODELS=['gemini-flash-latest','gemini-2.5-flash','gemini-4-hydrogen','gemini-2.0-flash'];let gModel={};
+let gErr='';const GMODELS=['gemini-flash-latest','gemini-2.5-flash','gemini-4-hydrogen','gemini-2.0-flash'];let gModel={};
 /* fb=true: usa o projeto Firebase (Firebase AI Logic, Gemini Developer API grátis); fb=false: chave pessoal do Gemini */
 async function gemCall(key,parts,json,fb){let last='upstream_error';const tag=fb?'fb':'k';
   for(const m of (gModel[tag]?[gModel[tag]]:GMODELS)){let r;
     const url=fb?'https://firebasevertexai.googleapis.com/v1beta/projects/'+firebaseConfig.projectId+'/models/'+m+':generateContent'
                :'https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent';
     const h={'content-type':'application/json','x-goog-api-key':key};if(fb)h['x-firebase-appid']=firebaseConfig.appId;
-    try{r=await fetch(url,{method:'POST',headers:h,body:JSON.stringify({contents:[{role:'user',parts}],generationConfig:json?{responseMimeType:'application/json',temperature:0}:{temperature:0}})})}catch(e){throw {code:'upstream_error'}}
+    try{r=await fetch(url,{method:'POST',headers:h,body:JSON.stringify({contents:[{role:'user',parts}],generationConfig:json?{responseMimeType:'application/json',temperature:0}:{temperature:0}})})}catch(e){gErr='rede/CORS: '+(e&&e.message||e);throw {code:'upstream_error'}}
     if(r.ok){gModel[tag]=m;const j=await r.json();return ((j.candidates||[])[0]?.content?.parts||[]).map(x=>x.text||'').join('')}
-    const j=await r.json().catch(()=>({}));const msg=JSON.stringify(j);
+    const j=await r.json().catch(()=>({}));const msg=JSON.stringify(j);gErr=r.status+' '+m+': '+((j.error&&j.error.message)||msg).slice(0,160);
     if(r.status===404||(r.status===429&&/limit: ?0\b/.test(msg))){last=r.status===429?'rate_limited':'upstream_error';continue}
     if(r.status===429)throw {code:'rate_limited'};
     if(/SERVICE_DISABLED|has not been used|is disabled|not enabled/i.test(msg))throw {code:'fb_off'};
@@ -656,7 +657,7 @@ async function gemCall(key,parts,json,fb){let last='upstream_error';const tag=fb
     throw {code:r.status===401||r.status===403?'bad_key':'upstream_error'}}
   throw {code:last}}
 async function gemTest(k,fb){try{await gemCall(k,[{text:'Responde só: ok'}],false,fb);return true}catch(e){return e.code==='rate_limited'}}
-let fbAI=false;
+let fbAI=false,fbChk='a verificar…';
 function mkSamp(){return {gem:true,json:async(prompt,o)=>{let image;try{image=await toJpeg(o.images[0])}catch(e){throw {code:'image_rejected'}}
     const parts=[{text:prompt},{inlineData:{mimeType:'image/jpeg',data:image}}];let t;
     try{t=fbAI?await gemCall(firebaseConfig.apiKey,parts,true,true):await gemCall(gkey(),parts,true,false)}
@@ -668,7 +669,8 @@ function setupGem(){
   if(!fbAI&&!gkey()){if(samp&&samp.gem){samp=null;canPhoto=false}return}
   samp=mkSamp();canPhoto=true;if(edit&&!modal.hidden)drawEditor()}
 /* ver se o projeto Firebase já tem a IA ligada (uma vez por arranque) */
-if(FB_OK)(async()=>{try{if(await gemTest(firebaseConfig.apiKey,true)){fbAI=true;setupGem();if(cur&&tab==='conf')render()}}catch(e){}})();
+async function fbCheck(){fbChk='a verificar…';gErr='';try{if(await gemTest(firebaseConfig.apiKey,true)){fbAI=true;fbChk='';setupGem()}else fbChk=gErr||'sem resposta'}catch(e){fbChk=String(e&&e.message||e)}if(cur&&tab==='conf')render()}
+if(FB_OK)fbCheck();
 setupGem();
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
