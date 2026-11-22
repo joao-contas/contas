@@ -324,7 +324,7 @@ const meOf=g=>g&&meMap[g.id]&&g.membros.some(p=>p.id===meMap[g.id])?meMap[g.id]:
 function setMe(gid,mid){if(mid)meMap[gid]=mid;else{delete meMap[gid];if(prof&&prof.eus)delete prof.eus[gid]}try{localStorage.setItem(MEK,JSON.stringify(meMap))}catch(e){}profSave()}
 function meBox(g,b){let me=meOf(g);
   if(!me&&prof&&prof.nome&&!skipMe[g.id]){const p=g.membros.find(x=>norm(x.nome)===norm(prof.nome));if(p){setMe(g.id,p.id);me=p.id}}
-  if(me&&prof){const p=g.membros.find(x=>x.id===me);if(p){if(prof.banco&&!p.banco){p.banco={...prof.banco};setTimeout(()=>save(g),0)}else if(p.banco&&JSON.stringify(p.banco)!==JSON.stringify(prof.banco||null)){prof.banco={...p.banco};profSave()}}}
+  if(me&&prof){const p=g.membros.find(x=>x.id===me);if(p){if(prof.banco&&!p.banco){p.banco={...prof.banco};setTimeout(()=>save(g),0)}else if(prof.banco===undefined&&p.banco){prof.banco={...p.banco};profSave()}}}
   if(me){const v=b[me],p=g.membros.find(x=>x.id===me);
     return `<div class="mebox">Estás como <b>${esc(pn(p))}</b> · ${v>0.5?'recebes <b>'+fmt(toCur(g,v,g.base),g.base)+'</b>':v<-0.5?'deves <b>'+fmt(toCur(g,-v,g.base),g.base)+'</b>':'estás em dia ✓'} <button class="linkbtn" id="chgme">Não és tu?</button>
     <div class="bkline">🏦 ${p.banco&&p.banco.tipo==='revolut'?'Revolut '+(PLANOS[p.banco.plano]||PLANOS.standard).n+' · conta em '+esc(p.banco.moeda||g.base):'Sem banco configurado'} <button class="linkbtn" id="bkedit">${bkOpen?'Fechar':p.banco?'Mudar':'Configurar'}</button></div>${bkOpen?bankPanel(g):''}</div>`}
@@ -596,15 +596,15 @@ document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&!modal.hidden)clo
 /* ---------- main view events ---------- */
 $('#hero').addEventListener('click',async ev=>{const t=ev.target.closest('button');if(!t||!G())return;const g=G();
   if(t.dataset.joinme&&prof){const p={id:gid().slice(0,8),nome:prof.nome,emoji:prof.emoji||'🙂'};if(prof.banco)p.banco={...prof.banco};g.membros.push(p);setMe(g.id,p.id);save(g);return}
-  if(t.dataset.me!=null){if(t.dataset.me)setMe(g.id,t.dataset.me);else skipMe[g.id]=true;render()}
+  if(t.dataset.me!=null){if(t.dataset.me){setMe(g.id,t.dataset.me)}else skipMe[g.id]=true;render()}
   else if(t.id==='chgme'){setMe(g.id,null);skipMe[g.id]=false;bkOpen=false;render()}
   else if(t.id==='bkedit'||t.id==='bkdone'){bkOpen=t.id==='bkedit'?!bkOpen:false;render()}
   else if(t.dataset.bk1!=null||t.dataset.bkplan||t.dataset.bklim!=null){const p=g.membros.find(x=>x.id===meOf(g));if(!p)return;
     if(t.dataset.bk1!=null){if(t.dataset.bk1)p.banco={tipo:'revolut',plano:'standard',moeda:g.base,limite:false};else delete p.banco}
     else if(t.dataset.bkplan){p.banco.plano=t.dataset.bkplan;if(!LIMITE[p.banco.plano])p.banco.limite=false}
     else p.banco.limite=!!t.dataset.bklim;
-    save(g)}});
-$('#hero').addEventListener('change',ev=>{const t=ev.target,g=G();if(!g||!t.dataset.bkm)return;const p=g.membros.find(x=>x.id===meOf(g));if(p&&p.banco){p.banco.moeda=t.value;save(g)}});
+    save(g);if(prof){prof.banco=p.banco?{...p.banco}:null;profSave();propagate()}}});
+$('#hero').addEventListener('change',ev=>{const t=ev.target,g=G();if(!g||!t.dataset.bkm)return;const p=g.membros.find(x=>x.id===meOf(g));if(p&&p.banco){p.banco.moeda=t.value;save(g);if(prof){prof.banco={...p.banco};profSave();propagate()}}});
 $('#back').addEventListener('click',()=>{cur=null;shareOpen=false;bkOpen=false;confirmDel=null;render();scrollTo(0,0)});
 app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)return;const g=G();
   if(t.dataset.emo){setEmo(t.dataset.emo,t.dataset.e,t.parentNode);return}
@@ -635,7 +635,7 @@ function setEmo(c,e,box){const g=G();
   if(c==='newg'){newGE=e;setEin('#ng-emo',e);$('#ng-emos').hidden=true}
   else if(c==='grp'){g.emoji=e;save(g)}
   else if(c.startsWith('m:')){const p=g.membros.find(x=>x.id===c.slice(2));if(p){p.emoji=e;pickM=null;save(g)}}
-  else if(c==='prof'&&prof){prof.emoji=e;profSave()}
+  else if(c==='prof'&&prof){prof.emoji=e;profSave();propagate()}
   else if(c==='exp'&&edit){edit.emoji=e;edit.emoFix=true;setEin('#e-emo',e);$('#e-emos').hidden=true}}
 const emoInput=ev=>{const t=ev.target;if(!t.dataset||!(t.dataset.emoin||t.dataset.ein))return;const c=t.dataset.emoin||t.dataset.ein,e=firstEmo(t.value.replace(t.dataset.ein?t.dataset.cur||'':'',''))||firstEmo(t.value);if(!e)return;
   t.value=e;if(t.dataset.ein){t.dataset.cur=e;const pk={newg:'#ng-emos',grp:'#g-emos',exp:'#e-emos'}[c];setEmo(c,e,(pk&&$(pk))||t.parentNode)}else setEmo(c,e,t.parentNode);t.blur()};
@@ -687,9 +687,23 @@ function profCard(){if(!auth)return '';
   if(!prof)return `<div class="card pf"><span class="pf-t">👤 A carregar o perfil…</span></div>`;
   const bk=prof.banco&&prof.banco.tipo==='revolut'?' · 🏦 Revolut '+esc((PLANOS[prof.banco.plano]||PLANOS.standard).n):'';
   if(!profOpen)return `<button class="card pf pf-row" id="pfopen"><span class="pf-e">${esc(prof.emoji||'🙂')}</span><span class="pf-t"><b>${esc(prof.nome||'Sem nome')}</b><small>${esc(user.email||'')}${bk}</small></span><span class="pf-go">›</span></button>`;
-  return `<div class="card"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="pf-emo" data-ein="prof" value="${esc(prof.emoji||'🙂')}" data-cur="${esc(prof.emoji||'🙂')}" aria-label="O teu emoji: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"></span><input id="pf-nome" value="${esc(prof.nome||'')}" placeholder="O teu nome nos grupos" aria-label="O teu nome" enterkeyhint="done"></div>
-  <p class="small">${esc(user.email||'')}${bk||' · 🏦 Banco: define-o num grupo, em “Estás como”'}</p>
+  return `<div class="card" style="margin-top:18px"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="pf-emo" data-ein="prof" value="${esc(prof.emoji||'🙂')}" data-cur="${esc(prof.emoji||'🙂')}" aria-label="O teu emoji: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"></span><input id="pf-nome" value="${esc(prof.nome||'')}" placeholder="O teu nome nos grupos" aria-label="O teu nome" enterkeyhint="done"></div>
+  <p class="small">${esc(user.email||'')} · O nome, o emoji e o banco mudam em todos os teus grupos.</p>
+  ${pfBank()}
   <div class="actions" style="margin-top:6px"><button id="logout">Sair da conta</button><button class="primary" id="pfclose">Feito</button></div></div>`}
+function pfBank(){const b=prof.banco||{},rv=b.tipo==='revolut',pl=b.plano||'standard';
+  const chip=(attr,val,on,txt)=>`<button type="button" class="pchip ${on?'on':''}" ${attr}="${val}">${txt}</button>`;
+  return `<div class="bkp" style="margin-top:6px"><p class="q">🏦 Pagas com Revolut?</p><div class="chips">${chip('data-pfbk','revolut',rv,'Sim')}${chip('data-pfbk','',!rv,'Não')}</div>
+  ${rv?`<p class="q">Plano</p><div class="chips">${Object.entries(PLANOS).map(([k,v])=>chip('data-pfplan',k,pl===k,v.n)).join('')}</div>
+  <p class="q">Moeda da conta</p><select id="pf-bm" aria-label="Moeda da tua conta">${allOpts(b.moeda||'EUR')}</select>
+  ${LIMITE[pl]?`<p class="q">Este mês já trocaste mais de ${LIMITE[pl]}?</p><div class="chips">${chip('data-pflim','1',!!b.limite,'Sim')}${chip('data-pflim','',!b.limite,'Não')}</div>`:''}`:''}</div>`}
+/* aplica o nome, emoji e banco do perfil em todos os grupos onde estás */
+function propagate(){if(!prof)return;mine.forEach(id=>{const g=groups[id],mid=meMap[id];if(!g||!mid)return;const p=g.membros.find(x=>x.id===mid);if(!p)return;let ch=false;
+  if(prof.nome&&p.nome!==prof.nome){p.nome=prof.nome;ch=true}
+  if(prof.emoji&&p.emoji!==prof.emoji){p.emoji=prof.emoji;ch=true}
+  const nb=prof.banco?JSON.stringify(prof.banco):null,ob=p.banco?JSON.stringify(p.banco):null;
+  if(nb!==ob){if(prof.banco)p.banco={...prof.banco};else delete p.banco;ch=true}
+  if(ch)save(g)})}
 function profMerge(d){const saiu=new Set(d.saiu||[]);let add=0;
   (d.grupos||[]).forEach(id=>{if(!saiu.has(id)&&!mine.includes(id)){mine.push(id);sub(id);add++}});
   Object.entries(d.eus||{}).forEach(([g,m])=>{if(!meMap[g])meMap[g]=m});try{localStorage.setItem(MEK,JSON.stringify(meMap))}catch(e){}
@@ -712,10 +726,16 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
   if(t.id==='login')doLogin();
   else if(t.id==='pfopen'){profOpen=true;render()}
   else if(t.id==='pfclose'){profOpen=false;render()}
+  else if(prof&&(t.dataset.pfbk!=null||t.dataset.pfplan||t.dataset.pflim!=null)){
+    if(t.dataset.pfbk!=null){prof.banco=t.dataset.pfbk?{tipo:'revolut',plano:'standard',moeda:(prof.banco&&prof.banco.moeda)||'EUR',limite:false}:null}
+    else if(t.dataset.pfplan){prof.banco.plano=t.dataset.pfplan;if(!LIMITE[prof.banco.plano])prof.banco.limite=false}
+    else prof.banco.limite=!!t.dataset.pflim;
+    profSave();propagate();render()}
   else if(t.id==='opennew'){newOpen=true;render();setTimeout(()=>{const n=$('#ng-n');if(n)n.focus()},50)}
   else if(t.id==='logout'){profOpen=false;signOut(auth).then(()=>note('Saíste da conta. Os grupos continuam neste telemóvel.',4000))}});
 app.addEventListener('change',ev=>{const t=ev.target;if(!prof)return;
-  if(t.id==='pf-nome'){const n=t.value.trim().slice(0,40);if(n){prof.nome=n;profSave()}else t.value=prof.nome||''}});
+  if(t.id==='pf-nome'){const n=t.value.trim().slice(0,40);if(n){prof.nome=n;profSave();propagate()}else t.value=prof.nome||''}
+  else if(t.id==='pf-bm'&&prof.banco){prof.banco.moeda=t.value;profSave();propagate()}});
 /* leitura de recibos: função no servidor (netlify/functions/recibo.mjs) */
 const RECIBO='/.netlify/functions/recibo';
 async function loadImg(f){try{return await createImageBitmap(f)}catch(e){}
