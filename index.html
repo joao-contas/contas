@@ -226,7 +226,7 @@ const parse=s=>{const n=parseFloat(String(s).replace(/\s/g,'').replace(',','.'))
 const val=c=>(c/100).toFixed(2).replace('.',',');
 const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
 const app=$('#app'),sheet=$('#sheet'),modal=$('#modal');
-let groups={},cur=null,tab='desp',showCur=null,edit=null,db=null,rowCur={},confirmDel=null,noteT;
+let appKey='';let groups={},cur=null,tab='desp',showCur=null,edit=null,db=null,rowCur={},confirmDel=null,noteT;
 const FB_OK=!!(firebaseConfig&&firebaseConfig.apiKey&&!String(firebaseConfig.apiKey).startsWith('COLA'));
 let fs=null;if(FB_OK){try{fs=getFirestore(initializeApp(firebaseConfig))}catch(e){console.error(e)}}
 const LS='contas-cache-v1',MY='contas-meus-grupos';
@@ -401,9 +401,9 @@ function render(){
     <div class="card"><label>Moeda principal<select id="basecur">${curOpts(g,g.base)}</select></label>
     ${Object.keys(g.taxas).filter(m=>m!==g.base).map(m=>`<div class="inline"><span style="white-space:nowrap">1 ${flag(g.base)} ${esc(g.base)} =</span><input inputmode="decimal" data-rate="${esc(m)}" value="${String(+(g.taxas[m]/g.taxas[g.base]).toFixed(4)).replace('.',',')}"><span style="white-space:nowrap" title="${esc(curName(m))}">${flag(m)} ${esc(m)}</span></div>`).join('')}
     <form id="addc"><label>Juntar outra moeda<select id="ac">${otherOpts(g,'')}</select></label><div class="inline"><span style="white-space:nowrap">1 ${flag(g.base)} ${esc(g.base)} =</span><input id="acr" inputmode="decimal" placeholder="taxa"><span id="ac-code" style="white-space:nowrap"></span></div><div class="actions" style="margin-top:6px"><button>Adicionar moeda</button></div></form></div>
-    <h2 class="sec">📷 Leitura de recibos (grátis)</h2><div class="card">${g.iaKey?`<p class="small" style="margin-top:0">✅ Ativa para todo o grupo. Toda a gente vê o botão 📷 ao criar uma despesa, sem fazer nada.</p><div class="actions" style="margin-top:6px"><button id="gkey-rm" type="button">Desligar para o grupo</button></div>`:`<p class="small" style="margin-top:0">Cria uma chave grátis do Gemini da Google em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (toca em <b>Create API key</b>), copia-a e cola-a aqui. Basta uma pessoa fazer isto: fica ativa para todo o grupo.</p>
+    <h2 class="sec">📷 Leitura de recibos (grátis)</h2><div class="card">${(appKey||g.iaKey)?`<p class="small" style="margin-top:0">✅ Ativa na app inteira, para todos os grupos. Toda a gente vê o botão 📷 ao criar uma despesa, sem fazer nada.</p><div class="actions" style="margin-top:6px"><button id="gkey-rm" type="button">Desligar a leitura de recibos</button></div>`:`<p class="small" style="margin-top:0">Cria uma chave grátis do Gemini da Google em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (toca em <b>Create API key</b>), copia-a e cola-a aqui. Basta fazer isto uma vez: fica ativa na app inteira, para toda a gente e todos os grupos.</p>
     <div class="inline" style="margin:0"><input id="gkey" type="password" autocomplete="off" placeholder="Colar chave (AIza…)" aria-label="Chave do Gemini"><button id="gkey-ok" type="button">Guardar</button></div>`}
-    <p class="small">No plano grátis a Google pode usar as fotos para melhorar os seus produtos. A chave fica só neste grupo, não no GitHub.</p></div>
+    <p class="small">No plano grátis a Google pode usar as fotos para melhorar os seus produtos. A chave fica guardada no Firebase, não no GitHub.</p></div>
     <div class="actions"><button id="expg">📤 Exportar grupo</button><button id="leaveg">Sair do grupo</button><button class="danger" id="delg">${confirmDel===g.id?'Confirmar: apagar para todos':'Apagar grupo para todos'}</button></div><p class="small">“Sair” só tira o grupo deste telemóvel. “Apagar” apaga-o para toda a gente.</p>`}
   app.innerHTML=h;if(focusAdd){focusAdd=false;const a=$('#am');if(a)a.focus()}}
 
@@ -571,8 +571,8 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
     save(g);note('Pagamento registado.',2500)}
   else if(t.dataset.rm){g.membros=g.membros.filter(p=>p.id!==t.dataset.rm);save(g)}
   else if(t.id==='gkey-ok'){const v=($('#gkey').value||'').trim();if(!v){note('Cola primeiro a chave.');return}
-    note('A testar a chave…');gemTest(v,false).then(ok=>{if(ok){g.iaKey=v;samp=mkSamp();canPhoto=true;save(g);note('Leitura de recibos ativa para todo o grupo ✅',4000)}else note('A chave não funcionou: '+(gErr||'confirma que a copiaste toda.'),7000)})}
-  else if(t.id==='gkey-rm'){delete g.iaKey;try{localStorage.removeItem('contas-gemini')}catch(e){}samp=null;canPhoto=false;save(g)}
+    note('A testar a chave…');gemTest(v,false).then(ok=>{if(ok){appKey=v;setDoc(doc(fs,'grupos',CFG),{nome:'config',membros:[],despesas:[],iaKey:v}).catch(e=>note('Não consegui guardar: '+e.message,6000));samp=mkSamp();canPhoto=true;render();note('Leitura de recibos ativa para toda a gente ✅',4000)}else note('A chave não funcionou: '+(gErr||'confirma que a copiaste toda.'),7000)})}
+  else if(t.id==='gkey-rm'){appKey='';deleteDoc(doc(fs,'grupos',CFG)).catch(()=>{});if(g.iaKey){delete g.iaKey;save(g)}else render();try{localStorage.removeItem('contas-gemini')}catch(e){}samp=null;canPhoto=false}
   else if(t.id==='expg'){const data=JSON.stringify({formato:'contas-do-grupo',...clean(g),id:undefined,iaKey:undefined},null,1);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=(g.nome||'grupo').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-').toLowerCase()+'.json';document.body.appendChild(a);a.click();a.remove()}
   else if(t.id==='leaveg'){forget(g.id);note('Saíste do grupo.',3000)}
   else if(t.id==='rates'){updateRates(g)}
@@ -636,7 +636,9 @@ async function toJpeg(f){const img=await createImageBitmap(f);const k=Math.min(1
     if(!r2.ok)throw {code:r2.status===429?'rate_limited':r2.status===413?'image_rejected':'upstream_error'};return r2.json()}};
   canPhoto=true;if(edit&&!modal.hidden)drawEditor()}catch(e){}})();
 /* leitura de recibos grátis: Gemini da Google com chave guardada no telemóvel */
-const GK='contas-gemini';function gkey(){let k='';try{k=localStorage.getItem('contas-gemini')||''}catch(e){}if(!k){const g=typeof G==='function'&&cur?G():null;k=(g&&g.iaKey)||''}return k}
+const GK='contas-gemini';const CFG='app-config-leitura-ia';
+if(fs)try{onSnapshot(doc(fs,'grupos',CFG),sn=>{const d=sn.exists()?sn.data():null;appKey=(d&&d.iaKey)||'';if(cur&&tab==='conf')render()},()=>{})}catch(e){}
+function gkey(){let k='';try{k=localStorage.getItem('contas-gemini')||''}catch(e){}if(!k){const g=typeof G==='function'&&cur?G():null;k=(g&&g.iaKey)||''}return k||appKey}
 let gErr='';const GMODELS=['gemini-flash-latest','gemini-2.5-flash','gemini-4-hydrogen','gemini-2.0-flash'];let gModel={};
 /* fb=true: usa o projeto Firebase (Firebase AI Logic, Gemini Developer API grátis); fb=false: chave pessoal do Gemini */
 async function gemCall(key,parts,json,fb){let last='upstream_error';const tag=fb?'fb':'k';
