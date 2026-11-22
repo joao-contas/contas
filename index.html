@@ -269,6 +269,7 @@ function sub(id){if(!fs||subs[id])return;
   subs[id]=onSnapshot(doc(fs,'grupos',id),snap=>{
     if(snap.exists()){const v=snap.data();if(v&&Array.isArray(v.membros)&&Array.isArray(v.despesas)){groups[id]={...clean(v),id};if(!mine.includes(id))mine.push(id);if(pendingOpen===id)pendingOpen=null}}
     else if(!snap.metadata.fromCache&&!busy[id]){if(groups[id]||pendingOpen===id){delete groups[id];mine=mine.filter(x=>x!==id);if(pendingOpen===id){pendingOpen=null;cur=null}note('Este grupo não existe ou foi apagado.',5000)}}
+    if(prof&&groups[id]&&!busy[id])setTimeout(()=>propagate(id),0);
     cache();if(!edit)render();else renderSoft()},
   e=>{note('Sem acesso a este grupo ('+(e.code||'erro')+').',6000);delete subs[id]})}
 function renderSoft(){const sy=scrollY;render();scrollTo(0,sy)}
@@ -324,7 +325,7 @@ const meOf=g=>g&&meMap[g.id]&&g.membros.some(p=>p.id===meMap[g.id])?meMap[g.id]:
 function setMe(gid,mid){if(mid)meMap[gid]=mid;else{delete meMap[gid];if(prof&&prof.eus)delete prof.eus[gid]}try{localStorage.setItem(MEK,JSON.stringify(meMap))}catch(e){}profSave()}
 function meBox(g,b){let me=meOf(g);
   if(!me&&prof&&prof.nome&&!skipMe[g.id]){const p=g.membros.find(x=>norm(x.nome)===norm(prof.nome));if(p){setMe(g.id,p.id);me=p.id}}
-  if(me&&prof){const p=g.membros.find(x=>x.id===me);if(p){if(prof.banco&&!p.banco){p.banco={...prof.banco};setTimeout(()=>save(g),0)}else if(prof.banco===undefined&&p.banco){prof.banco={...p.banco};profSave()}}}
+  if(me&&prof){const p=g.membros.find(x=>x.id===me);if(p){if((prof.nome&&p.nome!==prof.nome)||(prof.emoji&&p.emoji!==prof.emoji))setTimeout(()=>propagate(g.id),0);if(prof.banco&&!p.banco){p.banco={...prof.banco};setTimeout(()=>save(g),0)}else if(prof.banco===undefined&&p.banco){prof.banco={...p.banco};profSave()}}}
   if(me){const v=b[me],p=g.membros.find(x=>x.id===me);
     return `<div class="mebox">Estás como <b>${esc(pn(p))}</b> · ${v>0.5?'recebes <b>'+fmt(toCur(g,v,g.base),g.base)+'</b>':v<-0.5?'deves <b>'+fmt(toCur(g,-v,g.base),g.base)+'</b>':'estás em dia ✓'} <button class="linkbtn" id="chgme">Não és tu?</button>
     <div class="bkline">🏦 ${p.banco&&p.banco.tipo==='revolut'?'Revolut '+(PLANOS[p.banco.plano]||PLANOS.standard).n+' · conta em '+esc(p.banco.moeda||g.base):'Sem banco configurado'} <button class="linkbtn" id="bkedit">${bkOpen?'Fechar':p.banco?'Mudar':'Configurar'}</button></div>${bkOpen?bankPanel(g):''}</div>`}
@@ -698,7 +699,7 @@ function pfBank(){const b=prof.banco||{},rv=b.tipo==='revolut',pl=b.plano||'stan
   <p class="q">Moeda da conta</p><select id="pf-bm" aria-label="Moeda da tua conta">${allOpts(b.moeda||'EUR')}</select>
   ${LIMITE[pl]?`<p class="q">Este mês já trocaste mais de ${LIMITE[pl]}?</p><div class="chips">${chip('data-pflim','1',!!b.limite,'Sim')}${chip('data-pflim','',!b.limite,'Não')}</div>`:''}`:''}</div>`}
 /* aplica o nome, emoji e banco do perfil em todos os grupos onde estás */
-function propagate(){if(!prof)return;mine.forEach(id=>{const g=groups[id],mid=meMap[id];if(!g||!mid)return;const p=g.membros.find(x=>x.id===mid);if(!p)return;let ch=false;
+function propagate(only){if(!prof)return;(only?[only]:mine).forEach(id=>{const g=groups[id],mid=meMap[id];if(!g||!mid)return;const p=g.membros.find(x=>x.id===mid);if(!p)return;let ch=false;
   if(prof.nome&&p.nome!==prof.nome){p.nome=prof.nome;ch=true}
   if(prof.emoji&&p.emoji!==prof.emoji){p.emoji=prof.emoji;ch=true}
   const nb=prof.banco?JSON.stringify(prof.banco):null,ob=p.banco?JSON.stringify(p.banco):null;
@@ -713,7 +714,7 @@ if(auth){onAuthStateChanged(auth,u=>{user=u;if(profUnsub){profUnsub();profUnsub=
   if(!u){render();return}render();let first=true;
   profUnsub=onSnapshot(doc(fs,'perfis',u.uid),sn=>{const d=sn.exists()?sn.data():null;
     if(first){first=false;prof=d?{...d}:{nome:(u.displayName||'').split(' ')[0]||'',emoji:'🙂',grupos:[],eus:{},saiu:[]};
-      const add=d?profMerge(d):0;cache();profSave(true);if(add)note(add===1?'1 grupo do teu perfil foi adicionado.':add+' grupos do teu perfil foram adicionados.',4000)}
+      const add=d?profMerge(d):0;cache();profSave(true);setTimeout(propagate,0);if(add)note(add===1?'1 grupo do teu perfil foi adicionado.':add+' grupos do teu perfil foram adicionados.',4000)}
     else if(d){prof={...prof,nome:d.nome,emoji:d.emoji,banco:d.banco,saiu:d.saiu||prof.saiu};const add=profMerge(d);if(add){cache();note(add===1?'Novo grupo adicionado.':add+' grupos novos adicionados.',3500)}}
     if(!edit)render()},e=>{note('Não consegui abrir o perfil ('+(e.code||'erro')+'). Vê as regras do Firestore.',7000)})})}
 async function doLogin(){const pr=new GoogleAuthProvider();pr.setCustomParameters({prompt:'select_account'});
