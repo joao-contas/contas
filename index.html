@@ -96,6 +96,7 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .rb{display:grid;grid-template-columns:minmax(0,9em) minmax(0,1fr) auto;gap:10px;align-items:center;padding:5px 0;font-size:14px}.rb span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rbt{height:10px;border-radius:5px;background:var(--line);overflow:hidden}.rbt i{display:block;height:100%;background:var(--lavd);border-radius:5px}
 .hrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line)}.hrow:first-of-type{border-top:0}
+.pchip.taken{opacity:.5}
 .you{margin-top:4px}.you.rec{background:#e6ecf7}.you.dev{background:#fff1ea}.you.ok{background:var(--lav)}
 .you-l{margin:0;font-size:14px;color:var(--mut)}.you-big{margin:2px 0 6px;font:600 24px Outfit,sans-serif}
 .you.rec .you-big{color:var(--blued)}.you.dev .you-big{color:var(--peachd)}.you.ok .you-big{color:var(--lavd)}
@@ -285,7 +286,7 @@ const parse=s=>{const n=parseFloat(String(s).replace(/\s/g,'').replace(',','.'))
 const val=c=>(c/100).toFixed(2).replace('.',',');
 const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
 const app=$('#app'),sheet=$('#sheet'),modal=$('#modal');
-let appKey='',payAsk=null,newOpen=false,joinOpen=false,profOpen=false;let groups={},cur=null,tab='desp',showCur=null,edit=null,db=null,rowCur={},confirmDel=null,noteT;
+let noAuto={},appKey='',payAsk=null,newOpen=false,joinOpen=false,profOpen=false;let groups={},cur=null,tab='desp',showCur=null,edit=null,db=null,rowCur={},confirmDel=null,noteT;
 const FB_OK=!!(firebaseConfig&&firebaseConfig.apiKey&&!String(firebaseConfig.apiKey).startsWith('COLA'));
 let fs=null,fbApp=null,auth=null;if(FB_OK){try{fbApp=initializeApp(firebaseConfig);try{fs=initializeFirestore(fbApp,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})})}catch(e){fs=getFirestore(fbApp)}auth=getAuth(fbApp)}catch(e){console.error(e)}}
 let user=null,prof=null,profT=null;
@@ -377,14 +378,14 @@ const transf=(g,b)=>simp?acertos(b):detalhado(g);
 const MEK='contas-eu';let meMap={},skipMe={},shareOpen=false,pendingHashId=null;try{meMap=JSON.parse(localStorage.getItem(MEK)||'{}')||{}}catch(e){}
 const meOf=g=>g&&meMap[g.id]&&g.membros.some(p=>p.id===meMap[g.id])?meMap[g.id]:null;
 function setMe(gid,mid){if(mid)meMap[gid]=mid;else{delete meMap[gid];if(prof&&prof.eus)delete prof.eus[gid]}try{localStorage.setItem(MEK,JSON.stringify(meMap))}catch(e){}profSave()}
-function meBox(g,b){let me=meOf(g);
-  if(!me&&prof&&prof.nome&&!skipMe[g.id]){const p=g.membros.find(x=>norm(x.nome)===norm(prof.nome));if(p){setMe(g.id,p.id);me=p.id}}
+function meBox(g,b){{const m0=meOf(g);if(m0&&!(g.claims||{})[m0]&&typeof claim==='function')setTimeout(()=>{if(!(g.claims||{})[m0])claim(g,m0)},0)}let me=meOf(g);
+  if(!me&&prof&&prof.nome&&!skipMe[g.id]&&!noAuto[g.id]){const p=g.membros.find(x=>norm(x.nome)===norm(prof.nome));if(p&&!takenBy(g,p.id)){setMe(g.id,p.id);me=p.id}}
   if(me&&prof){const p=g.membros.find(x=>x.id===me);if(p){if(prof.emoji&&p.emoji!==prof.emoji){p.emoji=prof.emoji;setTimeout(()=>save(g),0)}}}
   if(me){const v=b[me],p=g.membros.find(x=>x.id===me);
     return `<div class="mebox">Estás como <b>${esc(pn(p))}</b> · ${v>0.5?'recebes <b>'+fmt(toCur(g,v,g.base),g.base)+'</b>':v<-0.5?'deves <b>'+fmt(toCur(g,-v,g.base),g.base)+'</b>':'estás em dia ✓'} <button class="linkbtn" id="chgme">Não és tu?</button>
     </div>`}
   if(skipMe[g.id])return '';
-  return `<div class="mebox"><b>Quem és tu neste grupo?</b><div class="chips">${g.membros.map(p=>`<button class="pchip" data-me="${esc(p.id)}">${esc(pn(p))}</button>`).join('')}${prof&&prof.nome?`<button class="pchip" data-joinme="1">➕ Sou ${esc(prof.emoji||'🙂')} ${esc(prof.nome)} (juntar-me)</button>`:''}<button class="pchip" data-me="">Só estou a ver</button></div></div>`}
+  return `<div class="mebox"><b>Quem és tu neste grupo?</b><div class="chips">${g.membros.map(p=>{const tk=takenBy(g,p.id);return `<button class="pchip ${tk?'taken':''}" data-me="${esc(p.id)}">${tk?'🔒 ':''}${esc(pn(p))}</button>`}).join('')}${prof&&prof.nome?`<button class="pchip" data-joinme="1">➕ Sou ${esc(prof.emoji||'🙂')} ${esc(prof.nome)} (juntar-me)</button>`:''}<button class="pchip" data-me="">Só estou a ver</button></div></div>`}
 const gasto=g=>g.despesas.filter(d=>d.tipo!=='reemb').reduce((s,d)=>s+RD(g,d,d.total),0);
 const ALLC='AED AFN ALL AMD AOA ARS AUD AWG AZN BAM BBD BDT BGN BHD BIF BMD BND BOB BRL BSD BTN BWP BYN BZD CAD CDF CHF CLP CNY COP CRC CUP CVE CZK DJF DKK DOP DZD EGP ERN ETB EUR FJD FKP GBP GEL GHS GIP GMD GNF GTQ GYD HKD HNL HTG HUF IDR ILS INR IQD IRR ISK JMD JOD JPY KES KGS KHR KMF KPW KRW KWD KYD KZT LAK LBP LKR LRD LSL LYD MAD MDL MGA MKD MMK MNT MOP MRU MUR MVR MWK MXN MYR MZN NAD NGN NIO NOK NPR NZD OMR PAB PEN PGK PHP PKR PLN PYG QAR RON RSD RUB RWF SAR SBD SCR SDG SEK SGD SHP SLE SOS SRD SSP STN SVC SYP SZL THB TJS TMT TND TOP TRY TTD TWD TZS UAH UGX USD UYU UZS VES VND VUV WST XAF XCD XCG XOF XPF YER ZAR ZMW ZWG'.split(' ');
 const TOPC=['EUR','USD','CRC','GBP','BRL','CHF','CAD','MXN','JPY'];
@@ -690,8 +691,8 @@ document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&!modal.hidden)clo
 /* ---------- main view events ---------- */
 $('#hero').addEventListener('click',async ev=>{const t=ev.target.closest('button');if(!t||!G())return;const g=G();
   if(t.dataset.joinme&&prof){const p={id:gid().slice(0,8),nome:prof.nome,emoji:prof.emoji||'🙂'};if(prof.banco)p.banco={...prof.banco};g.membros.push(p);setMe(g.id,p.id);save(g);return}
-  if(t.dataset.me!=null){if(t.dataset.me){setMe(g.id,t.dataset.me)}else skipMe[g.id]=true;render()}
-  else if(t.id==='chgme'){setMe(g.id,null);skipMe[g.id]=false;bkOpen=false;render()}
+  if(t.dataset.me!=null){if(t.dataset.me){if(takenBy(g,t.dataset.me)&&askTake!==t.dataset.me){askTake=t.dataset.me;note(nome(g,t.dataset.me)+' já foi escolhido noutro telemóvel. Se és mesmo tu, toca outra vez.',5000);return}askTake=null;setMe(g.id,t.dataset.me);claim(g,t.dataset.me)}else skipMe[g.id]=true;render()}
+  else if(t.id==='chgme'){claim(g,null);setMe(g.id,null);skipMe[g.id]=false;noAuto[g.id]=true;bkOpen=false;render()}
   else if(t.id==='bkedit'||t.id==='bkdone'){bkOpen=t.id==='bkedit'?!bkOpen:false;render()}
   else if(t.dataset.bk1!=null||t.dataset.bkplan||t.dataset.bklim!=null){const p=g.membros.find(x=>x.id===meOf(g));if(!p)return;
     if(t.dataset.bk1!=null){if(t.dataset.bk1)p.banco={tipo:'revolut',plano:'standard',moeda:g.base,limite:false};else delete p.banco}
@@ -1052,6 +1053,14 @@ function histHTML(g){const lg=g.log||[],lx=g.lixo||[];if(!lg.length&&!lx.length)
   const dt=t=>{const x=new Date(t);return x.toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'})+' '+x.toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})};
   return `<h2 class="sec">🕓 Histórico</h2><div class="card">${lx.length?`<p class="small" style="margin:0 0 6px"><b>Apagadas (podes recuperar)</b></p>${lx.slice(0,8).map(d=>`<div class="hrow"><span>${esc(dEmo(d))} ${esc(d.titulo)} · ${fmt(d.total,d.moeda)}</span><button class="linkbtn" data-restore="${esc(d.id)}">Recuperar</button></div>`).join('')}`:''}
   ${lg.length?`<p class="small" style="margin:${lx.length?'12px':'0'} 0 6px"><b>Últimas alterações</b></p>${lg.slice(0,15).map(h=>`<div class="hrow small"><span>${esc(dt(h.t))} · <b>${esc(h.q)}</b> ${esc(h.a)} “${esc(h.ti)}” (${fmt(h.v,h.m)})</span></div>`).join('')}`:''}</div>`}
+
+
+/* ---------- cada pessoa só pode ser escolhida por um telemóvel/conta ---------- */
+let askTake=null;
+const DEVK=(()=>{try{let d=localStorage.getItem('ej-dev');if(!d){d=Math.random().toString(36).slice(2,12);localStorage.setItem('ej-dev',d)}return d}catch(e){return 'x'}})();
+const myKey=()=>(typeof user!=='undefined'&&user&&user.uid)||DEVK;
+function takenBy(g,mid){const c=(g.claims||{})[mid];return c&&c!==myKey()?c:null}
+function claim(g,mid){const k=myKey();const c={...(g.claims||{})};for(const m in c)if(c[m]===k)delete c[m];if(mid)c[mid]=k;g.claims=c;save(g)}
 
 }
 </script>
