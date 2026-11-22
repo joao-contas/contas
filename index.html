@@ -266,11 +266,11 @@ function cache(){const c={};mine.forEach(id=>{if(groups[id])c[id]=groups[id]});l
 /* iPhone: a app no ecrã principal não partilha dados com o Safari. Guardamos os grupos no endereço,
    para que "Adicionar ao ecrã principal" leve os grupos junto. */
 const IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);let mfUrl=null;
-function keepUrl(){if(!IOS)return;const ids=mine.filter(id=>/^[a-z0-9]{12,40}$/.test(id));const h=ids.length?'#gs='+ids.join(','):'';
-  if(location.hash!==h&&!/^#g=/.test(location.hash))history.replaceState(null,'',location.pathname+location.search+h);
-  try{const base=location.origin+location.pathname,mf={name:'Contas do Grupo',short_name:'Contas',lang:'pt',display:'standalone',background_color:'#f5fbf7',theme_color:'#d8f0e2',
-    start_url:base+h,scope:base,icons:[{src:new URL('icon-192.png',base).href,sizes:'192x192',type:'image/png'},{src:new URL('icon-512.png',base).href,sizes:'512x512',type:'image/png'}]};
-    const u=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/manifest+json'}));const l=document.querySelector('link[rel=manifest]');if(l){l.href=u;if(mfUrl)URL.revokeObjectURL(mfUrl);mfUrl=u}}catch(e){}}
+if(IOS){const l=document.querySelector('link[rel=manifest]');if(l)l.remove()}
+function keepUrl(){if(!IOS)return;const ids=mine.filter(id=>/^[a-z0-9]{12,40}$/.test(id));
+  const q=ids.length?'?gs='+ids.join(','):'';
+  if(location.search!==q&&!/^#g=/.test(location.hash))history.replaceState(null,'',location.pathname+q);
+  const l=document.querySelector('link[rel=manifest]');if(l)l.remove()}
 function profSave(now){if(!user||!prof||!fs)return;clearTimeout(profT);profT=setTimeout(()=>{const ids=mine.filter(id=>id.length>=12);prof.grupos=ids;prof.eus={...(prof.eus||{}),...meMap};prof.upd=Date.now();setDoc(doc(fs,'perfis',user.uid),clean(prof)).catch(e=>note('Não consegui guardar o perfil ('+(e.code||'erro')+').',6000))},now?0:800)}
 const busy={},subs={};
 function sub(id){if(!fs||subs[id])return;
@@ -289,7 +289,7 @@ async function save(g){g.upd=Date.now();groups[g.id]=g;if(!mine.includes(g.id))m
   finally{delete busy[id]}}
 function forget(id){if(prof){prof.saiu=[...new Set([...(prof.saiu||[]),id])].slice(-200)}if(subs[id]){subs[id]();delete subs[id]}delete groups[id];mine=mine.filter(x=>x!==id);if(cur===id)cur=null;cache();render()}
 async function removeGroup(id){forget(id);if(!fs)return;try{await deleteDoc(doc(fs,'grupos',id))}catch(e){note('Não foi possível apagar.',5000)}}
-function fromHash(){const ml=location.hash.match(/^#gs=([a-z0-9,]{12,})$/);
+function fromHash(){const qs=new URLSearchParams(location.search).get('gs');const ml=location.hash.match(/^#gs=([a-z0-9,]{12,})$/)||(qs&&/^[a-z0-9,]{12,}$/.test(qs)?[0,qs]:null);
   if(ml){let add=0;ml[1].split(',').filter(x=>/^[a-z0-9]{12,40}$/.test(x)).forEach(id=>{if(!mine.includes(id)){mine.push(id);add++}sub(id)});cache();render();return}
   const m=location.hash.match(/^#g=([a-z0-9]{12,40})$/);if(!m)return;const id=m[1];
   history.replaceState(null,'',location.pathname+location.search);
