@@ -71,7 +71,7 @@ label input,label select{margin-top:6px;color:var(--ink)}
 .gi{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center}
 .gmore{width:44px;min-height:44px;padding:0;border-radius:50%;background:transparent;color:var(--mut);font-size:24px;line-height:1}
 .gmenu{display:flex;flex-direction:column;gap:8px;margin:-2px 0 6px}.gmenu p{margin:0 0 2px}
-.offbar{position:fixed;left:0;right:0;bottom:0;z-index:60;background:#24352d;color:#fff;font-size:14px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));text-align:center}.offbar[hidden]{display:none}
+.offbar{position:fixed;top:calc(8px + env(safe-area-inset-top));right:10px;z-index:60;background:#24352d;color:#fff;font-size:12px;padding:5px 10px;border-radius:999px;opacity:.9;pointer-events:none}.offbar[hidden]{display:none}
 .fx{background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:12px 14px;margin-top:12px}
 .fx-q{display:block;margin:0 0 6px;font-weight:600;color:var(--ink)}.fx-l{display:block;margin:10px 0 6px;font-weight:500}
 .fx-sum{margin:10px 0 4px;font-size:16px}.fx-sum b{font:600 18px Outfit,sans-serif}
@@ -212,7 +212,7 @@ h2.sec{font-size:21px;margin:30px 0 8px}
   <div id="hero"></div>
 </div></header>
 <main><div class="wrap" id="app"></div></main>
-<div id="offbar" class="offbar" hidden>📴 Sem rede. Podes continuar: tudo fica guardado e é enviado quando houver rede.</div>
+<div id="offbar" class="offbar" hidden title="Sem rede: tudo fica guardado e é enviado quando houver rede">📴 Sem rede · fica guardado</div>
 <div id="modal" class="modal" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <div class="note" id="note" role="status"></div>
 <script type="module">
@@ -239,7 +239,7 @@ function revFee(b){const P=PLANOS[b.plano]||PLANOS.standard,why=[];let f=0;
   if(fimDeSemanaET()&&P.fim){f+=P.fim;why.push('+'+String(P.fim).replace('.',',')+'% fim de semana')}
   if(b.limite&&P.lim){f+=P.lim;why.push('+'+String(P.lim).replace('.',',')+'% acima do limite mensal')}return {f,why,P}}
 const LIMITE={standard:'1 000 €',plus:'3 000 €'};
-function bankLine(g,de,v,m){const pm=g.membros.find(x=>x.id===de),b=pm&&pm.banco;if(!b||b.tipo!=='revolut')return '';
+function bankLine(g,de,v,m){return '';const pm=g.membros.find(x=>x.id===de),b=pm&&pm.banco;if(!b||b.tipo!=='revolut')return '';
   const eu=de===meOf(g),quem=eu?'da tua conta':'da conta de '+pm.nome;
   const ac=g.taxas[b.moeda]?b.moeda:g.base;if(ac===m)return `🏦 Revolut: paga em ${m} ${eu?'com o teu saldo':'com o saldo'}, sem conversão nem comissões.`;
   const P=PLANOS[b.plano]||PLANOS.standard,base=toCur(g,v,ac),fds=fimDeSemanaET()&&P.fim?Math.round(base*P.fim/100):0,lim=b.limite&&P.lim?Math.round(base*P.lim/100):0;
@@ -297,7 +297,7 @@ function sub(id){if(!fs||subs[id])return;
     if(prof&&groups[id]&&!busy[id])setTimeout(()=>propagate(id),0);
     cache();if(!edit)render();else renderSoft()},
   e=>{note('Sem acesso a este grupo ('+(e.code||'erro')+').',6000);delete subs[id]})}
-function netNote(){const off=!navigator.onLine;document.body.classList.toggle('offline',off);const el=document.getElementById('offbar');if(el)el.hidden=!off}
+function netNote(){const off=!navigator.onLine;if(off&&!document.body.classList.contains('offline'))note('Sem rede: podes continuar, tudo fica guardado e é enviado quando houver rede.',4000);document.body.classList.toggle('offline',off);const el=document.getElementById('offbar');if(el)el.hidden=!off}
 addEventListener('online',()=>{netNote();note('De volta à rede: as alterações feitas sem rede foram enviadas.',4000)});addEventListener('offline',netNote);
 function renderSoft(){const sy=scrollY;render();scrollTo(0,sy)}
 const pend={};
@@ -363,10 +363,10 @@ const meOf=g=>g&&meMap[g.id]&&g.membros.some(p=>p.id===meMap[g.id])?meMap[g.id]:
 function setMe(gid,mid){if(mid)meMap[gid]=mid;else{delete meMap[gid];if(prof&&prof.eus)delete prof.eus[gid]}try{localStorage.setItem(MEK,JSON.stringify(meMap))}catch(e){}profSave()}
 function meBox(g,b){let me=meOf(g);
   if(!me&&prof&&prof.nome&&!skipMe[g.id]){const p=g.membros.find(x=>norm(x.nome)===norm(prof.nome));if(p){setMe(g.id,p.id);me=p.id}}
-  if(me&&prof){const p=g.membros.find(x=>x.id===me);if(p){if((prof.nome&&p.nome!==prof.nome)||(prof.emoji&&p.emoji!==prof.emoji))setTimeout(()=>propagate(g.id),0);if(prof.banco&&!p.banco){p.banco={...prof.banco};setTimeout(()=>save(g),0)}else if(prof.banco===undefined&&p.banco){prof.banco={...p.banco};profSave()}}}
+  if(me&&prof){const p=g.membros.find(x=>x.id===me);if(p){if((prof.nome&&p.nome!==prof.nome)||(prof.emoji&&p.emoji!==prof.emoji))setTimeout(()=>propagate(g.id),0);}}
   if(me){const v=b[me],p=g.membros.find(x=>x.id===me);
     return `<div class="mebox">Estás como <b>${esc(pn(p))}</b> · ${v>0.5?'recebes <b>'+fmt(toCur(g,v,g.base),g.base)+'</b>':v<-0.5?'deves <b>'+fmt(toCur(g,-v,g.base),g.base)+'</b>':'estás em dia ✓'} <button class="linkbtn" id="chgme">Não és tu?</button>
-    <div class="bkline">🏦 ${p.banco&&p.banco.tipo==='revolut'?'Revolut '+(PLANOS[p.banco.plano]||PLANOS.standard).n+' · conta em '+esc(p.banco.moeda||g.base):'Sem banco configurado'} <button class="linkbtn" id="bkedit">${bkOpen?'Fechar':p.banco?'Mudar':'Configurar'}</button></div>${bkOpen?bankPanel(g):''}</div>`}
+    </div>`}
   if(skipMe[g.id])return '';
   return `<div class="mebox"><b>Quem és tu neste grupo?</b><div class="chips">${g.membros.map(p=>`<button class="pchip" data-me="${esc(p.id)}">${esc(pn(p))}</button>`).join('')}${prof&&prof.nome?`<button class="pchip" data-joinme="1">➕ Sou ${esc(prof.emoji||'🙂')} ${esc(prof.nome)} (juntar-me)</button>`:''}<button class="pchip" data-me="">Só estou a ver</button></div></div>`}
 const gasto=g=>g.despesas.filter(d=>d.tipo!=='reemb').reduce((s,d)=>s+RD(g,d,d.total),0);
@@ -520,7 +520,7 @@ function check(side){const g=G(),rows=edit[side],on=order(g,rows),s=on.reduce((a
 function openEditor(d){if(modal.hidden)navPush('ed');const g=G();confirmDel=null;
   const mk=(src,fx,isPag,first)=>{const o={};g.membros.forEach((p,i)=>{const has=src?(p.id in src):(isPag?(meOf(g)?p.id===meOf(g):i===0):true);
     o[p.id]={on:has&&(!src||!isPag||src[p.id]>0),v:src&&src[p.id]||0,fix:!!(fx&&fx.includes(p.id)),p:(d&&d.partes&&d.partes[p.id])||1}});return o};
-  edit=d?{lev:d.lev||'',pm:d.pe?d.pe.m:'',pv:d.pe?val(d.pe.v):'',tx:d.tx||null,itens:clean(d.itens||[]),id:d.id,emoji:dEmo(d),emoFix:!!d.emoji,titulo:d.titulo,moeda:d.moeda,total:d.total,data:d.data,tipo:d.tipo||'desp',modo:d.modo||'valor',cr:d.cr,pag:mk(d.pag,d.fixP,true),div:mk(d.div,d.fixD,false)}
+  edit=d?{lev:d.lev||'',lvs:d.lv?val(d.lv):'',pm:d.pe?d.pe.m:'',pv:d.pe?val(d.pe.v):'',tx:d.tx||null,itens:clean(d.itens||[]),id:d.id,emoji:dEmo(d),emoFix:!!d.emoji,titulo:d.titulo,moeda:d.moeda,total:d.total,data:d.data,tipo:d.tipo||'desp',modo:d.modo||'valor',cr:d.cr,pag:mk(d.pag,d.fixP,true),div:mk(d.div,d.fixD,false)}
         :{itens:[],id:null,emoji:'💸',emoFix:false,titulo:'',moeda:g.base,total:0,data:today(),tipo:'desp',modo:'valor',pag:mk(null,null,true),div:mk(null,null,false)};
   if(!d){rebal('pag');rebal('div')}
   drawEditor();modal.hidden=false;setTimeout(()=>{const t=$('#e-t');if(t&&!d)t.focus()},50)}
@@ -552,8 +552,10 @@ function rateRow(){const g=G(),e=edit,m=e.moeda;if(m===g.base)return '';
     if(r){e.rx=fmtRate(r);e.rxSrc=src}}
   const pm=e.pm||m,d=mktDate();
   const lo=levOpts();let h=`<div class="fx">`;
-  if(lo.length){h+=`<p class="fx-q">Como pagaste?</p><div class="chips levc">${lo.map(x=>`<button type="button" class="pchip ${e.lev===x.l.id?'on':''}" data-lev="${esc(x.l.id)}">💵 Levantamento ${esc(new Date(x.l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}))} · sobram ${fmt(x.rest,x.l.m)}</button>`).join('')}<button type="button" class="pchip ${e.lev?'':'on'}" data-lev="">💳 Cartão ou outro</button></div>`}
-  if(e.lev){const x=lo.find(y=>y.l.id===e.lev);return h+`<p class="fx-sum">${fxSum()} <small>(taxa do levantamento)</small></p>${x&&e.total>x.rest?`<p class="hint">⚠️ Esta despesa é maior do que o dinheiro que te sobra desse levantamento.</p>`:''}</div>`}
+  if(lo.length){h+=`<p class="fx-q">Como pagaste?</p><div class="chips levc">${lo.map(x=>`<button type="button" class="pchip ${e.lev===x.l.id?'on':''}" data-lev="${esc(x.l.id)}">${levIc(x.l)} ${esc(levName(x.l))} ${esc(new Date(x.l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}))} · sobram ${fmt(x.rest,x.l.m)}</button>`).join('')}<button type="button" class="pchip ${e.lev?'':'on'}" data-lev="">💳 Cartão ou outro</button></div>`}
+  if(e.lev){const x=lo.find(y=>y.l.id===e.lev);if(x&&x.l.m!==m){
+      return h+`<label class="fx-l" for="e-lv">Quanto saiu da conta ${esc(x.l.m)}?</label><div class="inline" style="margin:0"><input id="e-lv" inputmode="decimal" placeholder="0,00" value="${esc(e.lvs||'')}"><span style="white-space:nowrap">${flag(x.l.m)} ${esc(x.l.m)}</span></div><p class="hint" id="e-lvh">${lvHint()}</p></div>`}
+    return h+`<p class="fx-sum">${fxSum()} <small>(taxa do levantamento)</small></p>${x&&e.total>x.rest?`<p class="hint">⚠️ Esta despesa é maior do que o dinheiro que te sobra.</p>`:''}</div>`}
   h+=`<label class="fx-q" for="e-pm">Em que moeda pagaste?</label><select id="e-pm">${allOpts(pm)}</select>`;
   if(pm!==m){
     h+=`<label class="fx-l" for="e-pv">Quanto te saiu da conta?</label><div class="inline" style="margin:0"><input id="e-pv" inputmode="decimal" placeholder="0,00" value="${esc(e.pv||'')}"><span style="white-space:nowrap">${flag(pm)} ${esc(pm)}</span></div>
@@ -624,7 +626,7 @@ async function scan(f){if(f&&edit&&gkey()&&!(samp&&samp.gem))samp=mkSamp();if(!f
 function closeEditor(fp){if(!fp&&!modal.hidden)navPop('ed');modal.hidden=true;edit=null;confirmDel=null}
 function saveEditor(){const g=G(),e=edit;let tx=null;if(e.moeda!==g.base){const x=parseFloat(String(e.rx||'').replace(',','.'));if(x>0){tx={b:g.base,m:e.moeda,r:x};g.taxas[e.moeda]=x*g.taxas[g.base]}}const pick=(rows)=>{const o={};order(g,rows).forEach(k=>o[k]=rows[k].v);return o};
   const pe=e.pm&&e.pm!==e.moeda&&parse(e.pv||'')>0?{m:e.pm,v:parse(e.pv)}:null;
-  const d={id:e.id||uid(),tx,pe,lev:e.lev||null,emoji:e.emoji,itens:e.itens||[],titulo:e.titulo.trim()||(e.tipo==='reemb'?'Reembolso':'Despesa'),moeda:e.moeda,total:e.total,data:e.data||today(),tipo:e.tipo,modo:e.modo,cr:e.cr||Date.now(),
+  const d={id:e.id||uid(),tx,pe,lev:e.lev||null,lv:e.lev&&parse(e.lvs||'')>0?parse(e.lvs):null,emoji:e.emoji,itens:e.itens||[],titulo:e.titulo.trim()||(e.tipo==='reemb'?'Reembolso':'Despesa'),moeda:e.moeda,total:e.total,data:e.data||today(),tipo:e.tipo,modo:e.modo,cr:e.cr||Date.now(),
     pag:pick(e.pag),div:pick(e.div),fixP:order(g,e.pag).filter(k=>e.pag[k].fix),fixD:e.modo==='valor'?order(g,e.div).filter(k=>e.div[k].fix):[],
     partes:e.modo==='partes'?Object.fromEntries(order(g,e.div).map(k=>[k,+e.div[k].p||0])):{}};
   const i=g.despesas.findIndex(x=>x.id===d.id);if(i>=0)g.despesas[i]=d;else g.despesas.push(d);
@@ -634,9 +636,10 @@ sheet.addEventListener('input',ev=>{const t=ev.target;if(!edit)return;
   if(t.id==='e-t'){edit.titulo=t.value;if(!edit.emoFix){edit.emoji=guess(t.value);setEin('#e-emo',edit.emoji);sheet.querySelectorAll('[data-emo=exp]').forEach(b=>b.classList.toggle('on',b.dataset.e===edit.emoji))}}
   else if(t.id==='e-dat'){edit.data=t.value;if(!edit.rx||['mercado','grupo','dia'].includes(edit.rxSrc)){edit.rx='';const pvWas=edit.pm&&edit.pm!==edit.moeda;const er=$('#e-rate');if(er){er.innerHTML=rateRow();refresh()}}}
   else if(t.id==='e-rx'){edit.rx=t.value;edit.rxSrc='manual';const f=$('#e-fxs');if(f)f.innerHTML=fxSum();refresh()}
+  else if(t.id==='e-lv'){edit.lvs=t.value;lvApply();const h=$('#e-lvh');if(h)h.innerHTML=lvHint();refresh()}
   else if(t.id==='e-pr'){const pr=parseFloat(String(t.value).replace(',','.'));if(pr>0&&edit.total>0){edit.pv=val(Math.round(edit.total/pr));const pv=$('#e-pv');if(pv)pv.value=edit.pv;const rp=rateOf(G(),edit.pm);if(rp){edit.rx=fmtRate(pr*rp);edit.rxSrc='pago'}const h=$('#e-pvh');if(h)h.innerHTML=pvHint()}refresh()}
   else if(t.id==='e-pv'){edit.pv=t.value;const r=pvCalc();if(r){edit.rx=String(r);edit.rxSrc='pago';const x=$('#e-rx');if(x)x.value=fmtRate(r)}{const q=$('#e-pr');if(q)q.value=prOf()}const h=$('#e-pvh');if(h)h.innerHTML=pvHint();refresh()}
-  else if(t.id==='e-tot'){edit.total=Math.max(0,parse(t.value));rebal('pag');rebal('div');const r=pvCalc();if(r){edit.rx=fmtRate(r);edit.rxSrc='pago';const x=$('#e-rx');if(x)x.value=edit.rx;const h=$('#e-pvh');if(h)h.innerHTML=pvHint();const q=$('#e-pr');if(q)q.value=prOf()}const f=$('#e-fxs');if(f)f.innerHTML=fxSum();refresh()}
+  else if(t.id==='e-tot'){edit.total=Math.max(0,parse(t.value));rebal('pag');rebal('div');if(edit.lev&&edit.lvs){lvApply();const h=$('#e-lvh');if(h)h.innerHTML=lvHint()}const r=pvCalc();if(r){edit.rx=fmtRate(r);edit.rxSrc='pago';const x=$('#e-rx');if(x)x.value=edit.rx;const h=$('#e-pvh');if(h)h.innerHTML=pvHint();const q=$('#e-pr');if(q)q.value=prOf()}const f=$('#e-fxs');if(f)f.innerHTML=fxSum();refresh()}
   else if(t.dataset.amt){const r=edit[t.dataset.amt][t.dataset.k];r.v=Math.max(0,parse(t.value));r.fix=true;rebal(t.dataset.amt);refresh()}
   else if(t.dataset.part){edit.div[t.dataset.part].p=t.value.replace(',','.');rebal('div');refresh()}});
 sheet.addEventListener('change',ev=>{const t=ev.target;if(!edit)return;
@@ -687,7 +690,9 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
   if(t.dataset.gleave){const n=(groups[t.dataset.gleave]||{}).nome;navPop('gm');gMenu=null;forget(t.dataset.gleave);note('Saíste de “'+n+'”.',3000);return}
   if(t.dataset.gdel){const n=(groups[t.dataset.gdel]||{}).nome;navPop('gm');gMenu=null;gDelAsk=null;removeGroup(t.dataset.gdel);note('Grupo “'+n+'” apagado.',3000);return}
   if(t.id==='wopen'){wOpen=!wOpen;wForm=false;wDelAsk=null;render();return}
-  if(t.id==='wadd'){wForm=true;render();setTimeout(()=>{const i=$('#w-v');if(i)i.focus()},50);return}
+  if(t.dataset.wfim){const pv=parse(($('#w-p')||{}).value||'');if(!(pv>0)){note('Escreve primeiro quanto te saiu da conta.',3000);return}const f=$('#w-f');if(f)f.value=val(Math.round(pv*(+t.dataset.wfim)/100));return}
+  if(t.dataset.wtipo){wTipo=t.dataset.wtipo;render();return}
+  if(t.id==='wadd'){wForm=true;wTipo='cash';render();setTimeout(()=>{const i=$('#w-v');if(i)i.focus()},50);return}
   if(t.id==='wcancel'){wForm=false;render();return}
   if(t.dataset.wdel){const g=G(),me=meOf(g);if(wDelAsk!==t.dataset.wdel){wDelAsk=t.dataset.wdel;render();return}wDelAsk=null;g.cart[me]=levsOf(g,me).filter(l=>l.id!==t.dataset.wdel);save(g);return}
   if(t.dataset.open){navPush('g');cur=t.dataset.open;tab='desp';showCur=null;rowCur={};render();scrollTo(0,0)}
@@ -747,7 +752,7 @@ app.addEventListener('change',async ev=>{const t=ev.target;if(t.id!=='impfile')r
 app.addEventListener('submit',ev=>{ev.preventDefault();const f=ev.target,g=G();
   if(f.id==='wform'){const me=meOf(g);if(!me)return;const v=parse($('#w-v').value),pv=parse($('#w-p').value),m=$('#w-m').value,pm=$('#w-pm').value;
     if(!(v>0)||!(pv>0)){note('Escreve o valor levantado e quanto te saiu da conta.',4000);return}const rb=rBase(g,pm);if(!rb){note('Não sei a taxa de '+pm+'. Junta essa moeda ao grupo primeiro.',5000);return}
-    const r=v/(pv/rb);g.cart=g.cart||{};g.cart[me]=[...levsOf(g,me),{id:uid(),data:$('#w-d').value||today(),m,v,pm,pv,r}];if(!g.taxas[m]){g.taxas[m]=r*g.taxas[g.base]}wForm=false;save(g);note('Levantamento guardado: 1 '+g.base+' = '+fmtRate(r)+' '+m+'.',4000);return}
+    const fee=parse(($('#w-f')||{}).value||'');const r=v/((pv+(fee>0?fee:0))/rb);g.cart=g.cart||{};g.cart[me]=[...levsOf(g,me),{id:uid(),tipo:wTipo,data:$('#w-d').value||today(),m,v,pm,pv,fee:fee>0?fee:0,r}];if(!g.taxas[m]){g.taxas[m]=r*g.taxas[g.base]}wForm=false;save(g);note((wTipo==='conta'?'Conta guardada':'Levantamento guardado')+': 1 '+g.base+' = '+fmtRate(r)+' '+m+'.',4000);return}
   if(f.id==='newg'){if(newOpen)navPop('new');newOpen=false;addPending();const n=$('#ng-n').value.trim(),ps=newPeople;
     if(!n){note('Dá um nome ao grupo.',3000);return}if(!ps.length){note('Junta pelo menos uma pessoa.',3000);$('#ng-p').focus();return}const id=gid();cur=id;tab='desp';const ge=newGE;newPeople=[];newName='';newGE='✈️';
     save({id,nome:n,base:$('#ng-m').value,taxas:(()=>{const bm=$('#ng-m').value,t=DEF_RATES[bm]?{...DEF_RATES}:{[bm]:1};if(live){for(const m in t)if(live.rates[m])t[m]=live.rates[m];if(live.rates[bm])t[bm]=live.rates[bm]}return t})(),emoji:ge,membros:ps.map(q=>({id:uid(),nome:q.nome,emoji:q.emoji})),despesas:[],upd:Date.now()})}
@@ -765,11 +770,11 @@ mine.forEach(sub);fromHash();render();fetchRates(false);
 function profCard(){if(!auth)return '';
   if(!user)return `<div class="card pf"><span class="pf-t">👤 Entra para teres os teus grupos em qualquer telemóvel</span><button class="primary" id="login">Entrar com Google</button></div>`;
   if(!prof)return `<div class="card pf"><span class="pf-t">👤 A carregar o perfil…</span></div>`;
-  const bk=prof.banco&&prof.banco.tipo==='revolut'?' · 🏦 Revolut '+esc((PLANOS[prof.banco.plano]||PLANOS.standard).n):'';
+  const bk='';
   if(!profOpen)return `<button class="card pf pf-row" id="pfopen"><span class="pf-e">${esc(prof.emoji||'🙂')}</span><span class="pf-t"><b>${esc(prof.nome||'Sem nome')}</b><small>${esc(user.email||'')}${bk}</small></span><span class="pf-go">›</span></button>`;
   return `<div class="card" style="margin-top:18px"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="pf-emo" data-ein="prof" value="${esc(prof.emoji||'🙂')}" data-cur="${esc(prof.emoji||'🙂')}" aria-label="O teu emoji: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"></span><input id="pf-nome" value="${esc(prof.nome||'')}" placeholder="O teu nome nos grupos" aria-label="O teu nome" enterkeyhint="done"></div>
-  <p class="small">${esc(user.email||'')} · O nome, o emoji e o banco mudam em todos os teus grupos.</p>
-  ${pfBank()}
+  <p class="small">${esc(user.email||'')} · O nome e o emoji mudam em todos os teus grupos.</p>
+
   <div class="actions" style="margin-top:6px"><button id="logout">Sair da conta</button><button class="primary" id="pfclose">Feito</button></div></div>`}
 function pfBank(){const b=prof.banco||{},rv=b.tipo==='revolut',pl=b.plano||'standard';
   const chip=(attr,val,on,txt)=>`<button type="button" class="pchip ${on?'on':''}" ${attr}="${val}">${txt}</button>`;
@@ -781,8 +786,6 @@ function pfBank(){const b=prof.banco||{},rv=b.tipo==='revolut',pl=b.plano||'stan
 function propagate(only){if(!prof)return;(only?[only]:mine).forEach(id=>{const g=groups[id],mid=meMap[id];if(!g||!mid)return;const p=g.membros.find(x=>x.id===mid);if(!p)return;let ch=false;
   if(prof.nome&&p.nome!==prof.nome){p.nome=prof.nome;ch=true}
   if(prof.emoji&&p.emoji!==prof.emoji){p.emoji=prof.emoji;ch=true}
-  const nb=prof.banco?JSON.stringify(prof.banco):null,ob=p.banco?JSON.stringify(p.banco):null;
-  if(nb!==ob){if(prof.banco)p.banco={...prof.banco};else delete p.banco;ch=true}
   if(ch)save(g)})}
 function profMerge(d){const saiu=new Set(d.saiu||[]);let add=0;
   (d.grupos||[]).forEach(id=>{if(!saiu.has(id)&&!mine.includes(id)){mine.push(id);sub(id);add++}});
@@ -923,25 +926,35 @@ addEventListener('popstate',()=>{if(navIgnore){navIgnore--;return}
   if(cur){cur=null;shareOpen=false;bkOpen=false;confirmDel=null;render();scrollTo(0,0);return}});
 
 
+document.addEventListener('change',ev=>{const t=ev.target;if(t&&t.id==='w-pm'){const c=$('#w-fc');if(c)c.textContent=flag(t.value)+' '+t.value}});
 /* ---------- 💵 carteira: levantamentos de dinheiro e despesas pagas com ele ---------- */
-let wOpen=false,wForm=false,wDelAsk=null;
+let wOpen=false,wForm=false,wDelAsk=null,wTipo='cash';
 const rBase=(g,c)=>c===g.base?1:((typeof liveRate==='function'&&liveRate(g,c))||(g.taxas[c]&&g.taxas[c]/g.taxas[g.base])||null);
 const levsOf=(g,mid)=>((g.cart||{})[mid]||[]);
-function levUsed(g,mid,l,skip){return g.despesas.filter(d=>d.lev===l.id&&d.id!==skip).reduce((s,d)=>s+(d.pag[mid]||0),0)}
+function levUsed(g,mid,l,skip){return g.despesas.filter(d=>d.lev===l.id&&d.id!==skip).reduce((s,d)=>s+(d.moeda===l.m?(d.pag[mid]||0):Math.round((d.lv||0)*(d.pag[mid]||0)/(d.total||1))),0)}
+const levIc=l=>l.tipo==='conta'?'🏦':'💵';
+const levName=l=>l.tipo==='conta'?'Conta '+l.m:'Levantamento';
 const levRate=l=>l.r;
 function walletHTML(g,me){const ls=levsOf(g,me);
-  let h=`<div class="card wal"><button class="wal-h" id="wopen"><span>💵 A minha carteira</span><small>${ls.length?ls.map(l=>fmt(Math.max(0,l.v-levUsed(g,me,l)),l.m)).join(' · '):'Regista um levantamento'}</small><span class="pf-go">${wOpen?'⌃':'›'}</span></button>`;
+  let h=`<div class="card wal"><button class="wal-h" id="wopen"><span>💰 Dinheiro e contas</span><small>${ls.length?ls.map(l=>fmt(Math.max(0,l.v-levUsed(g,me,l)),l.m)).join(' · '):'Levantamentos e contas noutra moeda'}</small><span class="pf-go">${wOpen?'⌃':'›'}</span></button>`;
   if(!wOpen)return h+`</div>`;
-  h+=ls.map(l=>{const u=levUsed(g,me,l),rest=l.v-u;return `<div class="lev"><div><b>${esc(new Date(l.data+'T12:00').toLocaleDateString('pt-PT'))}</b> · ${fmt(l.v,l.m)} <small>(${fmt(l.pv,l.pm)})</small><div class="small">Taxa 1 ${esc(g.base)} = ${fmtRate(l.r)} ${esc(l.m)} · gasto ${fmt(u,l.m)} · <b>sobram ${fmt(rest,l.m)}</b></div></div><button class="x" data-wdel="${esc(l.id)}" aria-label="Apagar levantamento">${wDelAsk===l.id?'✓?':'×'}</button></div>`}).join('');
+  h+=ls.map(l=>{const u=levUsed(g,me,l),rest=l.v-u;return `<div class="lev"><div>${levIc(l)} <b>${esc(levName(l))} · ${esc(new Date(l.data+'T12:00').toLocaleDateString('pt-PT'))}</b> · ${fmt(l.v,l.m)} <small>(${fmt(l.pv,l.pm)}${l.fee?' + '+fmt(l.fee,l.pm)+' comissões':''})</small><div class="small">Taxa 1 ${esc(g.base)} = ${fmtRate(l.r)} ${esc(l.m)} · gasto ${fmt(u,l.m)} · <b>sobram ${fmt(rest,l.m)}</b></div></div><button class="x" data-wdel="${esc(l.id)}" aria-label="Apagar levantamento">${wDelAsk===l.id?'✓?':'×'}</button></div>`}).join('');
   if(wForm){const lastNB=[...g.despesas].filter(d=>d.moeda!==g.base).sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b.cr||0)-(a.cr||0))[0];const mc=(levsOf(g,me).slice(-1)[0]||{}).m||(lastNB&&lastNB.moeda)||Object.keys(g.taxas).find(c=>c!==g.base)||'USD';
-    h+=`<form id="wform" class="wform"><label>Quanto levantaste?</label><div class="inline" style="margin:0"><input id="w-v" inputmode="decimal" placeholder="50000" required><select id="w-m">${allOpts(mc)}</select></div>
-    <label>Quanto te saiu da conta?</label><div class="inline" style="margin:0"><input id="w-p" inputmode="decimal" placeholder="103,91" required><select id="w-pm">${allOpts(g.base)}</select></div>
+    const cta=wTipo==='conta';
+    h+=`<form id="wform" class="wform"><div class="chips" style="margin:8px 0 2px"><button type="button" class="pchip ${cta?'':'on'}" data-wtipo="cash">💵 Dinheiro levantado</button><button type="button" class="pchip ${cta?'on':''}" data-wtipo="conta">🏦 Conta noutra moeda</button></div>${cta?'<p class="small" style="margin:4px 0 0">Ex.: trocaste euros por dólares no banco e pagas com esses dólares.</p>':''}<label>${cta?'Quanto ficou na conta?':'Quanto levantaste?'}</label><div class="inline" style="margin:0"><input id="w-v" inputmode="decimal" placeholder="50000" required><select id="w-m">${allOpts(mc)}</select></div>
+    <label>${cta?'Quanto pagaste por isso?':'Quanto te saiu da conta?'}</label><div class="inline" style="margin:0"><input id="w-p" inputmode="decimal" placeholder="103,91" required><select id="w-pm">${allOpts(g.base)}</select></div>
+    <label>Comissões <small style="font-weight:400">(se não estiverem já no valor acima)</small></label><div class="inline" style="margin:0"><input id="w-f" inputmode="decimal" placeholder="0,00"><span id="w-fc" style="white-space:nowrap">${flag(g.base)} ${esc(g.base)}</span></div>
+    <p class="small" style="margin:4px 0 0">Ex.: comissão do multibanco, do banco ou da troca. Vês no extrato.</p>
     <label>Data<input type="date" id="w-d" value="${today()}"></label>
-    <div class="actions"><button type="button" class="linkbtn" id="wcancel">Cancelar</button><button class="primary">Guardar levantamento</button></div></form>`}
-  else h+=`<div class="actions" style="margin-top:8px"><button id="wadd">＋ Levantamento</button></div>`;
-  return h+`<p class="small" style="margin:8px 0 0">O levantamento não entra nas contas do grupo. Quando pagares com esse dinheiro, escolhe-o na despesa em “Como pagaste?” e a app usa a taxa dele.</p></div>`}
-function levOpts(){const g=G(),me=meOf(g);if(!me||!edit)return [];return levsOf(g,me).filter(l=>l.m===edit.moeda).map(l=>({l,rest:l.v-levUsed(g,me,l,edit.id)})).filter(x=>x.rest>0||x.l.id===edit.lev)}
-function setLev(id){const g=G();edit.lev=id||'';if(id){const l=levsOf(g,meOf(g)).find(x=>x.id===id);if(l){edit.rx=fmtRate(l.r);edit.rxSrc='lev';edit.pm='';edit.pv=''}}else if(edit.rxSrc==='lev'){edit.rx='';edit.rxSrc=''}
+    <div class="actions"><button type="button" class="linkbtn" id="wcancel">Cancelar</button><button class="primary">Guardar</button></div></form>`}
+  else h+=`<div class="actions" style="margin-top:8px"><button id="wadd">＋ Adicionar</button></div>`;
+  return h+`<p class="small" style="margin:8px 0 0">Isto não entra nas contas do grupo. Quando pagares com esse dinheiro ou conta, escolhe-o na despesa em “Como pagaste?” e a app usa a taxa dele.</p></div>`}
+function levOpts(){const g=G(),me=meOf(g);if(!me||!edit)return [];return levsOf(g,me).map(l=>({l,rest:l.v-levUsed(g,me,l,edit.id)})).filter(x=>x.rest>0||x.l.id===edit.lev)}
+function lvHint(){const g=G(),e=edit,l=levsOf(g,meOf(g)).find(x=>x.id===e.lev),v=parse(e.lvs||'');if(!l||!(v>0))return 'Escreve o valor que te saiu dessa conta (vês no extrato).';
+  return `✓ ${fmt(e.total,e.moeda)} = ${fmt(v,l.m)} ≈ ${fmt(Math.round(v/l.r),g.base)}`}
+function lvApply(){const g=G(),e=edit,l=levsOf(g,meOf(g)).find(x=>x.id===e.lev),v=parse(e.lvs||'');if(l&&v>0&&e.total>0){e.rx=String(e.total/(v/l.r));e.rxSrc='lev'}}
+function setLev(id){const g=G();edit.lev=id||'';edit.lvs='';if(id){const l=levsOf(g,meOf(g)).find(x=>x.id===id);if(l){edit.pm='';edit.pv='';
+  if(l.m===edit.moeda){edit.rx=fmtRate(l.r);edit.rxSrc='lev'}else{const r=parseFloat(String(edit.rx||'').replace(',','.')),rl=rBase(g,l.m);if(r>0&&rl&&edit.total>0)edit.lvs=val(Math.round(edit.total/r*rl));lvApply()}}}else if(edit.rxSrc==='lev'){edit.rx='';edit.rxSrc=''}
   $('#e-rate').innerHTML=rateRow();refresh()}
 
 }
