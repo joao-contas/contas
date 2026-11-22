@@ -97,6 +97,7 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .rbt{height:10px;border-radius:5px;background:var(--line);overflow:hidden}.rbt i{display:block;height:100%;background:var(--lavd);border-radius:5px}
 .hrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line)}.hrow:first-of-type{border-top:0}
 .pchip.taken{opacity:.5}
+input[disabled]{opacity:.7;background:transparent}
 .you{margin-top:4px}.you.rec{background:#e6ecf7}.you.dev{background:#fff1ea}.you.ok{background:var(--lav)}
 .you-l{margin:0;font-size:14px;color:var(--mut)}.you-big{margin:2px 0 6px;font:600 24px Outfit,sans-serif}
 .you.rec .you-big{color:var(--blued)}.you.dev .you-big{color:var(--peachd)}.you.ok .you-big{color:var(--lavd)}
@@ -384,8 +385,8 @@ function meBox(g,b){{const m0=meOf(g);if(m0&&!(g.claims||{})[m0]&&typeof claim==
   if(me){const v=b[me],p=g.membros.find(x=>x.id===me);
     return `<div class="mebox">Estás como <b>${esc(pn(p))}</b> · ${v>0.5?'recebes <b>'+fmt(toCur(g,v,g.base),g.base)+'</b>':v<-0.5?'deves <b>'+fmt(toCur(g,-v,g.base),g.base)+'</b>':'estás em dia ✓'} <button class="linkbtn" id="chgme">Não és tu?</button>
     </div>`}
-  if(skipMe[g.id])return '';
-  return `<div class="mebox"><b>Quem és tu neste grupo?</b><div class="chips">${g.membros.map(p=>{const tk=takenBy(g,p.id);return `<button class="pchip ${tk?'taken':''}" data-me="${esc(p.id)}">${tk?'🔒 ':''}${esc(pn(p))}</button>`}).join('')}${prof&&prof.nome?`<button class="pchip" data-joinme="1">➕ Sou ${esc(prof.emoji||'🙂')} ${esc(prof.nome)} (juntar-me)</button>`:''}<button class="pchip" data-me="">Só estou a ver</button></div></div>`}
+
+  return `<div class="mebox"><b>Quem és tu neste grupo?</b><div class="chips">${g.membros.map(p=>{const tk=takenBy(g,p.id);return `<button class="pchip ${tk?'taken':''}" data-me="${esc(p.id)}">${tk?'🔒 ':''}${esc(pn(p))}</button>`}).join('')}</div></div>`}
 const gasto=g=>g.despesas.filter(d=>d.tipo!=='reemb').reduce((s,d)=>s+RD(g,d,d.total),0);
 const ALLC='AED AFN ALL AMD AOA ARS AUD AWG AZN BAM BBD BDT BGN BHD BIF BMD BND BOB BRL BSD BTN BWP BYN BZD CAD CDF CHF CLP CNY COP CRC CUP CVE CZK DJF DKK DOP DZD EGP ERN ETB EUR FJD FKP GBP GEL GHS GIP GMD GNF GTQ GYD HKD HNL HTG HUF IDR ILS INR IQD IRR ISK JMD JOD JPY KES KGS KHR KMF KPW KRW KWD KYD KZT LAK LBP LKR LRD LSL LYD MAD MDL MGA MKD MMK MNT MOP MRU MUR MVR MWK MXN MYR MZN NAD NGN NIO NOK NPR NZD OMR PAB PEN PGK PHP PKR PLN PYG QAR RON RSD RUB RWF SAR SBD SCR SDG SEK SGD SHP SLE SOS SRD SSP STN SVC SYP SZL THB TJS TMT TND TOP TRY TTD TWD TZS UAH UGX USD UYU UZS VES VND VUV WST XAF XCD XCG XOF XPF YER ZAR ZMW ZWG'.split(' ');
 const TOPC=['EUR','USD','CRC','GBP','BRL','CHF','CAD','MXN','JPY'];
@@ -466,6 +467,7 @@ function render(){
   $('#title').textContent=(g.emoji?g.emoji+' ':'')+g.nome;
   $('#sub').textContent=g.membros.map(pn).join(' · ');
   $('#hero').innerHTML=`<div class="stats"><div class="stat"><b>${fmt(toCur(g,gasto(g),g.base),g.base)}</b><span>gasto total</span></div><div class="stat"><b>${transf(g,b).length}</b><span>transferências para acertar</span></div></div><button class="shr" id="share">Partilhar link</button>${meBox(g,b)}`;
+  if(!meOf(g)&&g.membros.length){app.innerHTML='<p class="empty" style="margin-top:24px">👆 Escolhe quem és para continuar.</p>';return}
   const tabs=[['desp','Despesas'],['sald','Saldos'],['conf','Definições']];
   let h=`<div class="tabs" role="tablist">${tabs.map(([k,t])=>`<button role="tab" data-tab="${k}" aria-selected="${tab===k}">${t}</button>`).join('')}</div>`;
   if(tab==='desp'){
@@ -505,8 +507,8 @@ function render(){
   if(tab==='conf'){
     const usados=new Set();g.despesas.forEach(d=>{Object.keys(d.pag).forEach(k=>usados.add(k));Object.keys(d.div).forEach(k=>usados.add(k))});
     h+=`<h2 class="sec" style="margin-top:4px">Grupo</h2><div class="card"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="g-emo" data-ein="grp" value="${esc(g.emoji||'💸')}" data-cur="${esc(g.emoji||'💸')}" aria-label="Emoji do grupo: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" id="g-emo-more" aria-label="Ver lista de emojis"></button></span><input id="g-nome" value="${esc(g.nome)}" aria-label="Nome do grupo" enterkeyhint="done"></div><div id="g-emos" hidden>${secPicker(g.emoji,'grp')}</div></div>
-    <h2 class="sec">Participantes</h2><div class="card">${g.membros.map(p=>`<div class="mrow"><span class="ewrap"><input class="ein" data-ein="m:${esc(p.id)}" value="${esc(p.emoji||'🙂')}" data-cur="${esc(p.emoji||'🙂')}" aria-label="Emoji de ${esc(p.nome)}: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" data-pickm="${esc(p.id)}" aria-label="Ver lista de emojis"></button></span><input data-ren="${esc(p.id)}" value="${esc(p.nome)}" aria-label="Nome" enterkeyhint="done">${usados.has(p.id)?'<span></span>':`<button class="x" data-rm="${esc(p.id)}" aria-label="Remover ${esc(p.nome)}">×</button>`}</div>${pickM===p.id?picker(PEMO,p.emoji,'m:'+p.id):''}`).join('')}
-    <form id="addm" class="mrow" style="grid-template-columns:minmax(0,1fr) 48px"><input id="am" placeholder="Juntar pessoa…" enterkeyhint="enter" autocomplete="off"><button class="plus" aria-label="Adicionar">+</button></form>
+    <h2 class="sec">Participantes</h2><div class="card">${g.membros.map(p=>`<div class="mrow"><span class="ewrap"><input class="ein" data-ein="m:${esc(p.id)}" ${canEdit(g,p.id)?'':'disabled'} value="${esc(p.emoji||'🙂')}" data-cur="${esc(p.emoji||'🙂')}" aria-label="Emoji de ${esc(p.nome)}: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" data-pickm="${esc(p.id)}" aria-label="Ver lista de emojis"></button></span><input data-ren="${esc(p.id)}" value="${esc(p.nome)}" aria-label="Nome" enterkeyhint="done" ${canEdit(g,p.id)?'':'disabled'}>${usados.has(p.id)||!isOwner(g)?'<span></span>':`<button class="x" data-rm="${esc(p.id)}" aria-label="Remover ${esc(p.nome)}">×</button>`}</div>${pickM===p.id?picker(PEMO,p.emoji,'m:'+p.id):''}`).join('')}
+    ${isOwner(g)?'<form id="addm" class="mrow" style="grid-template-columns:minmax(0,1fr) 48px"><input id="am" placeholder="Juntar pessoa…" enterkeyhint="enter" autocomplete="off"><button class="plus" aria-label="Adicionar">+</button></form>':`<p class="small" style="margin:6px 0 0">Podes mudar o teu nome e emoji. 🔒 Só ${esc(nome(g,ownerOf(g)))} (quem criou o grupo) junta ou tira pessoas.</p>`}
     <p class="small" style="margin:4px 0 0">Toca no emoji ou no nome para mudar.</p></div>
     <h2 class="sec">Moedas e taxas</h2><p class="small">Taxas de referência do mercado${g.taxasUpd?' (atualizadas: '+esc(new Date(g.taxasUpd).toLocaleDateString('pt-PT'))+')':''}. <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">Taxas por Exchange Rate API</a></p>
     <button id="rates" style="margin-bottom:10px">↻ Atualizar taxas</button>
@@ -727,7 +729,7 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
   else if(t.dataset.pay){if(payAsk!==t.dataset.pay){payAsk=t.dataset.pay;render();return}payAsk=null;const [de,para]=t.dataset.pay.split('>'),amt=+t.dataset.amt;
     g.despesas.push({id:uid(),tx:t.dataset.m!==g.base&&g.taxas[t.dataset.m]?{b:g.base,m:t.dataset.m,r:g.taxas[t.dataset.m]/g.taxas[g.base]}:null,titulo:'Reembolso',emoji:'🤝',tipo:'reemb',modo:'valor',moeda:t.dataset.m,total:amt,data:today(),cr:Date.now(),pag:{[de]:amt},div:{[para]:amt},fixP:[],fixD:[],partes:{}});
     save(g);note('Pagamento registado.',2500)}
-  else if(t.dataset.rm){g.membros=g.membros.filter(p=>p.id!==t.dataset.rm);save(g)}
+  else if(t.dataset.rm){if(!isOwner(g))return;g.membros=g.membros.filter(p=>p.id!==t.dataset.rm);save(g)}
   else if(t.id==='gkey-ok'){const v=($('#gkey').value||'').replace(/[^A-Za-z0-9._\-]/g,'');if(!v){note('Cola primeiro a chave.');return}
     note('A testar a chave…');gemTest(v,false).then(ok=>{if(ok){appKey=v;setDoc(doc(fs,'grupos',CFG),{nome:'config',membros:[],despesas:[],iaKey:v}).catch(e=>note('Não consegui guardar: '+e.message,6000));samp=mkSamp();canPhoto=true;render();note('Leitura de recibos ativa para toda a gente ✅',4000)}else note('A chave não funcionou: '+(gErr||'confirma que a copiaste toda.'),7000)})}
   else if(t.id==='gkey-rm'){appKey='';deleteDoc(doc(fs,'grupos',CFG)).catch(()=>{});if(g.iaKey){delete g.iaKey;save(g)}else render();try{localStorage.removeItem('contas-gemini')}catch(e){}samp=null;canPhoto=false}
@@ -740,7 +742,7 @@ function setEmo(c,e,box){const g=G();
   (box.closest('.emosec')||box).querySelectorAll('.emo').forEach(b=>b.classList.toggle('on',b.dataset.e===e));
   if(c==='newg'){newGE=e;setEin('#ng-emo',e);$('#ng-emos').hidden=true}
   else if(c==='grp'){g.emoji=e;save(g)}
-  else if(c.startsWith('m:')){const p=g.membros.find(x=>x.id===c.slice(2));if(p){p.emoji=e;pickM=null;save(g)}}
+  else if(c.startsWith('m:')){if(!canEdit(g,c.slice(2))){note('Só podes mudar o teu emoji.',3000);render();return}const p=g.membros.find(x=>x.id===c.slice(2));if(p){p.emoji=e;pickM=null;save(g)}}
   else if(c==='prof'&&prof){prof.emoji=e;profSave();propagate()}
   else if(c==='exp'&&edit){edit.emoji=e;edit.emoFix=true;setEin('#e-emo',e);$('#e-emos').hidden=true}}
 const emoInput=ev=>{const t=ev.target;if(!t.dataset||!(t.dataset.emoin||t.dataset.ein))return;const c=t.dataset.emoin||t.dataset.ein,e=firstEmo(t.value.replace(t.dataset.ein?t.dataset.cur||'':'',''))||firstEmo(t.value);if(!e)return;
@@ -761,7 +763,7 @@ app.addEventListener('change',ev=>{const t=ev.target,g=G();
   else if(t.dataset.bk){const p=g.membros.find(x=>x.id===t.dataset.bk);if(!p)return;const f=t.dataset.f;
     if(f==='tipo'){if(t.value==='revolut')p.banco={tipo:'revolut',plano:'standard',moeda:g.base,limite:false};else delete p.banco}
     else{p.banco=p.banco||{tipo:'revolut'};p.banco[f]=f==='limite'?t.checked:t.value}save(g)}
-  else if(t.dataset.ren){const p=g.membros.find(x=>x.id===t.dataset.ren),n=t.value.trim();if(p&&n&&n!==p.nome){p.nome=n;save(g)}}
+  else if(t.dataset.ren){if(!canEdit(g,t.dataset.ren))return;const p=g.membros.find(x=>x.id===t.dataset.ren),n=t.value.trim().slice(0,40);if(p&&n&&n!==p.nome){if(dupName(g,n,p.id)){note('Já existe alguém com o nome “'+n+'” neste grupo.',4000);t.value=p.nome;return}p.nome=n;save(g)}else if(p)t.value=p.nome}
   else if(t.id==='basecur'){g.base=t.value;save(g)}
   else if(t.dataset.rate){const x=parseFloat(t.value.replace(',','.'));if(x>0){g.taxas[t.dataset.rate]=x*g.taxas[g.base];save(g)}else render()}});
 app.addEventListener('submit',ev=>{if(ev.target.id!=='joinlink')return;ev.preventDefault();const v=$('#jl').value||'';const m=v.match(/#g[=-]([a-z0-9]{12,40})/)||v.trim().match(/^([a-z0-9]{12,40})$/);
@@ -779,8 +781,8 @@ app.addEventListener('submit',ev=>{ev.preventDefault();const f=ev.target,g=G();
     const fv=($('#w-f')||{}).value||'';const fee=wFeeU==='%'?Math.round(pv*(parseFloat(String(fv).replace(',','.'))||0)/100):parse(fv);const r=v/((pv+(fee>0?fee:0))/rb);g.cart=g.cart||{};g.cart[me]=[...levsOf(g,me),{id:uid(),tipo:wTipo,data:$('#w-d').value||today(),m,v,pm,pv,fee:fee>0?fee:0,r}];if(!g.taxas[m]){g.taxas[m]=r*g.taxas[g.base]}wForm=false;wPre={};wScanMsg='';save(g);note((wTipo==='conta'?'Conta guardada':'Levantamento guardado')+': 1 '+g.base+' = '+fmtRate(r)+' '+m+'.',4000);return}
   if(f.id==='newg'){if(newOpen)navPop('new');newOpen=false;addPending();const n=$('#ng-n').value.trim(),ps=newPeople;
     if(!n){note('Dá um nome ao grupo.',3000);return}if(!ps.length){note('Junta pelo menos uma pessoa.',3000);$('#ng-p').focus();return}const id=gid();cur=id;tab='desp';const ge=newGE;newPeople=[];newName='';newGE='✈️';
-    save({id,nome:n,base:$('#ng-m').value,taxas:(()=>{const bm=$('#ng-m').value,t=DEF_RATES[bm]?{...DEF_RATES}:{[bm]:1};if(live){for(const m in t)if(live.rates[m])t[m]=live.rates[m];if(live.rates[bm])t[bm]=live.rates[bm]}return t})(),emoji:ge,membros:ps.map(q=>({id:uid(),nome:q.nome,emoji:q.emoji})),despesas:[],upd:Date.now()})}
-  else if(f.id==='addm'){const n=$('#am').value.trim();if(n){focusAdd=true;g.membros.push({id:uid(),nome:n,emoji:PEMO[g.membros.length%PEMO.length]});save(g)}}
+    save({id,nome:n,base:$('#ng-m').value,taxas:(()=>{const bm=$('#ng-m').value,t=DEF_RATES[bm]?{...DEF_RATES}:{[bm]:1};if(live){for(const m in t)if(live.rates[m])t[m]=live.rates[m];if(live.rates[bm])t[bm]=live.rates[bm]}return t})(),emoji:ge,membros:ps.map(q=>({id:uid(),nome:q.nome,emoji:q.emoji})),despesas:[],criador:myKey(),upd:Date.now()})}
+  else if(f.id==='addm'){if(!isOwner(g))return;const n=$('#am').value.trim();if(n&&dupName(g,n)){note('Já existe alguém com o nome “'+n+'”.',4000);return}if(n){focusAdd=true;g.membros.push({id:uid(),nome:n,emoji:PEMO[g.membros.length%PEMO.length]});save(g)}}
   else if(f.id==='addc'){const c=$('#ac').value.trim().toUpperCase(),x=parseFloat($('#acr').value.replace(',','.'));
     if(/^[A-Z]{3}$/.test(c)&&x>0){g.taxas[c]=x*g.taxas[g.base];save(g)}else note('Escolhe a moeda e indica a taxa de câmbio.',3000)}});
 
@@ -797,7 +799,7 @@ function profCard(){if(!auth)return '';
   const bk='';
   if(!profOpen)return `<button class="card pf pf-row" id="pfopen"><span class="pf-e">${esc(prof.emoji||'🙂')}</span><span class="pf-t"><b>${esc(prof.nome||'Sem nome')}</b><small>${esc(user.email||'')}${bk}</small></span><span class="pf-go">›</span></button>`;
   return `<div class="card" style="margin-top:18px"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="pf-emo" data-ein="prof" value="${esc(prof.emoji||'🙂')}" data-cur="${esc(prof.emoji||'🙂')}" aria-label="O teu emoji: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"></span><input id="pf-nome" value="${esc(prof.nome||'')}" placeholder="O teu nome nos grupos" aria-label="O teu nome" enterkeyhint="done"></div>
-  <p class="small">${esc(user.email||'')}</p>
+  <p class="small">${esc(user.email||'')} · O nome e o emoji mudam em todos os teus grupos.</p>
 
   <div class="actions" style="margin-top:6px"><button id="logout">Sair da conta</button><button class="primary" id="pfclose">Feito</button></div></div>`}
 function pfBank(){const b=prof.banco||{},rv=b.tipo==='revolut',pl=b.plano||'standard';
@@ -807,10 +809,10 @@ function pfBank(){const b=prof.banco||{},rv=b.tipo==='revolut',pl=b.plano||'stan
   <p class="q">Moeda da conta</p><select id="pf-bm" aria-label="Moeda da tua conta">${allOpts(b.moeda||'EUR')}</select>
   ${LIMITE[pl]?`<p class="q">Este mês já trocaste mais de ${LIMITE[pl]}?</p><div class="chips">${chip('data-pflim','1',!!b.limite,'Sim')}${chip('data-pflim','',!b.limite,'Não')}</div>`:''}`:''}</div>`}
 /* aplica o nome, emoji e banco do perfil em todos os grupos onde estás */
-function propagate(only,nameToo){if(!prof)return;(only?[only]:mine).forEach(id=>{const g=groups[id],mid=meMap[id];if(!g||!mid)return;const p=g.membros.find(x=>x.id===mid);if(!p)return;let ch=false;
-  if(nameToo&&prof.nome&&p.nome!==prof.nome){p.nome=prof.nome;ch=true}
+function propagate(only,nameToo){const skipped=[];if(!prof)return skipped;(only?[only]:mine).forEach(id=>{const g=groups[id],mid=meMap[id];if(!g||!mid)return;const p=g.membros.find(x=>x.id===mid);if(!p)return;let ch=false;
+  if(nameToo&&prof.nome&&p.nome!==prof.nome){if(dupName(g,prof.nome,p.id))skipped.push(g.nome);else{p.nome=prof.nome;ch=true}}
   if(prof.emoji&&p.emoji!==prof.emoji){p.emoji=prof.emoji;ch=true}
-  if(ch)save(g)})}
+  if(ch)save(g)});return skipped}
 function profMerge(d){const saiu=new Set(d.saiu||[]);let add=0;
   (d.grupos||[]).forEach(id=>{if(!saiu.has(id)&&!mine.includes(id)){mine.push(id);sub(id);add++}});
   Object.entries(d.eus||{}).forEach(([g,m])=>{if(!meMap[g])meMap[g]=m});try{localStorage.setItem(MEK,JSON.stringify(meMap))}catch(e){}
@@ -841,7 +843,7 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
   else if(t.id==='opennew'){navPush('new');newOpen=true;render();setTimeout(()=>{const n=$('#ng-n');if(n)n.focus()},50)}
   else if(t.id==='logout'){profOpen=false;signOut(auth).then(()=>note('Saíste da conta. Os grupos continuam neste telemóvel.',4000))}});
 app.addEventListener('change',ev=>{const t=ev.target;if(!prof)return;
-  if(t.id==='pf-nome'){const n=t.value.trim().slice(0,40);if(n){prof.nome=n;profSave();propagate(null,true)}else t.value=prof.nome||''}
+  if(t.id==='pf-nome'){const n=t.value.trim().slice(0,40);if(n){prof.nome=n;profSave();const sk=propagate(null,true);if(sk.length)note('Noutros grupos já há alguém chamado “'+n+'”: aí mantive o teu nome antigo ('+sk.join(', ')+').',6000);else note('Nome mudado em todos os teus grupos.',3000)}else t.value=prof.nome||''}
   else if(t.id==='pf-bm'&&prof.banco){prof.banco.moeda=t.value;profSave();propagate()}});
 /* leitura de recibos: função no servidor (netlify/functions/recibo.mjs) */
 const RECIBO='/.netlify/functions/recibo';
@@ -1061,6 +1063,13 @@ const DEVK=(()=>{try{let d=localStorage.getItem('ej-dev');if(!d){d=Math.random()
 const myKey=()=>(typeof user!=='undefined'&&user&&user.uid)||DEVK;
 function takenBy(g,mid){const c=(g.claims||{})[mid];return c&&c!==myKey()?c:null}
 function claim(g,mid){const k=myKey();const c={...(g.claims||{})};for(const m in c)if(c[m]===k)delete c[m];if(mid)c[mid]=k;g.claims=c;save(g)}
+
+
+/* ---------- dono do grupo ---------- */
+function ownerOf(g){if(g.ownerMid&&g.membros.some(p=>p.id===g.ownerMid))return g.ownerMid;const c=g.criador&&(g.claims||{});if(c){for(const m in c)if(c[m]===g.criador)return m}return g.membros[0]&&g.membros[0].id}
+function canEdit(g,mid){return isOwner(g)||mid===meOf(g)}
+function dupName(g,n,skip){const k=String(n).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();return g.membros.some(p=>p.id!==skip&&String(p.nome).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim()===k)}
+function isOwner(g){const me=meOf(g);return !!me&&me===ownerOf(g)}
 
 }
 </script>
