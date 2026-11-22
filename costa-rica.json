@@ -1,0 +1,926 @@
+{
+ "formato": "contas-do-grupo",
+ "nome": "Costa Rica",
+ "emoji": "🦥",
+ "base": "EUR",
+ "taxas": {
+  "BRL": 6.476,
+  "CRC": 489.3,
+  "EUR": 1,
+  "GBP": 0.837,
+  "USD": 1.1025
+ },
+ "membros": [
+  {
+   "banco": {
+    "limite": false,
+    "moeda": "EUR",
+    "plano": "standard",
+    "tipo": "revolut"
+   },
+   "emoji": "😀",
+   "id": "rciii987",
+   "nome": "João"
+  },
+  {
+   "emoji": "😎",
+   "id": "hwih6dz8",
+   "nome": "Cristina"
+  },
+  {
+   "emoji": "🤓",
+   "id": "nuhxaq3m",
+   "nome": "Mourinha"
+  },
+  {
+   "emoji": "🥳",
+   "id": "cajritau",
+   "nome": "Pedro"
+  },
+  {
+   "emoji": "😺",
+   "id": "plbiny05",
+   "nome": "Hugo"
+  },
+  {
+   "emoji": "🐶",
+   "id": "jqg0u9bm",
+   "nome": "Tiago"
+  }
+ ],
+ "despesas": [
+  {
+   "cr": 1795304711558,
+   "data": "2026-11-21",
+   "div": {
+    "cajritau": 697583,
+    "hwih6dz8": 697584,
+    "jqg0u9bm": 697583,
+    "nuhxaq3m": 697583,
+    "plbiny05": 697583,
+    "rciii987": 697584
+   },
+   "emoji": "🍽️",
+   "fixD": [],
+   "fixP": [],
+   "id": "omkqo5jo",
+   "itens": [
+    {
+     "n": "Sopa Azteca",
+     "q": 1,
+     "v": 520000,
+     "who": []
+    },
+    {
+     "n": "Fajitas Res",
+     "q": 1,
+     "v": 695000,
+     "who": []
+    },
+    {
+     "n": "Quesadilla",
+     "q": 2,
+     "v": 990000,
+     "who": []
+    },
+    {
+     "n": "Tacos con P",
+     "q": 2,
+     "v": 800000,
+     "who": []
+    },
+    {
+     "n": "Gaseosa",
+     "q": 4,
+     "v": 600000,
+     "who": []
+    },
+    {
+     "n": "Cerveza peq",
+     "q": 1,
+     "v": 200000,
+     "who": []
+    },
+    {
+     "n": "10% Servicio",
+     "q": 1,
+     "v": 380500,
+     "who": []
+    }
+   ],
+   "modo": "valor",
+   "moeda": "CRC",
+   "pag": {
+    "cajritau": 4185500
+   },
+   "partes": {},
+   "tipo": "desp",
+   "titulo": "Almoço no Sabores Lulú, La Fortuna",
+   "total": 4185500,
+   "tx": {
+    "b": "EUR",
+    "m": "CRC",
+    "r": 476.3287
+   }
+  },
+  {
+   "id": "6v5277x0",
+   "titulo": "Levantamento MB",
+   "emoji": "💵",
+   "data": "2026-11-17",
+   "moeda": "USD",
+   "total": 12458,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600000,
+   "pag": {
+    "hwih6dz8": 12458
+   },
+   "div": {
+    "rciii987": 2077,
+    "hwih6dz8": 2077,
+    "nuhxaq3m": 2076,
+    "cajritau": 2076,
+    "plbiny05": 2076,
+    "jqg0u9bm": 2076
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1026
+   }
+  },
+  {
+   "id": "z2s4g8lu",
+   "titulo": "Tortuego El Patio",
+   "emoji": "🍽️",
+   "data": "2026-11-17",
+   "moeda": "USD",
+   "total": 6738,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600001,
+   "pag": {
+    "hwih6dz8": 6738
+   },
+   "div": {
+    "rciii987": 1123,
+    "hwih6dz8": 1123,
+    "nuhxaq3m": 1123,
+    "cajritau": 1123,
+    "plbiny05": 1123,
+    "jqg0u9bm": 1123
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1026
+   }
+  },
+  {
+   "id": "cc77fbh1",
+   "titulo": "Parque Tortuego",
+   "emoji": "🎟️",
+   "data": "2026-11-17",
+   "moeda": "USD",
+   "total": 10170,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600002,
+   "pag": {
+    "hwih6dz8": 10170
+   },
+   "div": {
+    "rciii987": 1695,
+    "hwih6dz8": 1695,
+    "nuhxaq3m": 1695,
+    "cajritau": 1695,
+    "plbiny05": 1695,
+    "jqg0u9bm": 1695
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1026
+   }
+  },
+  {
+   "id": "h0gvzsd5",
+   "titulo": "Panamá bruttito",
+   "emoji": "🍽️",
+   "data": "2026-11-17",
+   "moeda": "USD",
+   "total": 7316,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600003,
+   "pag": {
+    "hwih6dz8": 7316
+   },
+   "div": {
+    "hwih6dz8": 1811,
+    "plbiny05": 911,
+    "rciii987": 1211,
+    "nuhxaq3m": 911,
+    "cajritau": 1811,
+    "jqg0u9bm": 661
+   },
+   "fixP": [],
+   "fixD": [
+    "rciii987",
+    "hwih6dz8",
+    "nuhxaq3m",
+    "cajritau",
+    "plbiny05",
+    "jqg0u9bm"
+   ],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1026
+   }
+  },
+  {
+   "id": "lhydxj2k",
+   "titulo": "Bebidas pachira",
+   "emoji": "🍺",
+   "data": "2026-11-17",
+   "moeda": "USD",
+   "total": 7400,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600004,
+   "pag": {
+    "cajritau": 7400
+   },
+   "div": {
+    "rciii987": 1480,
+    "hwih6dz8": 1480,
+    "cajritau": 1480,
+    "plbiny05": 1480,
+    "jqg0u9bm": 1480
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1026
+   }
+  },
+  {
+   "id": "btz6o5qs",
+   "titulo": "Almoço Soda",
+   "emoji": "🍽️",
+   "data": "2026-11-18",
+   "moeda": "USD",
+   "total": 11432,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600005,
+   "pag": {
+    "hwih6dz8": 11432
+   },
+   "div": {
+    "rciii987": 1906,
+    "hwih6dz8": 1906,
+    "nuhxaq3m": 1905,
+    "cajritau": 1905,
+    "plbiny05": 1905,
+    "jqg0u9bm": 1905
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1026
+   }
+  },
+  {
+   "id": "hsqu0u6i",
+   "titulo": "Bolos",
+   "emoji": "🍰",
+   "data": "2026-11-18",
+   "moeda": "USD",
+   "total": 1400,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600006,
+   "pag": {
+    "plbiny05": 1400
+   },
+   "div": {
+    "rciii987": 234,
+    "hwih6dz8": 234,
+    "nuhxaq3m": 233,
+    "cajritau": 233,
+    "plbiny05": 233,
+    "jqg0u9bm": 233
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1026
+   }
+  },
+  {
+   "id": "v0mk1xt7",
+   "titulo": "Cafés",
+   "emoji": "☕",
+   "data": "2026-11-18",
+   "moeda": "USD",
+   "total": 1400,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600007,
+   "pag": {
+    "jqg0u9bm": 1400
+   },
+   "div": {
+    "rciii987": 234,
+    "hwih6dz8": 234,
+    "nuhxaq3m": 233,
+    "cajritau": 233,
+    "plbiny05": 233,
+    "jqg0u9bm": 233
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1026
+   }
+  },
+  {
+   "id": "ly3nh526",
+   "titulo": "Supermercado",
+   "emoji": "🛒",
+   "data": "2026-11-18",
+   "moeda": "USD",
+   "total": 5711,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600008,
+   "pag": {
+    "hwih6dz8": 5711
+   },
+   "div": {
+    "rciii987": 952,
+    "hwih6dz8": 952,
+    "nuhxaq3m": 952,
+    "cajritau": 952,
+    "plbiny05": 952,
+    "jqg0u9bm": 951
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1026
+   }
+  },
+  {
+   "id": "6f51bzzx",
+   "titulo": "Uber",
+   "emoji": "🚕",
+   "data": "2026-11-18",
+   "moeda": "USD",
+   "total": 723,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600009,
+   "pag": {
+    "hwih6dz8": 723
+   },
+   "div": {
+    "rciii987": 121,
+    "hwih6dz8": 121,
+    "nuhxaq3m": 121,
+    "cajritau": 120,
+    "plbiny05": 120,
+    "jqg0u9bm": 120
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1026
+   }
+  },
+  {
+   "id": "hriopdvs",
+   "titulo": "Uber acerto",
+   "emoji": "🚕",
+   "data": "2026-11-18",
+   "moeda": "USD",
+   "total": 521,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600010,
+   "pag": {
+    "hwih6dz8": 521
+   },
+   "div": {
+    "rciii987": 87,
+    "hwih6dz8": 87,
+    "nuhxaq3m": 87,
+    "cajritau": 87,
+    "plbiny05": 87,
+    "jqg0u9bm": 86
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1026
+   }
+  },
+  {
+   "id": "j1sswk8m",
+   "titulo": "Uber 2",
+   "emoji": "🚕",
+   "data": "2026-11-18",
+   "moeda": "USD",
+   "total": 474,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600011,
+   "pag": {
+    "hwih6dz8": 474
+   },
+   "div": {
+    "rciii987": 79,
+    "hwih6dz8": 79,
+    "nuhxaq3m": 79,
+    "cajritau": 79,
+    "plbiny05": 79,
+    "jqg0u9bm": 79
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1026
+   }
+  },
+  {
+   "id": "0cppes5f",
+   "titulo": "Pizzas",
+   "emoji": "🍕",
+   "data": "2026-11-18",
+   "moeda": "EUR",
+   "total": 11987,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600012,
+   "pag": {
+    "nuhxaq3m": 11987
+   },
+   "div": {
+    "rciii987": 1998,
+    "hwih6dz8": 1998,
+    "nuhxaq3m": 1998,
+    "cajritau": 1998,
+    "plbiny05": 1998,
+    "jqg0u9bm": 1997
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": []
+  },
+  {
+   "id": "sv42v1ll",
+   "titulo": "Uber 2",
+   "emoji": "🚕",
+   "data": "2026-11-18",
+   "moeda": "USD",
+   "total": 474,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600013,
+   "pag": {
+    "jqg0u9bm": 474
+   },
+   "div": {
+    "rciii987": 79,
+    "hwih6dz8": 79,
+    "nuhxaq3m": 79,
+    "cajritau": 79,
+    "plbiny05": 79,
+    "jqg0u9bm": 79
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1026
+   }
+  },
+  {
+   "id": "0ryvq7dz",
+   "titulo": "Bebidas termalitas relax",
+   "emoji": "🍹",
+   "data": "2026-11-19",
+   "moeda": "USD",
+   "total": 8500,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600014,
+   "pag": {
+    "hwih6dz8": 8500
+   },
+   "div": {
+    "rciii987": 1700,
+    "hwih6dz8": 1700,
+    "cajritau": 1700,
+    "plbiny05": 1700,
+    "jqg0u9bm": 1700
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1025
+   }
+  },
+  {
+   "id": "oqgw8zx1",
+   "titulo": "Jantar morte",
+   "emoji": "🍽️",
+   "data": "2026-11-19",
+   "moeda": "USD",
+   "total": 14867,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600015,
+   "pag": {
+    "hwih6dz8": 14867
+   },
+   "div": {
+    "rciii987": 2478,
+    "hwih6dz8": 2478,
+    "nuhxaq3m": 2478,
+    "cajritau": 2478,
+    "plbiny05": 2478,
+    "jqg0u9bm": 2477
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1025
+   }
+  },
+  {
+   "id": "p0spanqq",
+   "titulo": "Uber",
+   "emoji": "🚕",
+   "data": "2026-11-19",
+   "moeda": "USD",
+   "total": 526,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600016,
+   "pag": {
+    "plbiny05": 526
+   },
+   "div": {
+    "rciii987": 88,
+    "hwih6dz8": 88,
+    "nuhxaq3m": 88,
+    "cajritau": 88,
+    "plbiny05": 87,
+    "jqg0u9bm": 87
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1025
+   }
+  },
+  {
+   "id": "8iecw9xe",
+   "titulo": "Gorja",
+   "emoji": "💸",
+   "data": "2026-11-19",
+   "moeda": "EUR",
+   "total": 2000,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600017,
+   "pag": {
+    "plbiny05": 2000
+   },
+   "div": {
+    "rciii987": 334,
+    "hwih6dz8": 334,
+    "nuhxaq3m": 333,
+    "cajritau": 333,
+    "plbiny05": 333,
+    "jqg0u9bm": 333
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": []
+  },
+  {
+   "id": "a6t73yco",
+   "titulo": "Chocolate Com Crocodilo",
+   "emoji": "🍫",
+   "data": "2026-11-20",
+   "moeda": "EUR",
+   "total": 2000,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600018,
+   "pag": {
+    "rciii987": 2000
+   },
+   "div": {
+    "rciii987": 334,
+    "hwih6dz8": 334,
+    "nuhxaq3m": 333,
+    "cajritau": 333,
+    "plbiny05": 333,
+    "jqg0u9bm": 333
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": []
+  },
+  {
+   "id": "pc2w0ogi",
+   "titulo": "Almoço",
+   "emoji": "🍽️",
+   "data": "2026-11-20",
+   "moeda": "USD",
+   "total": 33348,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795307600019,
+   "pag": {
+    "cajritau": 33348
+   },
+   "div": {
+    "rciii987": 5558,
+    "hwih6dz8": 5558,
+    "nuhxaq3m": 5558,
+    "cajritau": 5558,
+    "plbiny05": 5558,
+    "jqg0u9bm": 5558
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.0995
+   }
+  },
+  {
+   "id": "nxffkwwt",
+   "titulo": "Uber",
+   "emoji": "🚕",
+   "data": "2026-11-21",
+   "moeda": "CRC",
+   "total": 579000,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795310000000,
+   "pag": {
+    "nuhxaq3m": 579000
+   },
+   "div": {
+    "rciii987": 115800,
+    "hwih6dz8": 115800,
+    "nuhxaq3m": 115800,
+    "plbiny05": 115800,
+    "jqg0u9bm": 115800
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "CRC",
+    "r": 495.7
+   }
+  },
+  {
+   "id": "l74f6vko",
+   "titulo": "Rainforest",
+   "emoji": "🌿",
+   "data": "2026-11-21",
+   "moeda": "USD",
+   "total": 31200,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795310000001,
+   "pag": {
+    "plbiny05": 31200
+   },
+   "div": {
+    "plbiny05": 8567,
+    "rciii987": 9167,
+    "cajritau": 13368,
+    "jqg0u9bm": 98
+   },
+   "fixP": [],
+   "fixD": [
+    "rciii987",
+    "cajritau",
+    "plbiny05",
+    "jqg0u9bm"
+   ],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1002
+   }
+  },
+  {
+   "id": "jgweefhn",
+   "titulo": "Rainforest 2",
+   "emoji": "🌿",
+   "data": "2026-11-21",
+   "moeda": "USD",
+   "total": 26602,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795310000002,
+   "pag": {
+    "nuhxaq3m": 26602
+   },
+   "div": {
+    "hwih6dz8": 11067,
+    "nuhxaq3m": 8366,
+    "jqg0u9bm": 7169
+   },
+   "fixP": [],
+   "fixD": [
+    "hwih6dz8",
+    "nuhxaq3m",
+    "jqg0u9bm"
+   ],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1002
+   }
+  },
+  {
+   "id": "4j1lqf7g",
+   "titulo": "Uber",
+   "emoji": "🚕",
+   "data": "2026-11-21",
+   "moeda": "USD",
+   "total": 977,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795310000003,
+   "pag": {
+    "hwih6dz8": 977
+   },
+   "div": {
+    "rciii987": 163,
+    "hwih6dz8": 163,
+    "nuhxaq3m": 163,
+    "cajritau": 163,
+    "plbiny05": 163,
+    "jqg0u9bm": 162
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1002
+   }
+  },
+  {
+   "id": "6jbmgdyr",
+   "titulo": "Uber",
+   "emoji": "🚕",
+   "data": "2026-11-21",
+   "moeda": "USD",
+   "total": 1022,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795310000004,
+   "pag": {
+    "hwih6dz8": 1022
+   },
+   "div": {
+    "rciii987": 171,
+    "hwih6dz8": 171,
+    "nuhxaq3m": 170,
+    "cajritau": 170,
+    "plbiny05": 170,
+    "jqg0u9bm": 170
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "USD",
+    "r": 1.1002
+   }
+  },
+  {
+   "id": "ebklfdze",
+   "titulo": "Malas Obrigado",
+   "emoji": "🧳",
+   "data": "2026-11-21",
+   "moeda": "CRC",
+   "total": 200000,
+   "tipo": "desp",
+   "modo": "valor",
+   "cr": 1795310000006,
+   "pag": {
+    "rciii987": 200000
+   },
+   "div": {
+    "rciii987": 33334,
+    "hwih6dz8": 33334,
+    "nuhxaq3m": 33333,
+    "cajritau": 33333,
+    "plbiny05": 33333,
+    "jqg0u9bm": 33333
+   },
+   "fixP": [],
+   "fixD": [],
+   "partes": {},
+   "itens": [],
+   "tx": {
+    "b": "EUR",
+    "m": "CRC",
+    "r": 495.7
+   }
+  }
+ ]
+}
