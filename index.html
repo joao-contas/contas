@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Contas do Grupo</title>
-<meta name="theme-color" content="#d8f0e2">
+<title>EvenJohn</title>
+<meta name="theme-color" content="#d6ecf0">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="EvenJohn">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -18,9 +19,9 @@
    PICTURE: a própria app — cartões suaves, barras de saldo pastel, editor de pagadores
    COLOUR and TYPE: verde menta claro de fundo, pêssego para o que se deve, azul pastel para o que se recebe; Outfit + Inter
    LAYOUT: cabeçalho verde pastel sem moldura, uma coluna até 720px, muito ar */
-:root{color-scheme:light;--bg:#f5fbf7;--card:#ffffff;--ink:#24352d;--mut:#6c8278;--line:#e2efe7;
---lav:#d8f0e2;--lavd:#2e7a57;--blue:#cfe6f7;--blued:#2f6c96;--peach:#ffe0d2;--peachd:#b4572f;--pink:#f9dbe8;
---shadow:0 1px 2px rgb(40 90 60/.05),0 6px 20px rgb(40 90 60/.07)}
+:root{color-scheme:light;--bg:#f6f1e6;--card:#fffdf8;--ink:#162d50;--mut:#5f6b7d;--line:#e8e1d2;
+--lav:#d6ecf0;--lavd:#18788c;--blue:#dde6f3;--blued:#1f4a85;--peach:#ffe0d2;--peachd:#b4572f;--pink:#f9dbe8;
+--shadow:0 1px 2px rgb(22 45 80/.05),0 6px 20px rgb(22 45 80/.08)}
 *{box-sizing:border-box;min-width:0}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Inter,system-ui,sans-serif;overflow-x:clip}
 h1,h2,h3{font-family:Outfit,Inter,sans-serif;line-height:1.1;margin:0;font-weight:500}
@@ -36,7 +37,7 @@ main{padding:24px max(5vw,18px) 64px}
 button,select,input{font:inherit;font-size:16px;color:inherit}
 button{min-height:44px;padding:0 18px;border-radius:999px;border:0;background:var(--line);cursor:pointer;font-weight:500}
 button:hover{filter:brightness(.98)}
-button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #a9dcc0;outline-offset:2px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #a6d6df;outline-offset:2px}
 .primary{background:var(--lavd);color:#fff}
 .primary:disabled{opacity:.35;cursor:not-allowed}
 .ghost{background:transparent;color:var(--lavd);padding:0 6px;margin:-8px 0 6px -6px}
@@ -71,7 +72,7 @@ label input,label select{margin-top:6px;color:var(--ink)}
 .gi{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center}
 .gmore{width:44px;min-height:44px;padding:0;border-radius:50%;background:transparent;color:var(--mut);font-size:24px;line-height:1}
 .gmenu{display:flex;flex-direction:column;gap:8px;margin:-2px 0 6px}.gmenu p{margin:0 0 2px}
-.offbar{position:fixed;top:calc(8px + env(safe-area-inset-top));right:10px;z-index:60;background:#24352d;color:#fff;font-size:12px;padding:5px 10px;border-radius:999px;opacity:.9;pointer-events:none}.offbar[hidden]{display:none}
+.offbar{position:fixed;top:calc(8px + env(safe-area-inset-top));right:10px;z-index:60;background:#162d50;color:#fff;font-size:12px;padding:5px 10px;border-radius:999px;opacity:.9;pointer-events:none}.offbar[hidden]{display:none}
 .fx{background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:12px 14px;margin-top:12px}
 .fx-q{display:block;margin:0 0 6px;font-weight:600;color:var(--ink)}.fx-l{display:block;margin:10px 0 6px;font-weight:500}
 .fx-sum{margin:10px 0 4px;font-size:16px}.fx-sum b{font:600 18px Outfit,sans-serif}
@@ -81,7 +82,16 @@ label input,label select{margin-top:6px;color:var(--ink)}
 .wal .actions,.wal>.small,.wform{padding:0 18px}.wal>.small{padding-bottom:14px}.wform{border-top:1px solid var(--line);padding-top:8px;padding-bottom:4px}
 .levc{margin:0 0 8px}
 input.sug{color:var(--mut);font-style:italic}
-.you{margin-top:4px}.you.rec{background:#eaf4fb}.you.dev{background:#fff1ea}.you.ok{background:var(--lav)}
+.top{position:relative;overflow:hidden;transition:background .3s;background:transparent!important}
+body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(circle at 92% 8%,rgb(24 120 140/.13) 0 90px,transparent 91px),radial-gradient(circle at 108% 70%,rgb(255 214 196/.75) 0 120px,transparent 121px),radial-gradient(circle at -10% 105%,rgb(242 201 72/.28) 0 80px,transparent 81px),linear-gradient(160deg,#d6ecf0,#e9f3f1 60%,#f6f1e6)}
+.top.home{background:transparent}
+.top.home .wrap{position:relative;z-index:1}
+.top.home #title{font-size:clamp(40px,9vw,60px);font-weight:600;letter-spacing:-.03em;display:flex;align-items:center;justify-content:center;gap:12px;text-align:center}
+.top.home #title .tj{color:#18788c}
+.hlogo{width:clamp(48px,11vw,68px);height:auto;flex:none}
+.top.home #sub{display:none}
+.gtile0{background:#d6ecf0!important}.gtile1{background:#ffe0d2!important}.gtile2{background:#f8eac4!important}.gtile3{background:#e6e0f6!important}
+.you{margin-top:4px}.you.rec{background:#e6ecf7}.you.dev{background:#fff1ea}.you.ok{background:var(--lav)}
 .you-l{margin:0;font-size:14px;color:var(--mut)}.you-big{margin:2px 0 6px;font:600 24px Outfit,sans-serif}
 .you.rec .you-big{color:var(--blued)}.you.dev .you-big{color:var(--peachd)}.you.ok .you-big{color:var(--lavd)}
 .pay{padding:12px 0}.pay+.pay,.you-big+.pay{border-top:1px solid rgb(0 0 0/.07)}
@@ -103,7 +113,7 @@ input.sug{color:var(--mut);font-style:italic}
 .tr select{width:auto}
 .tr button{background:var(--blue);color:var(--blued)}
 .row2{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px}
-.modal{position:fixed;inset:0;background:rgb(36 53 45/.28);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;z-index:9}
+.modal{position:fixed;inset:0;background:rgb(22 45 80/.3);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;z-index:9}
 .modal[hidden]{display:none}
 .sheet{background:var(--bg);width:100%;max-width:600px;max-height:94vh;overflow:auto;border-radius:28px 28px 0 0;padding:24px max(4vw,18px) 26px}
 @media(min-width:700px){.modal{align-items:center}.sheet{border-radius:28px}}
@@ -150,10 +160,10 @@ input.sug{color:var(--mut);font-style:italic}
 #camov video{flex:1;width:100%;min-height:0;object-fit:cover}
 #camov .cam-msg{position:absolute;top:45%;width:100%;text-align:center;color:#fff}
 .cam-bar{display:flex;align-items:center;justify-content:space-around;padding:18px 10px calc(18px + env(safe-area-inset-bottom));background:#000}
-.cam-shot{width:74px;height:74px;border-radius:50%;background:#fff;border:5px solid #9fd8b8;padding:0}
+.cam-shot{width:74px;height:74px;border-radius:50%;background:#fff;border:5px solid #3a9fb2;padding:0}
 .cam-side{background:transparent;color:#fff;font-size:26px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:72px}.cam-side span{font-size:13px}
 .scan.busy{opacity:.6;pointer-events:none}
-.scan:focus-within{outline:3px solid #a9dcc0;outline-offset:2px}
+.scan:focus-within{outline:3px solid #a6d6df;outline-offset:2px}
 .it{padding:10px 0}.it+.it{border-top:1px solid var(--line)}
 .ith{display:flex;justify-content:space-between;gap:10px}.ith b{font-weight:500;white-space:nowrap}
 .pch{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
@@ -167,7 +177,7 @@ input.sug{color:var(--mut);font-style:italic}
 .curbtn::after{content:"";flex:none;width:8px;height:8px;border-right:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:rotate(45deg) translateY(-2px)}
 label .curbtn{margin-top:6px}
 .tr .curbtn{width:auto;min-width:7.5em}
-.cpk{position:fixed;inset:0;z-index:20;background:rgb(36 53 45/.28);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center}
+.cpk{position:fixed;inset:0;z-index:20;background:rgb(22 45 80/.3);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center}
 .cpk-box{background:var(--bg);width:100%;max-width:520px;height:min(80vh,640px);border-radius:28px 28px 0 0;display:flex;flex-direction:column;padding:16px 16px 0}
 @media(min-width:700px){.cpk{align-items:center}.cpk-box{border-radius:28px}}
 .cpk-top{display:flex;gap:8px;align-items:center}
@@ -208,7 +218,7 @@ h2.sec{font-size:21px;margin:30px 0 8px}
 <body>
 <header class="top"><div class="wrap">
   <button id="back" class="ghost" hidden>‹ Todos os grupos</button>
-  <h1 id="title">Contas do grupo</h1>
+  <h1 id="title">EvenJohn</h1>
   <p id="sub">Divide despesas, mesmo quando várias pessoas pagam a mesma conta.</p>
   <div id="hero"></div>
 </div></header>
@@ -417,13 +427,15 @@ const allOpts=sel=>`<optgroup label="Mais usadas">${TOPC.map(m=>`<option value="
 function render(){
   if(cur&&!groups[cur]){if(pendingOpen===cur){$('#back').hidden=false;$('#title').textContent='A abrir o grupo…';$('#sub').textContent='';$('#hero').innerHTML='';app.innerHTML='<p class="empty">A carregar…</p>';return}cur=null}
   $('#back').hidden=!cur;
+  if(cur)document.querySelector('.top').classList.remove('home');
   if(!cur){
-    $('#title').textContent='Contas do grupo';
-    $('#sub').textContent='Divide despesas, mesmo quando várias pessoas pagam a mesma conta.';
+    document.querySelector('.top').classList.add('home');
+    $('#title').innerHTML='<svg class="hlogo" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="33" fill="none" stroke="#162d50" stroke-width="5"/><rect x="44" y="12" width="12" height="14" fill="var(--lav)"/><rect x="44" y="74" width="12" height="14" fill="var(--lav)"/><rect x="41" y="17" width="5" height="21" rx="2.5" fill="#162d50"/><rect x="54" y="17" width="5" height="21" rx="2.5" fill="#162d50"/><rect x="41" y="62" width="5" height="21" rx="2.5" fill="#162d50"/><rect x="54" y="62" width="5" height="21" rx="2.5" fill="#162d50"/><rect x="35" y="41" width="30" height="5.6" rx="2.8" fill="#18788c"/><rect x="35" y="52.4" width="30" height="5.6" rx="2.8" fill="#18788c"/></svg><span>Even<span class="tj">John</span></span>';
+    $('#sub').textContent='';
     $('#hero').innerHTML='';
     const ids=mine.filter(id=>groups[id]).sort((a,b)=>(groups[b].upd||0)-(groups[a].upd||0));
     const showNew=!ids.length||newOpen||!!newName||newPeople.length>0;
-    app.innerHTML=`<div class="list">${ids.length?ids.map(id=>{const g=groups[id];return `<div class="sw" data-sw="${esc(id)}"><div class="sw-act"><button class="sw-del" data-gmenu="${esc(id)}">🗑️<span>Apagar</span></button><button class="sw-del" data-gmenu="${esc(id)}">🗑️<span>Apagar</span></button></div><button class="item card sw-fg" data-open="${esc(id)}"><span class="ic">${esc(g.emoji||'💸')}</span><h3>${esc(g.nome)}</h3><small>${g.membros.length} pessoas · ${g.despesas.length} movimentos</small><span class="amt">${fmt(toCur(g,gasto(g),g.base),g.base)}</span></button></div>${gMenu===id?gMenuHTML(g):''}`}).join(''):'<p class="empty">Ainda não há grupos. Cria o primeiro abaixo.</p>'}</div>
+    app.innerHTML=`<div class="list">${ids.length?ids.map((id,ix)=>{const g=groups[id];return `<div class="sw" data-sw="${esc(id)}"><div class="sw-act"><button class="sw-del" data-gmenu="${esc(id)}">🗑️<span>Apagar</span></button><button class="sw-del" data-gmenu="${esc(id)}">🗑️<span>Apagar</span></button></div><button class="item card sw-fg" data-open="${esc(id)}"><span class="ic gtile${ix%4}">${esc(g.emoji||'💸')}</span><h3>${esc(g.nome)}</h3><small>${g.membros.length} pessoas · ${g.despesas.length} movimentos</small><span class="amt">${fmt(toCur(g,gasto(g),g.base),g.base)}</span></button></div>${gMenu===id?gMenuHTML(g):''}`}).join(''):'<p class="empty">Ainda não há grupos. Cria o primeiro abaixo.</p>'}</div>
     ${showNew?'<h2 class="sec">Novo grupo</h2>':''}
     ${showNew?'':'<button class="primary newbtn" id="opennew">＋ Novo grupo</button>'}
     <form id="newg" class="card" ${showNew?'':'hidden'}>
@@ -438,11 +450,11 @@ function render(){
     </form>
     ${profCard()}
     <details class="opts" ${joinOpen?'open':''}><summary>🔗 Tenho um link de um grupo · 📥 Importar</summary>
-<form id="joinlink" class="card"><p class="small" style="margin-top:0">Recebeste um link de um grupo? Cola-o aqui${matchMedia('(display-mode: standalone)').matches?' (na app instalada os links do WhatsApp abrem no navegador, por isso cola-o aqui uma vez)':''}.</p>
+<form id="joinlink" class="card"><p class="small" style="margin-top:0">Cola aqui o link do grupo.</p>
       <div class="inline" style="margin:0"><input id="jl" placeholder="https://…/contas/#g=…" autocomplete="off" enterkeyhint="go" aria-label="Link do grupo"><button class="primary">Entrar</button></div></form>
         <label class="scan alt" style="margin:10px 0 0"><input type="file" accept=".json,application/json" id="impfile" hidden>📥 Importar grupo de ficheiro</label>
     </details>
-    <p class="small">${fs?'Para juntar amigos, abre o grupo e toca em “Partilhar link”. Quem abrir o link entra no grupo.':'Modo local: a app ainda não está ligada ao Firebase, por isso os grupos ficam só neste dispositivo.'}</p>`;
+    <p class="small">${fs?'Para juntar amigos: abre o grupo → Partilhar link.':'Modo local: a app ainda não está ligada ao Firebase, por isso os grupos ficam só neste dispositivo.'}</p>`;
     return}
   const g=G(),b=saldos(g),sc=showCur&&g.taxas[showCur]?showCur:g.base;
   $('#title').textContent=(g.emoji?g.emoji+' ':'')+g.nome;
@@ -470,7 +482,7 @@ function render(){
     const ord=[...g.membros].sort((x,y)=>b[y.id]-b[x.id]);
     h+=`<h2 class="sec">Quem está a dever e a receber</h2><div class="card">${ord.map(p=>{const v=b[p.id];
       return `<div class="prow ${p.id===me?'me':''}"><span class="pn">${esc(pn(p))}${p.id===me?' <small>(tu)</small>':''}</span><span class="pill ${v>0.5?'rec':v<-0.5?'dev':'ok'}">${v>0.5?'recebe '+F(v):v<-0.5?'deve '+F(v):'em dia'}</span></div>`}).join('')}
-      <p class="small" style="margin:10px 0 0">Quem pagou mais do que a sua parte <b>recebe</b>; quem pagou menos <b>deve</b>.</p></div>`;
+      <p class="small" style="margin:10px 0 0"></p></div>`;
     // 3. pagamentos
     const others=me?tr.filter(t=>t.de!==me&&t.para!==me):tr;
     h+=`<h2 class="sec">${me?'Os outros pagamentos':'Pagamentos para ficar tudo acertado'}</h2>
@@ -479,24 +491,24 @@ function render(){
       <label>Mostrar valores em<select id="showcur">${curOpts(g,sc)}</select></label>
       <p class="small" style="margin:12px 0 4px">Como calcular os pagamentos</p>
       <div class="seg" role="group" aria-label="Tipo de acerto"><button data-simp="1" aria-pressed="${simp}">Menos pagamentos</button><button data-simp="0" aria-pressed="${!simp}">Despesa a despesa</button></div>
-      <p class="small">${simp?'Recomendado: as dívidas são compensadas entre todos, para haver o mínimo de transferências.':'Cada um paga diretamente a quem pagou por si. Dá mais transferências.'}</p>
-      <p class="small">Quando alguém pagar, toca em <b>“✓ Já foi pago”</b>: fica registado como reembolso e os saldos atualizam-se. Podes escolher a moeda em que cada pagamento é feito.</p>
+      <p class="small">${simp?'Recomendado: o mínimo de transferências.':'Cada um paga a quem pagou por si.'}</p>
+      <p class="small"></p>
     </details>`}
   if(tab==='conf'){
     const usados=new Set();g.despesas.forEach(d=>{Object.keys(d.pag).forEach(k=>usados.add(k));Object.keys(d.div).forEach(k=>usados.add(k))});
     h+=`<h2 class="sec" style="margin-top:4px">Grupo</h2><div class="card"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="g-emo" data-ein="grp" value="${esc(g.emoji||'💸')}" data-cur="${esc(g.emoji||'💸')}" aria-label="Emoji do grupo: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" id="g-emo-more" aria-label="Ver lista de emojis"></button></span><input id="g-nome" value="${esc(g.nome)}" aria-label="Nome do grupo" enterkeyhint="done"></div><div id="g-emos" hidden>${secPicker(g.emoji,'grp')}</div></div>
     <h2 class="sec">Participantes</h2><div class="card">${g.membros.map(p=>`<div class="mrow"><span class="ewrap"><input class="ein" data-ein="m:${esc(p.id)}" value="${esc(p.emoji||'🙂')}" data-cur="${esc(p.emoji||'🙂')}" aria-label="Emoji de ${esc(p.nome)}: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" data-pickm="${esc(p.id)}" aria-label="Ver lista de emojis"></button></span><input data-ren="${esc(p.id)}" value="${esc(p.nome)}" aria-label="Nome" enterkeyhint="done">${usados.has(p.id)?'<span></span>':`<button class="x" data-rm="${esc(p.id)}" aria-label="Remover ${esc(p.nome)}">×</button>`}</div>${pickM===p.id?picker(PEMO,p.emoji,'m:'+p.id):''}`).join('')}
     <form id="addm" class="mrow" style="grid-template-columns:minmax(0,1fr) 48px"><input id="am" placeholder="Juntar pessoa…" enterkeyhint="enter" autocomplete="off"><button class="plus" aria-label="Adicionar">+</button></form>
-    <p class="small" style="margin:4px 0 0">Toca no emoji e escolhe outro no teclado (ou abre a lista na seta); toca no nome para o corrigir. Só dá para remover quem ainda não entrou em nenhuma despesa.</p></div>
-    <h2 class="sec">Moedas e taxas</h2><p class="small">Taxas de referência do mercado${g.taxasUpd?' (atualizadas: '+esc(new Date(g.taxasUpd).toLocaleDateString('pt-PT'))+')':''}. Os bancos aplicam a sua margem: ajusta se quiseres a taxa exata do teu banco. <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">Taxas por Exchange Rate API</a></p>
+    <p class="small" style="margin:4px 0 0">Toca no emoji ou no nome para mudar.</p></div>
+    <h2 class="sec">Moedas e taxas</h2><p class="small">Taxas de referência do mercado${g.taxasUpd?' (atualizadas: '+esc(new Date(g.taxasUpd).toLocaleDateString('pt-PT'))+')':''}. <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">Taxas por Exchange Rate API</a></p>
     <button id="rates" style="margin-bottom:10px">↻ Atualizar taxas</button>
     <div class="card"><label>Moeda principal<select id="basecur">${curOpts(g,g.base)}</select></label>
     ${Object.keys(g.taxas).filter(m=>m!==g.base).map(m=>`<div class="inline"><span style="white-space:nowrap">1 ${flag(g.base)} ${esc(g.base)} =</span><input inputmode="decimal" data-rate="${esc(m)}" value="${String(+(g.taxas[m]/g.taxas[g.base]).toFixed(4)).replace('.',',')}"><span style="white-space:nowrap" title="${esc(curName(m))}">${flag(m)} ${esc(m)}</span></div>`).join('')}
     <form id="addc"><label>Juntar outra moeda<select id="ac">${otherOpts(g,'')}</select></label><div class="inline"><span style="white-space:nowrap">1 ${flag(g.base)} ${esc(g.base)} =</span><input id="acr" inputmode="decimal" placeholder="taxa"><span id="ac-code" style="white-space:nowrap"></span></div><div class="actions" style="margin-top:6px"><button>Adicionar moeda</button></div></form></div>
-    <h2 class="sec">📷 Leitura de recibos (grátis)</h2><div class="card">${(appKey||g.iaKey)?`<p class="small" style="margin-top:0">✅ Ativa na app inteira, para todos os grupos. Toda a gente vê o botão 📷 ao criar uma despesa, sem fazer nada.</p><div class="actions" style="margin-top:6px"><button id="gkey-rm" type="button">Desligar a leitura de recibos</button></div>`:`<p class="small" style="margin-top:0">Cria uma chave grátis do Gemini da Google em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (toca em <b>Create API key</b>), copia-a e cola-a aqui. Basta fazer isto uma vez: fica ativa na app inteira, para toda a gente e todos os grupos.</p>
+    <h2 class="sec">📷 Leitura de recibos (grátis)</h2><div class="card">${(appKey||g.iaKey)?`<p class="small" style="margin-top:0">✅ Ativa para todos.</p><div class="actions" style="margin-top:6px"><button id="gkey-rm" type="button">Desligar a leitura de recibos</button></div>`:`<p class="small" style="margin-top:0">Cria uma chave grátis do Gemini da Google em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (toca em <b>Create API key</b>), copia-a e cola-a aqui. Basta fazer isto uma vez: fica ativa na app inteira, para toda a gente e todos os grupos.</p>
     <div class="inline" style="margin:0"><input id="gkey" type="password" autocomplete="off" placeholder="Colar chave (AIza…)" aria-label="Chave do Gemini"><button id="gkey-ok" type="button">Guardar</button></div>`}
-    <p class="small">No plano grátis a Google pode usar as fotos para melhorar os seus produtos. A chave fica guardada no Firebase, não no GitHub.</p></div>
-    <div class="actions"><button id="expg">📤 Exportar grupo</button><button id="leaveg">Sair do grupo</button><button class="danger" id="delg">${confirmDel===g.id?'Confirmar: apagar para todos':'Apagar grupo para todos'}</button></div><p class="small">“Sair” só tira o grupo deste telemóvel. “Apagar” apaga-o para toda a gente.</p>`}
+    <p class="small">No plano grátis a Google pode usar as fotos.</p></div>
+    <div class="actions"><button id="expg">📤 Exportar grupo</button><button id="leaveg">Sair do grupo</button><button class="danger" id="delg">${confirmDel===g.id?'Confirmar: apagar para todos':'Apagar grupo para todos'}</button></div><p class="small"></p>`}
   app.innerHTML=h;if(focusAdd){focusAdd=false;const a=$('#am');if(a)a.focus()}}
 
 let gMenu=null,gDelAsk=null;
@@ -533,7 +545,7 @@ function rowsHTML(side){const g=G(),rows=edit[side],partes=side==='div'&&edit.mo
   ${partes?`<span class="calc" data-calc="${esc(p.id)}">${r.on?val(r.v):''}</span>`:`<button class="auto" data-auto="${side}" data-k="${esc(p.id)}" ${r.fix&&r.on?'':'hidden'} title="Voltar a calcular automaticamente">auto</button>`}</div>`}).join('')}
 function itemsHTML(){const g=G(),e=edit;if(!e.itens||!e.itens.length||e.modo!=='artigos')return '';
   const on=g.membros.filter(p=>e.div[p.id].on);
-  return `<p class="hint">Toca em quem consumiu cada artigo. Artigo sem ninguém marcado divide-se por todos. Impostos, gorjeta ou descontos repartem-se na mesma proporção.</p>`+e.itens.map((it,i)=>`<div class="it"><div class="ith"><span>${it.q>1?esc(it.q)+'× ':''}${esc(it.n)}</span><b>${fmt(it.v,e.moeda)}</b></div><div class="pch">${on.map(p=>`<button type="button" class="pchip ${it.who.includes(p.id)?'on':''}" data-it="${i}" data-k="${esc(p.id)}">${esc(pn(p))}</button>`).join('')}</div></div>`).join('')}
+  return `<p class="hint">Toca em quem consumiu cada artigo. Sem ninguém = todos.</p>`+e.itens.map((it,i)=>`<div class="it"><div class="ith"><span>${it.q>1?esc(it.q)+'× ':''}${esc(it.n)}</span><b>${fmt(it.v,e.moeda)}</b></div><div class="pch">${on.map(p=>`<button type="button" class="pchip ${it.who.includes(p.id)?'on':''}" data-it="${i}" data-k="${esc(p.id)}">${esc(pn(p))}</button>`).join('')}</div></div>`).join('')}
 function mktDate(){const u=(typeof live!=='undefined'&&live&&live.upd)||(typeof market!=='undefined'&&market&&market.upd)||'';try{return u?new Date(u).toLocaleDateString('pt-PT'):''}catch(e){return ''}}
 const fmtRate=r=>String(+r.toFixed(r<10?4:2)).replace('.',',');
 const rateOf=(g,c)=>c===g.base?1:((edit&&dayRate(g,c,edit.data||today()))||(typeof liveRate==='function'&&liveRate(g,c))||(g.taxas[c]&&g.taxas[c]/g.taxas[g.base])||null);
@@ -545,7 +557,7 @@ function prOf(){const e=edit,r=parseFloat(String(e.rx||'').replace(',','.')),rp=
 function fxSum(){const g=G(),e=edit,r=parseFloat(String(e.rx||'').replace(',','.'));if(!(r>0)||!(e.total>0))return 'Escreve o total para ver quanto dá em '+esc(g.base)+'.';
   const sd=e.rxSrc==='dia'?' <small>(mercado de '+esc(new Date((e.data||today())+'T12:00').toLocaleDateString('pt-PT'))+')</small>':e.rxSrc==='manual'||e.rxSrc==='pago'?' <small>(a tua taxa)</small>':'';
   return `≈ <b>${fmt(Math.round(e.total/r),g.base)}</b> · 1 ${esc(g.base)} = ${esc(e.rx)} ${esc(e.moeda)}${sd}`}
-function pvHint(){const g=G(),e=edit,r=pvCalc();if(!r)return `Escreve o valor que te saiu da conta em ${esc(e.pm)} (vês no talão ou no extrato).`;
+function pvHint(){const g=G(),e=edit,r=pvCalc();if(!r)return `Valor do talão ou extrato.`;
   return `✓ ${fmt(e.total,e.moeda)} = ${fmt(parse(e.pv),e.pm)}`}
 function rateRow(){const g=G(),e=edit,m=e.moeda;if(m===g.base)return '';
   const dk=dayRate(g,m,e.data||today()),mk=dk||(typeof liveRate==='function'?liveRate(g,m):null);
@@ -576,9 +588,9 @@ function drawEditor(){const g=G(),e=edit,re=e.tipo==='reemb';
   <div id="e-emos" hidden>${picker([...EXP.map(x=>x[0]),'🤝'],e.emoji,'exp')}</div>
   <div class="row2"><label>Total<input id="e-tot" inputmode="decimal" value="${e.total?val(e.total):''}" placeholder="0,00"></label><label>Moeda<select id="e-cur">${curOpts(g,e.moeda)}<optgroup label="Outras moedas">${otherOpts(g,e.moeda)}</optgroup></select></label></div><div id="e-rate">${rateRow()}</div>
   <label>Data<input type="date" id="e-dat" value="${esc(e.data)}"></label>
-  <section><div class="h3row"><h3>Pago por</h3></div><p class="hint">Marca todas as pessoas que pagaram e altera quanto pagou cada uma. Os valores que não mexeres acertam-se sozinhos.</p><div id="r-pag">${rowsHTML('pag')}</div><p class="sum" id="s-pag"></p></section>
+  <section><div class="h3row"><h3>Pago por</h3></div><p class="hint">Marca quem pagou. O resto acerta-se sozinho.</p><div id="r-pag">${rowsHTML('pag')}</div><p class="sum" id="s-pag"></p></section>
   <section><div class="h3row"><h3>Dividido por</h3><button type="button" class="auto" style="padding:0 12px" data-all="div">Todos</button></div><div class="seg"><button data-modo="valor" aria-pressed="${e.modo==='valor'}">Valores</button><button data-modo="partes" aria-pressed="${e.modo==='partes'}">Partes</button>${e.itens&&e.itens.length?`<button data-modo="artigos" aria-pressed="${e.modo==='artigos'}">Artigos</button>`:''}</div>
-  ${e.modo==='artigos'?'':`<p class="hint">${e.modo==='partes'?'Indica quantas partes cabem a cada pessoa (ex.: um casal conta 2).':'Altera o valor de quem consumiu mais ou menos; o resto divide-se igualmente.'}</p>`}<div id="r-div">${rowsHTML('div')}</div><div id="e-items">${itemsHTML()}</div><p class="sum" id="s-div"></p></section>
+  ${e.modo==='artigos'?'':`<p class="hint">${e.modo==='partes'?'Partes por pessoa (ex.: casal = 2).':'Muda só quem gastou diferente.'}</p>`}<div id="r-div">${rowsHTML('div')}</div><div id="e-items">${itemsHTML()}</div><p class="sum" id="s-div"></p></section>
   <div class="actions">${e.id?`<button class="danger" id="e-del">${confirmDel===e.id?'Confirmar apagar':'Apagar'}</button>`:''}<button id="e-x">Cancelar</button><button class="primary" id="e-ok">Guardar</button></div>`;
   refresh()}
 function refresh(){const g=G(),act=document.activeElement;
@@ -765,7 +777,7 @@ app.addEventListener('submit',ev=>{ev.preventDefault();const f=ev.target,g=G();
 groups=lsGet(LS,{});
 $('#hero').addEventListener('click',async ev=>{if(!ev.target.closest('#share')||!G())return;
   const url=location.origin+location.pathname+'#g='+cur,g=G();
-  if(navigator.share){try{await navigator.share({title:g.nome,text:'Junta-te ao grupo “'+g.nome+'” nas Contas do Grupo',url});return}catch(e){if(e.name==='AbortError')return}}
+  if(navigator.share){try{await navigator.share({title:g.nome,text:'Junta-te ao grupo “'+g.nome+'” no EvenJohn',url});return}catch(e){if(e.name==='AbortError')return}}
   try{await navigator.clipboard.writeText(url);note('Link copiado. Envia-o aos teus amigos.',3500)}catch(e){note(url,15000)}});
 mine.forEach(sub);fromHash();render();fetchRates(false);
 /* ---------- perfil (opcional, entrar com Google) ---------- */
@@ -775,7 +787,7 @@ function profCard(){if(!auth)return '';
   const bk='';
   if(!profOpen)return `<button class="card pf pf-row" id="pfopen"><span class="pf-e">${esc(prof.emoji||'🙂')}</span><span class="pf-t"><b>${esc(prof.nome||'Sem nome')}</b><small>${esc(user.email||'')}${bk}</small></span><span class="pf-go">›</span></button>`;
   return `<div class="card" style="margin-top:18px"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="pf-emo" data-ein="prof" value="${esc(prof.emoji||'🙂')}" data-cur="${esc(prof.emoji||'🙂')}" aria-label="O teu emoji: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"></span><input id="pf-nome" value="${esc(prof.nome||'')}" placeholder="O teu nome nos grupos" aria-label="O teu nome" enterkeyhint="done"></div>
-  <p class="small">${esc(user.email||'')} · O nome e o emoji mudam em todos os teus grupos.</p>
+  <p class="small">${esc(user.email||'')}</p>
 
   <div class="actions" style="margin-top:6px"><button id="logout">Sair da conta</button><button class="primary" id="pfclose">Feito</button></div></div>`}
 function pfBank(){const b=prof.banco||{},rv=b.tipo==='revolut',pl=b.plano||'standard';
@@ -962,17 +974,17 @@ function walletHTML(g,me){const ls=levsOf(g,me);
   h+=ls.map(l=>{const u=levUsed(g,me,l),rest=l.v-u;return `<div class="lev"><div>${levIc(l)} <b>${esc(levName(l))} · ${esc(new Date(l.data+'T12:00').toLocaleDateString('pt-PT'))}</b> · ${fmt(l.v,l.m)} <small>(${fmt(l.pv,l.pm)}${l.fee?' + '+fmt(l.fee,l.pm)+' comissões':''})</small><div class="small">Taxa 1 ${esc(g.base)} = ${fmtRate(l.r)} ${esc(l.m)} · gasto ${fmt(u,l.m)} · <b>sobram ${fmt(rest,l.m)}</b></div></div><button class="x" data-wdel="${esc(l.id)}" aria-label="Apagar levantamento">${wDelAsk===l.id?'✓?':'×'}</button></div>`}).join('');
   if(wForm){const lastNB=[...g.despesas].filter(d=>d.moeda!==g.base).sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b.cr||0)-(a.cr||0))[0];const mc=(levsOf(g,me).slice(-1)[0]||{}).m||(lastNB&&lastNB.moeda)||Object.keys(g.taxas).find(c=>c!==g.base)||'USD';
     const cta=false;wTipo='cash';
-    h+=`<form id="wform" class="wform"><label class="scan alt" style="margin:10px 0 4px"><input type="file" accept="image/*" data-wfoto="1" hidden>📷 Ler talão do multibanco</label><p class="hint" id="w-scan" role="status">${wScanMsg?esc(wScanMsg):'Foto do talão ou print do levantamento na app do banco.'}</p><label>${cta?'Quanto ficou na conta?':'Quanto levantaste?'}</label><div class="inline" style="margin:0"><input id="w-v" inputmode="decimal" placeholder="50000" required value="${esc(wPre.v||'')}"><select id="w-m">${allOpts(wPre.m||mc)}</select></div>
+    h+=`<form id="wform" class="wform"><label class="scan alt" style="margin:10px 0 4px"><input type="file" accept="image/*" data-wfoto="1" hidden>📷 Ler talão do multibanco</label><p class="hint" id="w-scan" role="status">${wScanMsg?esc(wScanMsg):'Talão ou print do banco.'}</p><label>${cta?'Quanto ficou na conta?':'Quanto levantaste?'}</label><div class="inline" style="margin:0"><input id="w-v" inputmode="decimal" placeholder="50000" required value="${esc(wPre.v||'')}"><select id="w-m">${allOpts(wPre.m||mc)}</select></div>
     <label>${cta?'Quanto pagaste por isso?':'Quanto te saiu da conta?'}</label><div class="inline" style="margin:0"><input id="w-p" inputmode="decimal" placeholder="0,00" required value="${esc(wPre.pv||'')}"><select id="w-pm">${allOpts(wPre.pm||g.base)}</select></div>
-    <label>Comissões <small style="font-weight:400">(só se não estiverem já no valor acima)</small></label><div class="inline" style="margin:0"><input id="w-f" inputmode="decimal" placeholder="${wFeeU==='%'?'ex.: 1':'0,00'}" value="${esc(wPre.f||'')}"><div class="seg" role="group" style="margin:0"><button type="button" data-wfu="%" aria-pressed="${wFeeU==='%'}">%</button><button type="button" data-wfu="v" aria-pressed="${wFeeU!=='%'}" id="w-fc">${esc(g.base)}</button></div></div>
+    <label>Comissões</label><div class="inline" style="margin:0"><input id="w-f" inputmode="decimal" placeholder="${wFeeU==='%'?'ex.: 1':'0,00'}" value="${esc(wPre.f||'')}"><div class="seg" role="group" style="margin:0"><button type="button" data-wfu="%" aria-pressed="${wFeeU==='%'}">%</button><button type="button" data-wfu="v" aria-pressed="${wFeeU!=='%'}" id="w-fc">${esc(g.base)}</button></div></div>
     <p class="small" id="w-eff" style="margin:6px 0 0"></p>
-    <p class="small" style="margin:4px 0 0">Valores habituais: troca de moeda 0,5–2 %; multibanco no estrangeiro 1–3 % ou um valor fixo (ex.: 3–5 USD). Se o extrato já mostra o total pago, deixa em branco.</p>
+    <p class="small" style="margin:4px 0 0">Normal: 0,5–3 %. Vazio se já está no total.</p>
     <label>Data<input type="date" id="w-d" value="${esc(wPre.d||today())}"></label>
     <div class="actions"><button type="button" class="linkbtn" id="wcancel">Cancelar</button><button class="primary">Guardar</button></div></form>`}
   else h+=`<div class="actions" style="margin-top:8px"><button id="wadd">＋ Levantamento</button></div>`;
-  return h+`<p class="small" style="margin:8px 0 0">Isto não entra nas contas do grupo. Quando pagares com esse dinheiro, escolhe-o na despesa em “Como pagaste?” e a app usa a taxa dele.</p></div>`}
+  return h+`<p class="small" style="margin:8px 0 0">Não entra nas contas. Usa-o em “Como pagaste?”.</p></div>`}
 function levOpts(){const g=G(),me=meOf(g);if(!me||!edit)return [];return levsOf(g,me).map(l=>({l,rest:l.v-levUsed(g,me,l,edit.id)})).filter(x=>x.rest>0||x.l.id===edit.lev)}
-function lvHint(){const g=G(),e=edit,l=levsOf(g,meOf(g)).find(x=>x.id===e.lev),v=parse(e.lvs||'');if(!l||!(v>0))return 'Escreve o valor que te saiu dessa conta (vês no extrato).';
+function lvHint(){const g=G(),e=edit,l=levsOf(g,meOf(g)).find(x=>x.id===e.lev),v=parse(e.lvs||'');if(!l||!(v>0))return 'Valor do extrato.';
   return `✓ ${fmt(e.total,e.moeda)} = ${fmt(v,l.m)} ≈ ${fmt(Math.round(v/l.r),g.base)}`}
 function lvApply(){const g=G(),e=edit,l=levsOf(g,meOf(g)).find(x=>x.id===e.lev),v=parse(e.lvs||'');if(l&&v>0&&e.total>0){e.rx=String(e.total/(v/l.r));e.rxSrc='lev'}}
 function setLev(id){const g=G();edit.lev=id||'';edit.lvs='';if(id){const l=levsOf(g,meOf(g)).find(x=>x.id===id);if(l){edit.pm='';edit.pv='';
