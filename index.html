@@ -123,6 +123,13 @@ label input,label select{margin-top:6px;color:var(--ink)}
 .scan{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;margin:14px 0 0;border-radius:16px;background:var(--lavd);color:#fff;font-size:16px;font-weight:500;cursor:pointer}
 .scanrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.scanrow .scan{margin-top:14px;padding:0 10px;text-align:center}
 .scan.alt{background:var(--lav);color:var(--lavd)}
+.galink{color:var(--lavd);text-decoration:underline;cursor:pointer;font-weight:500}
+#camov{position:fixed;inset:0;z-index:99;background:#000;display:flex;flex-direction:column}
+#camov video{flex:1;width:100%;min-height:0;object-fit:cover}
+#camov .cam-msg{position:absolute;top:45%;width:100%;text-align:center;color:#fff}
+.cam-bar{display:flex;align-items:center;justify-content:space-around;padding:18px 10px calc(18px + env(safe-area-inset-bottom));background:#000}
+.cam-shot{width:74px;height:74px;border-radius:50%;background:#fff;border:5px solid #9fd8b8;padding:0}
+.cam-side{background:transparent;color:#fff;font-size:26px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:72px}.cam-side span{font-size:13px}
 .scan.busy{opacity:.6;pointer-events:none}
 .scan:focus-within{outline:3px solid #a9dcc0;outline-offset:2px}
 .it{padding:10px 0}.it+.it{border-top:1px solid var(--line)}
@@ -372,6 +379,8 @@ function render(){
     const ids=mine.filter(id=>groups[id]).sort((a,b)=>(groups[b].upd||0)-(groups[a].upd||0));
     app.innerHTML=`<div class="list">${ids.length?ids.map(id=>{const g=groups[id];return `<button class="item card" data-open="${esc(id)}"><span class="ic">${esc(g.emoji||'💸')}</span><h3>${esc(g.nome)}</h3><small>${g.membros.length} pessoas · ${g.despesas.length} movimentos</small><span class="amt">${fmt(toCur(g,gasto(g),g.base),g.base)}</span></button>`}).join(''):'<p class="empty">Ainda não há grupos. Cria o primeiro abaixo.</p>'}</div>
     ${profCard()}
+    <h2 class="sec">🔗 Entrar num grupo</h2><form id="joinlink" class="card"><p class="small" style="margin-top:0">Recebeste um link de um grupo? Cola-o aqui${matchMedia('(display-mode: standalone)').matches?' (na app instalada os links do WhatsApp abrem no navegador, por isso cola-o aqui uma vez)':''}.</p>
+      <div class="inline" style="margin:0"><input id="jl" placeholder="https://…/contas/#g=…" autocomplete="off" enterkeyhint="go" aria-label="Link do grupo"><button class="primary">Entrar</button></div></form>
     <h2 class="sec">Novo grupo</h2>
     <form id="newg" class="card">
       <label for="ng-n">Nome do grupo</label>
@@ -488,7 +497,7 @@ function rateRow(){const g=G(),m=edit.moeda;if(m===g.base)return '';
   <p class="hint">${hint} Fica gravada com a despesa.${g.taxas[m]?'':' '+esc(curName(m)||m)+' é nova neste grupo.'}${mk&&src!=='mercado'?` <button type="button" class="linkbtn" id="e-rxm">Usar mercado${d?' de '+d:''}: ${fmtRate(mk)}</button>`:''}</p>`}
 function drawEditor(){const g=G(),e=edit,re=e.tipo==='reemb';
   sheet.innerHTML=`<h2>${e.id?(re?'Editar reembolso':'Editar despesa'):'Nova despesa'}</h2>
-  ${(canPhoto||!!gkey())&&!re?`<div class="scanrow"><label class="scan"><input type="file" accept="image/*" capture="environment" data-foto="1" hidden>📷 Tirar foto ao recibo</label><label class="scan alt"><input type="file" accept="image/*" data-foto="1" hidden>🖼️ Escolher da galeria</label></div><p class="hint" id="e-scan" role="status">Se a câmara não abrir, tira a foto com a câmara do telemóvel e escolhe-a na galeria.</p>`:''}
+  ${(canPhoto||!!gkey())&&!re?`<button type="button" class="scan" id="camb" style="width:100%;border:0">📷 Foto do recibo</button><input type="file" accept="image/*" data-foto="1" id="camfile" hidden><p class="hint" id="e-scan" role="status"></p>`:''}
   <label for="e-t">Descrição</label><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="e-emo" data-ein="exp" value="${esc(e.emoji)}" data-cur="${esc(e.emoji)}" aria-label="Emoji da despesa: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" id="e-emo-more" aria-label="Ver lista de emojis"></button></span><input id="e-t" value="${esc(e.titulo)}" placeholder="Jantar, hotel, gasolina…"></div>
   <div id="e-emos" hidden>${picker([...EXP.map(x=>x[0]),'🤝'],e.emoji,'exp')}</div>
   <div class="row2"><label>Total<input id="e-tot" inputmode="decimal" value="${e.total?val(e.total):''}" placeholder="0,00"></label><label>Moeda<select id="e-cur">${curOpts(g,e.moeda)}<optgroup label="Outras moedas">${otherOpts(g,e.moeda)}</optgroup></select></label></div><div id="e-rate">${rateRow()}</div>
@@ -640,6 +649,9 @@ app.addEventListener('change',ev=>{const t=ev.target,g=G();
   else if(t.dataset.ren){const p=g.membros.find(x=>x.id===t.dataset.ren),n=t.value.trim();if(p&&n&&n!==p.nome){p.nome=n;save(g)}}
   else if(t.id==='basecur'){g.base=t.value;save(g)}
   else if(t.dataset.rate){const x=parseFloat(t.value.replace(',','.'));if(x>0){g.taxas[t.dataset.rate]=x*g.taxas[g.base];save(g)}else render()}});
+app.addEventListener('submit',ev=>{if(ev.target.id!=='joinlink')return;ev.preventDefault();const v=$('#jl').value||'';const m=v.match(/#g[=-]([a-z0-9]{12,40})/)||v.trim().match(/^([a-z0-9]{12,40})$/);
+  if(!m){note('Esse link não parece ser de um grupo. Copia o link inteiro que recebeste.',5000);return}
+  location.hash='g='+m[1];fromHash()});
 app.addEventListener('change',async ev=>{const t=ev.target;if(t.id!=='impfile')return;const f=t.files&&t.files[0];t.value='';if(!f)return;
   try{const d=JSON.parse(await f.text());
     if(!d||typeof d.nome!=='string'||!Array.isArray(d.membros)||!Array.isArray(d.despesas)||typeof d.taxas!=='object')throw 0;
@@ -692,7 +704,10 @@ app.addEventListener('change',ev=>{const t=ev.target;if(!prof)return;
   if(t.id==='pf-nome'){const n=t.value.trim().slice(0,40);if(n){prof.nome=n;profSave()}else t.value=prof.nome||''}});
 /* leitura de recibos: função no servidor (netlify/functions/recibo.mjs) */
 const RECIBO='/.netlify/functions/recibo';
-async function toJpeg(f){const img=await createImageBitmap(f);const k=Math.min(1,1280/Math.max(img.width,img.height));
+async function loadImg(f){try{return await createImageBitmap(f)}catch(e){}
+  return await new Promise((ok,no)=>{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{ok(im);setTimeout(()=>URL.revokeObjectURL(u),1000)};im.onerror=()=>{URL.revokeObjectURL(u);no(new Error('img'))};im.src=u})}
+const fileB64=f=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.onerror=no;r.readAsDataURL(f)});
+async function toJpeg(f){const img=await loadImg(f);const k=Math.min(1,1280/Math.max(img.width,img.height));
   const cv=document.createElement('canvas');cv.width=Math.round(img.width*k);cv.height=Math.round(img.height*k);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
   return cv.toDataURL('image/jpeg',0.75).split(',')[1]}
 (async()=>{try{if(gkey())return;const r=await fetch(RECIBO);if(!r.ok)return;const j=await r.json();if(!j.enabled)return;
@@ -727,8 +742,8 @@ async function gemCall(key,parts,json,fb){let last='upstream_error';const tag=fb
   throw {code:last}}
 async function gemTest(k,fb){try{await gemCall(k,[{text:'Responde só: ok'}],false,fb);return true}catch(e){return e.code==='rate_limited'||e.code==='busy'}}
 let fbAI=false,fbChk='a verificar…';
-function mkSamp(){return {gem:true,json:async(prompt,o)=>{let image;try{image=await toJpeg(o.images[0])}catch(e){throw {code:'image_rejected'}}
-    const parts=[{text:prompt},{inlineData:{mimeType:'image/jpeg',data:image}}];let t;
+function mkSamp(){return {gem:true,json:async(prompt,o)=>{let image,mt='image/jpeg';try{image=await toJpeg(o.images[0])}catch(e){try{image=await fileB64(o.images[0]);mt=o.images[0].type||'image/heic'}catch(e2){throw {code:'image_rejected'}}}
+    const parts=[{text:prompt},{inlineData:{mimeType:mt,data:image}}];let t;
     try{t=fbAI?await gemCall(firebaseConfig.apiKey,parts,true,true):await gemCall(gkey(),parts,true,false)}
     catch(e){if(fbAI&&gkey()&&e.code!=='image_rejected'){try{t=await gemCall(gkey(),parts,true,false)}catch(e2){throw e2.code==='bad_key'?{code:'gem_key'}:e2}}
       else throw e.code==='bad_key'&&!fbAI?{code:'gem_key'}:e}
@@ -742,6 +757,26 @@ async function fbCheck(){fbChk='a verificar…';gErr='';try{if(await gemTest(fir
 /* Firebase AI Logic fica desligado: o App Check do projeto bloqueia pedidos sem reCAPTCHA */
 setupGem();
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+
+/* ---------- câmara dentro da app, com acesso à galeria ---------- */
+let camStream=null;
+function camClose(){if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null}const o=document.getElementById('camov');if(o)o.remove()}
+function camPick(){const i=document.getElementById('camfile');if(i)i.click()}
+async function camOpen(){
+  if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){camPick();return}
+  const ov=document.createElement('div');ov.id='camov';ov.innerHTML=`<video playsinline autoplay muted></video><p class="cam-msg">A abrir a câmara…</p>
+  <div class="cam-bar"><button type="button" class="cam-side" data-cam="gal" aria-label="Escolher da galeria">🖼️<span>Galeria</span></button><button type="button" class="cam-shot" data-cam="shot" aria-label="Tirar foto"></button><button type="button" class="cam-side" data-cam="x" aria-label="Fechar">✕<span>Fechar</span></button></div>`;
+  document.body.appendChild(ov);const v=ov.querySelector('video');
+  ov.addEventListener('click',ev=>{const b=ev.target.closest('[data-cam]');if(!b)return;const a=b.dataset.cam;
+    if(a==='x')camClose();
+    else if(a==='gal'){camClose();camPick()}
+    else if(a==='shot'&&v.videoWidth){const k=Math.min(1,1600/Math.max(v.videoWidth,v.videoHeight)),cv=document.createElement('canvas');cv.width=Math.round(v.videoWidth*k);cv.height=Math.round(v.videoHeight*k);cv.getContext('2d').drawImage(v,0,0,cv.width,cv.height);
+      cv.toBlob(bl=>{camClose();if(bl)scan(new File([bl],'recibo.jpg',{type:'image/jpeg'}))},'image/jpeg',0.85)}});
+  try{camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false});
+    if(!document.getElementById('camov')){camClose();return}v.srcObject=camStream;ov.querySelector('.cam-msg').remove()}
+  catch(e){camClose();camPick()}}
+document.addEventListener('click',ev=>{if(ev.target.closest&&ev.target.closest('#camb')){ev.preventDefault();camOpen()}});
+
 }
 </script>
 </body>
