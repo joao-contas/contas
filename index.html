@@ -401,6 +401,9 @@ function render(){
     <div class="card"><label>Moeda principal<select id="basecur">${curOpts(g,g.base)}</select></label>
     ${Object.keys(g.taxas).filter(m=>m!==g.base).map(m=>`<div class="inline"><span style="white-space:nowrap">1 ${flag(g.base)} ${esc(g.base)} =</span><input inputmode="decimal" data-rate="${esc(m)}" value="${String(+(g.taxas[m]/g.taxas[g.base]).toFixed(4)).replace('.',',')}"><span style="white-space:nowrap" title="${esc(curName(m))}">${flag(m)} ${esc(m)}</span></div>`).join('')}
     <form id="addc"><label>Juntar outra moeda<select id="ac">${otherOpts(g,'')}</select></label><div class="inline"><span style="white-space:nowrap">1 ${flag(g.base)} ${esc(g.base)} =</span><input id="acr" inputmode="decimal" placeholder="taxa"><span id="ac-code" style="white-space:nowrap"></span></div><div class="actions" style="margin-top:6px"><button>Adicionar moeda</button></div></form></div>
+    <h2 class="sec">📷 Leitura de recibos (grátis)</h2><div class="card"><p class="small" style="margin-top:0">${fbAI?'✅ Ativa para todo o grupo (através do projeto Firebase). Não precisas de chave.':gkey()?'✅ Ativa neste telemóvel. O botão 📷 aparece ao criar uma despesa.':'Cria uma chave grátis do Gemini da Google em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (toca em <b>Create API key</b>), copia-a e cola-a aqui. Fica guardada só neste telemóvel.'}</p>
+    <div class="inline" style="margin:0"><input id="gkey" type="password" autocomplete="off" placeholder="Colar chave (AIza…)" value="${esc(gkey())}" aria-label="Chave do Gemini"><button id="gkey-ok" type="button">${gkey()?'Mudar':'Guardar'}</button></div>
+    ${gkey()?'<div class="actions" style="margin-top:6px"><button id="gkey-rm" type="button">Remover chave</button></div>':''}<p class="small">No plano grátis a Google pode usar as fotos para melhorar os seus produtos.</p></div>
     <div class="actions"><button id="expg">📤 Exportar grupo</button><button id="leaveg">Sair do grupo</button><button class="danger" id="delg">${confirmDel===g.id?'Confirmar: apagar para todos':'Apagar grupo para todos'}</button></div><p class="small">“Sair” só tira o grupo deste telemóvel. “Apagar” apaga-o para toda a gente.</p>`}
   app.innerHTML=h;if(focusAdd){focusAdd=false;const a=$('#am');if(a)a.focus()}}
 
@@ -503,7 +506,7 @@ async function scan(f){if(!f||!edit||!samp)return;const g=G(),lab=sheet.querySel
     $('#e-scan').textContent=`Recibo lido${edit.itens.length?': '+edit.itens.length+' artigos':''}. Confirma o total${soma&&soma!==edit.total?' (a soma dos artigos dá '+fmt(soma,edit.moeda)+')':''}.`+msg}
   catch(e){const st=$('#e-scan');const c=e&&e.code;
     if(c==='not_granted'||c==='sampling_disabled'||c==='images_unavailable'||c==='not_declared'){canPhoto=false;if(st)st.textContent='A leitura de recibos não está disponível nesta conta.'}
-    else if(st)st.textContent=c==='rate_limited'?'Demasiados pedidos seguidos. Tenta daqui a pouco.':c==='image_rejected'?'Não consegui usar essa imagem. Tenta outra foto.':c==='cancelled'?'':'Não consegui ler o recibo. Tenta outra vez, com a foto mais nítida.'}
+    else if(st)st.textContent=c==='gem_key'?'A chave do Gemini deixou de funcionar. Vê em Definições → Leitura de recibos.':c==='rate_limited'?'Demasiados pedidos seguidos. Tenta daqui a pouco.':c==='image_rejected'?'Não consegui usar essa imagem. Tenta outra foto.':c==='cancelled'?'':'Não consegui ler o recibo. Tenta outra vez, com a foto mais nítida.'}
   finally{sheet.querySelectorAll('.scan').forEach(l=>l.classList.remove('busy'))}}
 function closeEditor(){modal.hidden=true;edit=null;confirmDel=null}
 function saveEditor(){const g=G(),e=edit;let tx=null;if(e.moeda!==g.base){const x=parseFloat(String(e.rx||'').replace(',','.'));if(x>0){tx={b:g.base,m:e.moeda,r:x};g.taxas[e.moeda]=x*g.taxas[g.base]}}const pick=(rows)=>{const o={};order(g,rows).forEach(k=>o[k]=rows[k].v);return o};
@@ -567,6 +570,9 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
     g.despesas.push({id:uid(),tx:t.dataset.m!==g.base&&g.taxas[t.dataset.m]?{b:g.base,m:t.dataset.m,r:g.taxas[t.dataset.m]/g.taxas[g.base]}:null,titulo:'Reembolso',emoji:'🤝',tipo:'reemb',modo:'valor',moeda:t.dataset.m,total:amt,data:today(),cr:Date.now(),pag:{[de]:amt},div:{[para]:amt},fixP:[],fixD:[],partes:{}});
     save(g);note('Pagamento registado.',2500)}
   else if(t.dataset.rm){g.membros=g.membros.filter(p=>p.id!==t.dataset.rm);save(g)}
+  else if(t.id==='gkey-ok'){const v=($('#gkey').value||'').trim();if(!v){note('Cola primeiro a chave.');return}
+    note('A testar a chave…');gemTest(v,false).then(ok=>{if(ok){try{localStorage.setItem(GK,v)}catch(e){}setupGem();note('Leitura de recibos ativa ✅',3500);render()}else note('A chave não funcionou. Confirma que a copiaste toda.',5000)})}
+  else if(t.id==='gkey-rm'){try{localStorage.removeItem(GK)}catch(e){}setupGem();render()}
   else if(t.id==='expg'){const data=JSON.stringify({formato:'contas-do-grupo',...clean(g),id:undefined},null,1);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=(g.nome||'grupo').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-').toLowerCase()+'.json';document.body.appendChild(a);a.click();a.remove()}
   else if(t.id==='leaveg'){forget(g.id);note('Saíste do grupo.',3000)}
   else if(t.id==='rates'){updateRates(g)}
@@ -624,11 +630,46 @@ const RECIBO='/.netlify/functions/recibo';
 async function toJpeg(f){const img=await createImageBitmap(f);const k=Math.min(1,1600/Math.max(img.width,img.height));
   const cv=document.createElement('canvas');cv.width=Math.round(img.width*k);cv.height=Math.round(img.height*k);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
   return cv.toDataURL('image/jpeg',0.85).split(',')[1]}
-(async()=>{try{const r=await fetch(RECIBO);if(!r.ok)return;const j=await r.json();if(!j.enabled)return;
+(async()=>{try{if(gkey())return;const r=await fetch(RECIBO);if(!r.ok)return;const j=await r.json();if(!j.enabled)return;
   samp={json:async(_p,o)=>{let image;try{image=await toJpeg(o.images[0])}catch(e){throw {code:'image_rejected'}}
     const g=G();let r2;try{r2=await fetch(RECIBO,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({image,moedas:g?Object.keys(g.taxas):[]})})}catch(e){throw {code:'upstream_error'}}
     if(!r2.ok)throw {code:r2.status===429?'rate_limited':r2.status===413?'image_rejected':'upstream_error'};return r2.json()}};
   canPhoto=true;if(edit&&!modal.hidden)drawEditor()}catch(e){}})();
+/* leitura de recibos grátis: Gemini da Google com chave guardada no telemóvel */
+const GK='contas-gemini';function gkey(){try{return localStorage.getItem('contas-gemini')||''}catch(e){return ''}}
+const GMODELS=['gemini-flash-latest','gemini-2.5-flash','gemini-4-hydrogen','gemini-2.0-flash'];let gModel={};
+/* fb=true: usa o projeto Firebase (Firebase AI Logic, Gemini Developer API grátis); fb=false: chave pessoal do Gemini */
+async function gemCall(key,parts,json,fb){let last='upstream_error';const tag=fb?'fb':'k';
+  for(const m of (gModel[tag]?[gModel[tag]]:GMODELS)){let r;
+    const url=fb?'https://firebasevertexai.googleapis.com/v1beta/projects/'+firebaseConfig.projectId+'/models/'+m+':generateContent'
+               :'https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent';
+    const h={'content-type':'application/json','x-goog-api-key':key};if(fb)h['x-firebase-appid']=firebaseConfig.appId;
+    try{r=await fetch(url,{method:'POST',headers:h,body:JSON.stringify({contents:[{role:'user',parts}],generationConfig:json?{responseMimeType:'application/json',temperature:0}:{temperature:0}})})}catch(e){throw {code:'upstream_error'}}
+    if(r.ok){gModel[tag]=m;const j=await r.json();return ((j.candidates||[])[0]?.content?.parts||[]).map(x=>x.text||'').join('')}
+    const j=await r.json().catch(()=>({}));const msg=JSON.stringify(j);
+    if(r.status===404||(r.status===429&&/limit: ?0\b/.test(msg))){last=r.status===429?'rate_limited':'upstream_error';continue}
+    if(r.status===429)throw {code:'rate_limited'};
+    if(/SERVICE_DISABLED|has not been used|is disabled|not enabled/i.test(msg))throw {code:'fb_off'};
+    if(/API_KEY_INVALID|API key not valid/i.test(msg))throw {code:'bad_key'};
+    if(/image|mime|inline/i.test(msg))throw {code:'image_rejected'};
+    if(r.status===400&&/model/i.test(msg)){continue}
+    throw {code:r.status===401||r.status===403?'bad_key':'upstream_error'}}
+  throw {code:last}}
+async function gemTest(k,fb){try{await gemCall(k,[{text:'Responde só: ok'}],false,fb);return true}catch(e){return e.code==='rate_limited'}}
+let fbAI=false;
+function mkSamp(){return {gem:true,json:async(prompt,o)=>{let image;try{image=await toJpeg(o.images[0])}catch(e){throw {code:'image_rejected'}}
+    const parts=[{text:prompt},{inlineData:{mimeType:'image/jpeg',data:image}}];let t;
+    try{t=fbAI?await gemCall(firebaseConfig.apiKey,parts,true,true):await gemCall(gkey(),parts,true,false)}
+    catch(e){if(fbAI&&gkey()&&e.code!=='image_rejected'){try{t=await gemCall(gkey(),parts,true,false)}catch(e2){throw e2.code==='bad_key'?{code:'gem_key'}:e2}}
+      else throw e.code==='bad_key'&&!fbAI?{code:'gem_key'}:e}
+    t=String(t||'').replace(/^```(?:json)?\s*|\s*```$/g,'');const a=t.indexOf('{'),b=t.lastIndexOf('}');
+    try{return JSON.parse(a>=0?t.slice(a,b+1):t)}catch(e){return {erro:'não percebi o recibo, tenta outra foto'}}}}}
+function setupGem(){
+  if(!fbAI&&!gkey()){if(samp&&samp.gem){samp=null;canPhoto=false}return}
+  samp=mkSamp();canPhoto=true;if(edit&&!modal.hidden)drawEditor()}
+/* ver se o projeto Firebase já tem a IA ligada (uma vez por arranque) */
+if(FB_OK)(async()=>{try{if(await gemTest(firebaseConfig.apiKey,true)){fbAI=true;setupGem();if(cur&&tab==='conf')render()}}catch(e){}})();
+setupGem();
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
 </script>
