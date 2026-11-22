@@ -73,7 +73,7 @@ label input,label select{margin-top:6px;color:var(--ink)}
 .gmenu{display:flex;flex-direction:column;gap:8px;margin:-2px 0 6px}.gmenu p{margin:0 0 2px}
 .offbar{position:fixed;left:0;right:0;bottom:0;z-index:60;background:#24352d;color:#fff;font-size:14px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));text-align:center}.offbar[hidden]{display:none}
 .fx{background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:12px 14px;margin-top:12px}
-.fx-q{margin:0 0 6px;font-weight:600}.fx-l{display:block;margin:10px 0 6px;font-weight:500}
+.fx-q{display:block;margin:0 0 6px;font-weight:600;color:var(--ink)}.fx-l{display:block;margin:10px 0 6px;font-weight:500}
 .fx-sum{margin:10px 0 4px;font-size:16px}.fx-sum b{font:600 18px Outfit,sans-serif}
 .you{margin-top:4px}.you.rec{background:#eaf4fb}.you.dev{background:#fff1ea}.you.ok{background:var(--lav)}
 .you-l{margin:0;font-size:14px;color:var(--mut)}.you-big{margin:2px 0 6px;font:600 24px Outfit,sans-serif}
@@ -524,6 +524,7 @@ const rateOf=(g,c)=>c===g.base?1:((typeof liveRate==='function'&&liveRate(g,c))|
 /* "Pagaste em": quando a conta é numa moeda e pagaste noutra (ex.: conta em colones, pago com cartão em euros) */
 function pvCalc(){const g=G(),e=edit;if(!e.pm||e.pm===e.moeda)return null;const v=parse(e.pv||'');const rp=rateOf(g,e.pm);if(!(v>0)||!rp||!(e.total>0))return null;
   const baseAmt=v/rp;return e.total/baseAmt}
+function setPm(c){edit.pm=c;if(edit.pm===edit.moeda){edit.pv='';if(edit.rxSrc==='pago'){edit.rx='';edit.rxSrc=''}}else{edit.pv='';const g=G(),r=parseFloat(String(edit.rx||'').replace(',','.')),rp=rateOf(g,edit.pm);if(r>0&&rp&&edit.total>0)edit.pv=val(Math.round(edit.total/r*rp))}$('#e-rate').innerHTML=rateRow();refresh();const i=$('#e-pv');if(i)i.focus()}
 function fxSum(){const g=G(),e=edit,r=parseFloat(String(e.rx||'').replace(',','.'));if(!(r>0)||!(e.total>0))return 'Escreve o total para ver quanto dá em '+esc(g.base)+'.';
   return `≈ <b>${fmt(Math.round(e.total/r),g.base)}</b> · 1 ${esc(g.base)} = ${esc(e.rx)} ${esc(e.moeda)}`}
 function pvHint(){const g=G(),e=edit,r=pvCalc();if(!r)return `Escreve o valor que te saiu da conta em ${esc(e.pm)} (vês no talão ou no extrato).`;
@@ -532,9 +533,8 @@ function rateRow(){const g=G(),e=edit,m=e.moeda;if(m===g.base)return '';
   const mk=typeof liveRate==='function'?liveRate(g,m):null;
   if(!e.rx){let r=null,src='';if(e.tx&&e.tx.b===g.base&&e.tx.m===m){r=e.tx.r;src='gravada'}else if(mk){r=mk;src='mercado'}else if(g.taxas[m]){r=g.taxas[m]/g.taxas[g.base];src='grupo'}
     if(r){e.rx=fmtRate(r);e.rxSrc=src}}
-  const cs=[...new Set([m,g.base,...Object.keys(g.taxas)])].slice(0,5),pm=e.pm||m,d=mktDate();
-  const lbl=c=>c===m?`${flag(c)} ${esc(c)}`:`${flag(c)} ${esc(c)}`;
-  let h=`<div class="fx"><p class="fx-q">Como pagaste?</p><div class="chips">${cs.map(c=>`<button type="button" class="pchip ${c===pm?'on':''}" data-pm="${esc(c)}">${lbl(c)}</button>`).join('')}</div>`;
+  const pm=e.pm||m,d=mktDate();
+  let h=`<div class="fx"><label class="fx-q" for="e-pm">Em que moeda pagaste?</label><select id="e-pm">${allOpts(pm)}</select>`;
   if(pm!==m){
     h+=`<label class="fx-l" for="e-pv">Quanto te saiu da conta?</label><div class="inline" style="margin:0"><input id="e-pv" inputmode="decimal" placeholder="0,00" value="${esc(e.pv||'')}"><span style="white-space:nowrap">${flag(pm)} ${esc(pm)}</span></div><p class="hint" id="e-pvh">${pvHint()}</p>`}
   else{
@@ -617,6 +617,7 @@ sheet.addEventListener('input',ev=>{const t=ev.target;if(!edit)return;
   else if(t.dataset.amt){const r=edit[t.dataset.amt][t.dataset.k];r.v=Math.max(0,parse(t.value));r.fix=true;rebal(t.dataset.amt);refresh()}
   else if(t.dataset.part){edit.div[t.dataset.part].p=t.value.replace(',','.');rebal('div');refresh()}});
 sheet.addEventListener('change',ev=>{const t=ev.target;if(!edit)return;
+  if(t.id==='e-pm'){setPm(t.value);return}
   if(t.id==='e-cur'){edit.moeda=t.value;edit.rx='';edit.pm='';edit.pv='';$('#e-rate').innerHTML=rateRow();$('#e-items').innerHTML=itemsHTML();refresh()}
   else if(t.type==='checkbox'){const r=edit[t.dataset.side][t.dataset.k];r.on=t.checked;if(!r.on){r.fix=false;r.v=0}rebal(t.dataset.side);
     $('#r-'+t.dataset.side).innerHTML=rowsHTML(t.dataset.side);if(t.dataset.side==='div')$('#e-items').innerHTML=itemsHTML();refresh()}
@@ -625,7 +626,8 @@ sheet.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t||!
   if(t.dataset.it!=null&&t.dataset.k){const it=edit.itens[+t.dataset.it],k=t.dataset.k;it.who=it.who.includes(k)?it.who.filter(x=>x!==k):[...it.who,k];rebal('div');$('#e-items').innerHTML=itemsHTML();refresh();return}
   if(t.dataset.all){const side=t.dataset.all,rows=edit[side];G().membros.forEach(p=>{rows[p.id].on=true;rows[p.id].fix=false});rebal(side);$('#r-'+side).innerHTML=rowsHTML(side);$('#e-items').innerHTML=itemsHTML();refresh();return}
   if(t.id==='e-rxed'){edit.rxOpen=true;$('#e-rate').innerHTML=rateRow();const i=$('#e-rx');if(i)i.focus();return}
-  if(t.dataset&&t.dataset.pm){edit.pm=t.dataset.pm;if(edit.pm===edit.moeda){edit.pv='';if(edit.rxSrc==='pago'){edit.rx='';edit.rxSrc=''}}else if(!edit.pv){const g=G(),r=parseFloat(String(edit.rx||'').replace(',','.')),rp=rateOf(g,edit.pm);if(r>0&&rp&&edit.total>0)edit.pv=val(Math.round(edit.total/r*rp))}$('#e-rate').innerHTML=rateRow();refresh();const i=$('#e-pv');if(i)i.focus();return}
+  if(t.dataset&&t.dataset.pm){setPm(t.dataset.pm);return}
+  if(false){if(edit.pm===edit.moeda){edit.pv='';if(edit.rxSrc==='pago'){edit.rx='';edit.rxSrc=''}}else if(!edit.pv){const g=G(),r=parseFloat(String(edit.rx||'').replace(',','.')),rp=rateOf(g,edit.pm);if(r>0&&rp&&edit.total>0)edit.pv=val(Math.round(edit.total/r*rp))}$('#e-rate').innerHTML=rateRow();refresh();const i=$('#e-pv');if(i)i.focus();return}
   if(t.id==='e-rxm'){const mk=liveRate(G(),edit.moeda);if(mk){edit.rx=fmtRate(mk);edit.rxSrc='mercado';$('#e-rate').innerHTML=rateRow();refresh()}return}
   if(t.id==='e-emo-more'){$('#e-emos').hidden=!$('#e-emos').hidden;return}
   if(t.dataset.emo==='exp'){setEmo('exp',t.dataset.e,t.parentNode);return}
