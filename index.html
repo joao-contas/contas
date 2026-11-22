@@ -941,26 +941,26 @@ document.addEventListener('change',ev=>{const t=ev.target;if(t&&t.id==='w-pm'){c
 /* ---------- 💵 carteira: levantamentos de dinheiro e despesas pagas com ele ---------- */
 let wOpen=false,wForm=false,wDelAsk=null,wTipo='cash',wFeeU='%',wPre={},wScanMsg='';
 const rBase=(g,c)=>c===g.base?1:((typeof liveRate==='function'&&liveRate(g,c))||(g.taxas[c]&&g.taxas[c]/g.taxas[g.base])||null);
-const levsOf=(g,mid)=>((g.cart||{})[mid]||[]);
+const levsOf=(g,mid)=>((g.cart||{})[mid]||[]).filter(l=>l.tipo!=='conta');
 function levUsed(g,mid,l,skip){return g.despesas.filter(d=>d.lev===l.id&&d.id!==skip).reduce((s,d)=>s+(d.moeda===l.m?(d.pag[mid]||0):Math.round((d.lv||0)*(d.pag[mid]||0)/(d.total||1))),0)}
 const levIc=l=>l.tipo==='conta'?'🏦':'💵';
 const levName=l=>l.tipo==='conta'?'Conta '+l.m:'Levantamento';
 const levRate=l=>l.r;
 function walletHTML(g,me){const ls=levsOf(g,me);
-  let h=`<div class="card wal"><button class="wal-h" id="wopen"><span>💰 Dinheiro e contas</span><small>${ls.length?ls.map(l=>fmt(Math.max(0,l.v-levUsed(g,me,l)),l.m)).join(' · '):'Levantamentos e contas noutra moeda'}</small><span class="pf-go">${wOpen?'⌃':'›'}</span></button>`;
+  let h=`<div class="card wal"><button class="wal-h" id="wopen"><span>💵 Dinheiro levantado</span><small>${ls.length?ls.map(l=>fmt(Math.max(0,l.v-levUsed(g,me,l)),l.m)).join(' · '):'Regista um levantamento'}</small><span class="pf-go">${wOpen?'⌃':'›'}</span></button>`;
   if(!wOpen)return h+`</div>`;
   h+=ls.map(l=>{const u=levUsed(g,me,l),rest=l.v-u;return `<div class="lev"><div>${levIc(l)} <b>${esc(levName(l))} · ${esc(new Date(l.data+'T12:00').toLocaleDateString('pt-PT'))}</b> · ${fmt(l.v,l.m)} <small>(${fmt(l.pv,l.pm)}${l.fee?' + '+fmt(l.fee,l.pm)+' comissões':''})</small><div class="small">Taxa 1 ${esc(g.base)} = ${fmtRate(l.r)} ${esc(l.m)} · gasto ${fmt(u,l.m)} · <b>sobram ${fmt(rest,l.m)}</b></div></div><button class="x" data-wdel="${esc(l.id)}" aria-label="Apagar levantamento">${wDelAsk===l.id?'✓?':'×'}</button></div>`}).join('');
   if(wForm){const lastNB=[...g.despesas].filter(d=>d.moeda!==g.base).sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b.cr||0)-(a.cr||0))[0];const mc=(levsOf(g,me).slice(-1)[0]||{}).m||(lastNB&&lastNB.moeda)||Object.keys(g.taxas).find(c=>c!==g.base)||'USD';
-    const cta=wTipo==='conta';
-    h+=`<form id="wform" class="wform"><label class="scan alt" style="margin:10px 0 4px"><input type="file" accept="image/*" data-wfoto="1" hidden>📷 Ler talão ou extrato</label><p class="hint" id="w-scan" role="status">${wScanMsg?esc(wScanMsg):'Foto do talão do multibanco ou print da app do banco.'}</p><div class="chips" style="margin:8px 0 2px"><button type="button" class="pchip ${cta?'':'on'}" data-wtipo="cash">💵 Dinheiro levantado</button><button type="button" class="pchip ${cta?'on':''}" data-wtipo="conta">🏦 Conta noutra moeda</button></div>${cta?'<p class="small" style="margin:4px 0 0">Ex.: trocaste euros por dólares no banco e pagas com esses dólares.</p>':''}<label>${cta?'Quanto ficou na conta?':'Quanto levantaste?'}</label><div class="inline" style="margin:0"><input id="w-v" inputmode="decimal" placeholder="50000" required value="${esc(wPre.v||'')}"><select id="w-m">${allOpts(wPre.m||mc)}</select></div>
+    const cta=false;wTipo='cash';
+    h+=`<form id="wform" class="wform"><label class="scan alt" style="margin:10px 0 4px"><input type="file" accept="image/*" data-wfoto="1" hidden>📷 Ler talão do multibanco</label><p class="hint" id="w-scan" role="status">${wScanMsg?esc(wScanMsg):'Foto do talão ou print do levantamento na app do banco.'}</p><label>${cta?'Quanto ficou na conta?':'Quanto levantaste?'}</label><div class="inline" style="margin:0"><input id="w-v" inputmode="decimal" placeholder="50000" required value="${esc(wPre.v||'')}"><select id="w-m">${allOpts(wPre.m||mc)}</select></div>
     <label>${cta?'Quanto pagaste por isso?':'Quanto te saiu da conta?'}</label><div class="inline" style="margin:0"><input id="w-p" inputmode="decimal" placeholder="0,00" required value="${esc(wPre.pv||'')}"><select id="w-pm">${allOpts(wPre.pm||g.base)}</select></div>
     <label>Comissões <small style="font-weight:400">(só se não estiverem já no valor acima)</small></label><div class="inline" style="margin:0"><input id="w-f" inputmode="decimal" placeholder="${wFeeU==='%'?'ex.: 1':'0,00'}" value="${esc(wPre.f||'')}"><div class="seg" role="group" style="margin:0"><button type="button" data-wfu="%" aria-pressed="${wFeeU==='%'}">%</button><button type="button" data-wfu="v" aria-pressed="${wFeeU!=='%'}" id="w-fc">${esc(g.base)}</button></div></div>
     <p class="small" id="w-eff" style="margin:6px 0 0"></p>
     <p class="small" style="margin:4px 0 0">Valores habituais: troca de moeda 0,5–2 %; multibanco no estrangeiro 1–3 % ou um valor fixo (ex.: 3–5 USD). Se o extrato já mostra o total pago, deixa em branco.</p>
     <label>Data<input type="date" id="w-d" value="${esc(wPre.d||today())}"></label>
     <div class="actions"><button type="button" class="linkbtn" id="wcancel">Cancelar</button><button class="primary">Guardar</button></div></form>`}
-  else h+=`<div class="actions" style="margin-top:8px"><button id="wadd">＋ Adicionar</button></div>`;
-  return h+`<p class="small" style="margin:8px 0 0">Isto não entra nas contas do grupo. Quando pagares com esse dinheiro ou conta, escolhe-o na despesa em “Como pagaste?” e a app usa a taxa dele.</p></div>`}
+  else h+=`<div class="actions" style="margin-top:8px"><button id="wadd">＋ Levantamento</button></div>`;
+  return h+`<p class="small" style="margin:8px 0 0">Isto não entra nas contas do grupo. Quando pagares com esse dinheiro, escolhe-o na despesa em “Como pagaste?” e a app usa a taxa dele.</p></div>`}
 function levOpts(){const g=G(),me=meOf(g);if(!me||!edit)return [];return levsOf(g,me).map(l=>({l,rest:l.v-levUsed(g,me,l,edit.id)})).filter(x=>x.rest>0||x.l.id===edit.lev)}
 function lvHint(){const g=G(),e=edit,l=levsOf(g,meOf(g)).find(x=>x.id===e.lev),v=parse(e.lvs||'');if(!l||!(v>0))return 'Escreve o valor que te saiu dessa conta (vês no extrato).';
   return `✓ ${fmt(e.total,e.moeda)} = ${fmt(v,l.m)} ≈ ${fmt(Math.round(v/l.r),g.base)}`}
@@ -971,8 +971,8 @@ function setLev(id){const g=G();edit.lev=id||'';edit.lvs='';if(id){const l=levsO
 
 
 /* ---------- ler levantamentos/trocas por foto ---------- */
-const wPrompt=`Lê esta imagem: um talão de multibanco/ATM ou um ecrã da app de um banco com um levantamento de dinheiro ou uma troca de moeda.
-Responde APENAS com JSON: {"tipo":"cash" (levantamento de dinheiro) ou "conta" (troca para uma conta noutra moeda),"recebido":número (dinheiro levantado ou valor que ficou na conta),"moeda_recebido":"ISO 4217","pago":número (total debitado da conta),"moeda_pago":"ISO 4217","comissao":número (só se aparecer separada e NÃO estiver incluída em "pago", senão 0),"data":"AAAA-MM-DD" ou null}
+const wPrompt=`Lê esta imagem: um talão de multibanco/ATM ou um ecrã da app de um banco com um levantamento de dinheiro.
+Responde APENAS com JSON: {"recebido":número (dinheiro levantado),"moeda_recebido":"ISO 4217","pago":número (total debitado da conta),"moeda_pago":"ISO 4217","comissao":número (só se aparecer separada e NÃO estiver incluída em "pago", senão 0),"data":"AAAA-MM-DD" ou null}
 Se aparecer a taxa de câmbio (ex.: 1 € = 481,21 ₡) e faltar um dos valores, calcula-o. ₡ = CRC, $ = USD, € = EUR. Números com ponto decimal.
 Se não for legível: {"erro":"motivo curto em português"}`;
 async function wScan(f){const st=$('#w-scan');if(!f)return;if(typeof gkey==='function'&&gkey()&&!(samp&&samp.gem))samp=mkSamp();
@@ -981,7 +981,7 @@ async function wScan(f){const st=$('#w-scan');if(!f)return;if(typeof gkey==='fun
   try{let fi_r;let fi=f;fi_r=await samp.json(wPrompt,{images:[fi]});const r=fi_r;
     if(!r||r.erro){wScanMsg='Não consegui ler: '+String(r&&r.erro||'tenta outra foto.');if(st)st.textContent=wScanMsg;return}
     const C=x=>String(x||'').toUpperCase().trim(),n=x=>{const v=parseFloat(String(x).replace(',','.'));return v>0?v:0};
-    wTipo=r.tipo==='conta'?'conta':'cash';wPman=true;
+    wTipo='cash';wPman=true;
     wPre={v:n(r.recebido)?val(Math.round(n(r.recebido)*100)):'',m:ALLC.includes(C(r.moeda_recebido))?C(r.moeda_recebido):'',pv:n(r.pago)?val(Math.round(n(r.pago)*100)):'',pm:ALLC.includes(C(r.moeda_pago))?C(r.moeda_pago):'',f:n(r.comissao)?val(Math.round(n(r.comissao)*100)):'',d:/^\d{4}-\d{2}-\d{2}$/.test(r.data||'')?r.data:''};
     if(wPre.f)wFeeU='v';wScanMsg='Lido ✓ Confirma os valores e toca em Guardar.';render();setTimeout(wEff,0)}
   catch(e){wScanMsg='Não consegui ler a foto. Tenta outra vez.';if(st)st.textContent=wScanMsg}
