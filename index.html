@@ -176,6 +176,7 @@ h2.sec{font-size:21px;margin:30px 0 8px}
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getFirestore,doc,setDoc,deleteDoc,onSnapshot} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {firebaseConfig} from "./config.js";
 {
 const DEF_RATES={EUR:1,USD:1.098,CRC:489.3,GBP:0.837,BRL:6.476};
@@ -228,14 +229,16 @@ const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4)
 const app=$('#app'),sheet=$('#sheet'),modal=$('#modal');
 let appKey='';let groups={},cur=null,tab='desp',showCur=null,edit=null,db=null,rowCur={},confirmDel=null,noteT;
 const FB_OK=!!(firebaseConfig&&firebaseConfig.apiKey&&!String(firebaseConfig.apiKey).startsWith('COLA'));
-let fs=null;if(FB_OK){try{fs=getFirestore(initializeApp(firebaseConfig))}catch(e){console.error(e)}}
+let fs=null,fbApp=null,auth=null;if(FB_OK){try{fbApp=initializeApp(firebaseConfig);fs=getFirestore(fbApp);auth=getAuth(fbApp)}catch(e){console.error(e)}}
+let user=null,prof=null,profT=null;
 const LS='contas-cache-v1',MY='contas-meus-grupos';
 function note(t,ms){$('#note').textContent=t||'';clearTimeout(noteT);if(t&&ms)noteT=setTimeout(()=>$('#note').textContent='',ms)}
 function lsGet(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 const gid=()=>Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>'abcdefghijkmnpqrstuvwxyz23456789'[b%32]).join('');
 let mine=lsGet(MY,[]),pendingOpen=null;
-function cache(){const c={};mine.forEach(id=>{if(groups[id])c[id]=groups[id]});lsSet(LS,c);lsSet(MY,mine)}
+function cache(){const c={};mine.forEach(id=>{if(groups[id])c[id]=groups[id]});lsSet(LS,c);lsSet(MY,mine);profSave()}
+function profSave(now){if(!user||!prof||!fs)return;clearTimeout(profT);profT=setTimeout(()=>{const ids=mine.filter(id=>id.length>=12);prof.grupos=ids;prof.eus={...(prof.eus||{}),...meMap};prof.upd=Date.now();setDoc(doc(fs,'perfis',user.uid),clean(prof)).catch(e=>note('Não consegui guardar o perfil ('+(e.code||'erro')+').',6000))},now?0:800)}
 const busy={},subs={};
 function sub(id){if(!fs||subs[id])return;
   subs[id]=onSnapshot(doc(fs,'grupos',id),snap=>{
@@ -250,7 +253,7 @@ async function save(g){g.upd=Date.now();groups[g.id]=g;if(!mine.includes(g.id))m
     while(busy[id].again){busy[id].again=false;if(groups[id])await setDoc(doc(fs,'grupos',id),clean(groups[id]))}}
   catch(e){note('Não foi possível guardar ('+(e.code||'erro')+').',6000)}
   finally{delete busy[id]}}
-function forget(id){if(subs[id]){subs[id]();delete subs[id]}delete groups[id];mine=mine.filter(x=>x!==id);if(cur===id)cur=null;cache();render()}
+function forget(id){if(prof){prof.saiu=[...new Set([...(prof.saiu||[]),id])].slice(-200)}if(subs[id]){subs[id]();delete subs[id]}delete groups[id];mine=mine.filter(x=>x!==id);if(cur===id)cur=null;cache();render()}
 async function removeGroup(id){forget(id);if(!fs)return;try{await deleteDoc(doc(fs,'grupos',id))}catch(e){note('Não foi possível apagar.',5000)}}
 function fromHash(){const m=location.hash.match(/^#g=([a-z0-9]{12,40})$/);if(!m)return;const id=m[1];
   history.replaceState(null,'',location.pathname+location.search);
@@ -293,13 +296,15 @@ function detalhado(g){const M={},ok=new Set(g.membros.map(p=>p.id)),add=(a,b,v)=
 const transf=(g,b)=>simp?acertos(b):detalhado(g);
 const MEK='contas-eu';let meMap={},skipMe={},shareOpen=false,pendingHashId=null;try{meMap=JSON.parse(localStorage.getItem(MEK)||'{}')||{}}catch(e){}
 const meOf=g=>g&&meMap[g.id]&&g.membros.some(p=>p.id===meMap[g.id])?meMap[g.id]:null;
-function setMe(gid,mid){if(mid)meMap[gid]=mid;else delete meMap[gid];try{localStorage.setItem(MEK,JSON.stringify(meMap))}catch(e){}}
-function meBox(g,b){const me=meOf(g);
+function setMe(gid,mid){if(mid)meMap[gid]=mid;else{delete meMap[gid];if(prof&&prof.eus)delete prof.eus[gid]}try{localStorage.setItem(MEK,JSON.stringify(meMap))}catch(e){}profSave()}
+function meBox(g,b){let me=meOf(g);
+  if(!me&&prof&&prof.nome&&!skipMe[g.id]){const p=g.membros.find(x=>norm(x.nome)===norm(prof.nome));if(p){setMe(g.id,p.id);me=p.id}}
+  if(me&&prof){const p=g.membros.find(x=>x.id===me);if(p){if(prof.banco&&!p.banco){p.banco={...prof.banco};setTimeout(()=>save(g),0)}else if(p.banco&&JSON.stringify(p.banco)!==JSON.stringify(prof.banco||null)){prof.banco={...p.banco};profSave()}}}
   if(me){const v=b[me],p=g.membros.find(x=>x.id===me);
     return `<div class="mebox">Estás como <b>${esc(pn(p))}</b> · ${v>0.5?'recebes <b>'+fmt(toCur(g,v,g.base),g.base)+'</b>':v<-0.5?'deves <b>'+fmt(toCur(g,-v,g.base),g.base)+'</b>':'estás em dia ✓'} <button class="linkbtn" id="chgme">Não és tu?</button>
     <div class="bkline">🏦 ${p.banco&&p.banco.tipo==='revolut'?'Revolut '+(PLANOS[p.banco.plano]||PLANOS.standard).n+' · conta em '+esc(p.banco.moeda||g.base):'Sem banco configurado'} <button class="linkbtn" id="bkedit">${bkOpen?'Fechar':p.banco?'Mudar':'Configurar'}</button></div>${bkOpen?bankPanel(g):''}</div>`}
   if(skipMe[g.id])return '';
-  return `<div class="mebox"><b>Quem és tu neste grupo?</b><div class="chips">${g.membros.map(p=>`<button class="pchip" data-me="${esc(p.id)}">${esc(pn(p))}</button>`).join('')}<button class="pchip" data-me="">Só estou a ver</button></div></div>`}
+  return `<div class="mebox"><b>Quem és tu neste grupo?</b><div class="chips">${g.membros.map(p=>`<button class="pchip" data-me="${esc(p.id)}">${esc(pn(p))}</button>`).join('')}${prof&&prof.nome?`<button class="pchip" data-joinme="1">➕ Sou ${esc(prof.emoji||'🙂')} ${esc(prof.nome)} (juntar-me)</button>`:''}<button class="pchip" data-me="">Só estou a ver</button></div></div>`}
 const gasto=g=>g.despesas.filter(d=>d.tipo!=='reemb').reduce((s,d)=>s+RD(g,d,d.total),0);
 const ALLC='AED AFN ALL AMD AOA ARS AUD AWG AZN BAM BBD BDT BGN BHD BIF BMD BND BOB BRL BSD BTN BWP BYN BZD CAD CDF CHF CLP CNY COP CRC CUP CVE CZK DJF DKK DOP DZD EGP ERN ETB EUR FJD FKP GBP GEL GHS GIP GMD GNF GTQ GYD HKD HNL HTG HUF IDR ILS INR IQD IRR ISK JMD JOD JPY KES KGS KHR KMF KPW KRW KWD KYD KZT LAK LBP LKR LRD LSL LYD MAD MDL MGA MKD MMK MNT MOP MRU MUR MVR MWK MXN MYR MZN NAD NGN NIO NOK NPR NZD OMR PAB PEN PGK PHP PKR PLN PYG QAR RON RSD RUB RWF SAR SBD SCR SDG SEK SGD SHP SLE SOS SRD SSP STN SVC SYP SZL THB TJS TMT TND TOP TRY TTD TWD TZS UAH UGX USD UYU UZS VES VND VUV WST XAF XCD XCG XOF XPF YER ZAR ZMW ZWG'.split(' ');
 const TOPC=['EUR','USD','CRC','GBP','BRL','CHF','CAD','MXN','JPY'];
@@ -353,6 +358,7 @@ function render(){
     $('#hero').innerHTML='';
     const ids=mine.filter(id=>groups[id]).sort((a,b)=>(groups[b].upd||0)-(groups[a].upd||0));
     app.innerHTML=`<div class="list">${ids.length?ids.map(id=>{const g=groups[id];return `<button class="item card" data-open="${esc(id)}"><span class="ic">${esc(g.emoji||'💸')}</span><h3>${esc(g.nome)}</h3><small>${g.membros.length} pessoas · ${g.despesas.length} movimentos</small><span class="amt">${fmt(toCur(g,gasto(g),g.base),g.base)}</span></button>`}).join(''):'<p class="empty">Ainda não há grupos. Cria o primeiro abaixo.</p>'}</div>
+    ${profCard()}
     <h2 class="sec">Novo grupo</h2>
     <form id="newg" class="card">
       <label for="ng-n">Nome do grupo</label>
@@ -506,7 +512,7 @@ async function scan(f){if(f&&edit&&gkey()&&!(samp&&samp.gem))samp=mkSamp();if(!f
     $('#e-scan').textContent=`Recibo lido${edit.itens.length?': '+edit.itens.length+' artigos':''}. Confirma o total${soma&&soma!==edit.total?' (a soma dos artigos dá '+fmt(soma,edit.moeda)+')':''}.`+msg}
   catch(e){const st=$('#e-scan');const c=e&&e.code;
     if(c==='not_granted'||c==='sampling_disabled'||c==='images_unavailable'||c==='not_declared'){canPhoto=false;if(st)st.textContent='A leitura de recibos não está disponível nesta conta.'}
-    else if(st)st.textContent=c==='gem_key'?'A chave do Gemini deixou de funcionar. Vê em Definições → Leitura de recibos.':c==='busy'?'A Google está sobrecarregada neste momento. Tenta outra vez daqui a um minuto.':c==='rate_limited'?'Demasiados pedidos seguidos. Tenta daqui a pouco.':c==='image_rejected'?'Não consegui usar essa imagem. Tenta outra foto.':c==='cancelled'?'':'Não consegui ler o recibo. Tenta outra vez, com a foto mais nítida.'}
+    else if(st)st.textContent=c==='gem_key'?'A chave do Gemini deixou de funcionar. Vê em Definições → Leitura de recibos.':c==='busy'?'A Google está sobrecarregada neste momento. Tenta outra vez daqui a um minuto.':c==='rate_limited'?'Demasiados pedidos seguidos. Tenta daqui a pouco.':c==='image_rejected'?'Não consegui usar essa imagem. Tenta outra foto.':c==='cancelled'?'':'Não consegui ler o recibo. Tenta outra vez, com a foto mais nítida.'+(gErr?' ('+gErr+')':'')}
   finally{sheet.querySelectorAll('.scan').forEach(l=>l.classList.remove('busy'))}}
 function closeEditor(){modal.hidden=true;edit=null;confirmDel=null}
 function saveEditor(){const g=G(),e=edit;let tx=null;if(e.moeda!==g.base){const x=parseFloat(String(e.rx||'').replace(',','.'));if(x>0){tx={b:g.base,m:e.moeda,r:x};g.taxas[e.moeda]=x*g.taxas[g.base]}}const pick=(rows)=>{const o={};order(g,rows).forEach(k=>o[k]=rows[k].v);return o};
@@ -544,6 +550,7 @@ document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&!modal.hidden)clo
 
 /* ---------- main view events ---------- */
 $('#hero').addEventListener('click',async ev=>{const t=ev.target.closest('button');if(!t||!G())return;const g=G();
+  if(t.dataset.joinme&&prof){const p={id:gid().slice(0,8),nome:prof.nome,emoji:prof.emoji||'🙂'};if(prof.banco)p.banco={...prof.banco};g.membros.push(p);setMe(g.id,p.id);save(g);return}
   if(t.dataset.me!=null){if(t.dataset.me)setMe(g.id,t.dataset.me);else skipMe[g.id]=true;render()}
   else if(t.id==='chgme'){setMe(g.id,null);skipMe[g.id]=false;bkOpen=false;render()}
   else if(t.id==='bkedit'||t.id==='bkdone'){bkOpen=t.id==='bkedit'?!bkOpen:false;render()}
@@ -570,7 +577,7 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
     g.despesas.push({id:uid(),tx:t.dataset.m!==g.base&&g.taxas[t.dataset.m]?{b:g.base,m:t.dataset.m,r:g.taxas[t.dataset.m]/g.taxas[g.base]}:null,titulo:'Reembolso',emoji:'🤝',tipo:'reemb',modo:'valor',moeda:t.dataset.m,total:amt,data:today(),cr:Date.now(),pag:{[de]:amt},div:{[para]:amt},fixP:[],fixD:[],partes:{}});
     save(g);note('Pagamento registado.',2500)}
   else if(t.dataset.rm){g.membros=g.membros.filter(p=>p.id!==t.dataset.rm);save(g)}
-  else if(t.id==='gkey-ok'){const v=($('#gkey').value||'').trim();if(!v){note('Cola primeiro a chave.');return}
+  else if(t.id==='gkey-ok'){const v=($('#gkey').value||'').replace(/[^A-Za-z0-9._\-]/g,'');if(!v){note('Cola primeiro a chave.');return}
     note('A testar a chave…');gemTest(v,false).then(ok=>{if(ok){appKey=v;setDoc(doc(fs,'grupos',CFG),{nome:'config',membros:[],despesas:[],iaKey:v}).catch(e=>note('Não consegui guardar: '+e.message,6000));samp=mkSamp();canPhoto=true;render();note('Leitura de recibos ativa para toda a gente ✅',4000)}else note('A chave não funcionou: '+(gErr||'confirma que a copiaste toda.'),7000)})}
   else if(t.id==='gkey-rm'){appKey='';deleteDoc(doc(fs,'grupos',CFG)).catch(()=>{});if(g.iaKey){delete g.iaKey;save(g)}else render();try{localStorage.removeItem('contas-gemini')}catch(e){}samp=null;canPhoto=false}
   else if(t.id==='expg'){const data=JSON.stringify({formato:'contas-do-grupo',...clean(g),id:undefined,iaKey:undefined},null,1);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=(g.nome||'grupo').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-').toLowerCase()+'.json';document.body.appendChild(a);a.click();a.remove()}
@@ -583,6 +590,7 @@ function setEmo(c,e,box){const g=G();
   if(c==='newg'){newGE=e;setEin('#ng-emo',e);$('#ng-emos').hidden=true}
   else if(c==='grp'){g.emoji=e;save(g)}
   else if(c.startsWith('m:')){const p=g.membros.find(x=>x.id===c.slice(2));if(p){p.emoji=e;pickM=null;save(g)}}
+  else if(c==='prof'&&prof){prof.emoji=e;profSave()}
   else if(c==='exp'&&edit){edit.emoji=e;edit.emoFix=true;setEin('#e-emo',e);$('#e-emos').hidden=true}}
 const emoInput=ev=>{const t=ev.target;if(!t.dataset||!(t.dataset.emoin||t.dataset.ein))return;const c=t.dataset.emoin||t.dataset.ein,e=firstEmo(t.value.replace(t.dataset.ein?t.dataset.cur||'':'',''))||firstEmo(t.value);if(!e)return;
   t.value=e;if(t.dataset.ein){t.dataset.cur=e;const pk={newg:'#ng-emos',grp:'#g-emos',exp:'#e-emos'}[c];setEmo(c,e,(pk&&$(pk))||t.parentNode)}else setEmo(c,e,t.parentNode);t.blur()};
@@ -625,6 +633,36 @@ $('#hero').addEventListener('click',async ev=>{if(!ev.target.closest('#share')||
   if(navigator.share){try{await navigator.share({title:g.nome,text:'Junta-te ao grupo “'+g.nome+'” nas Contas do Grupo',url});return}catch(e){if(e.name==='AbortError')return}}
   try{await navigator.clipboard.writeText(url);note('Link copiado. Envia-o aos teus amigos.',3500)}catch(e){note(url,15000)}});
 mine.forEach(sub);fromHash();render();fetchRates(false);
+/* ---------- perfil (opcional, entrar com Google) ---------- */
+function profCard(){if(!auth)return '';
+  if(!user)return `<h2 class="sec">👤 O teu perfil</h2><div class="card"><p class="small" style="margin-top:0">Opcional. Com perfil, os teus grupos aparecem em qualquer telemóvel, a app reconhece-te logo nos grupos e o teu banco fica guardado.</p><div class="actions" style="margin-top:6px"><button class="primary" id="login">Entrar com Google</button></div></div>`;
+  if(!prof)return `<h2 class="sec">👤 O teu perfil</h2><div class="card"><p class="small" style="margin:0">A carregar o perfil…</p></div>`;
+  return `<h2 class="sec">👤 O teu perfil</h2><div class="card"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="pf-emo" data-ein="prof" value="${esc(prof.emoji||'🙂')}" data-cur="${esc(prof.emoji||'🙂')}" aria-label="O teu emoji: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"></span><input id="pf-nome" value="${esc(prof.nome||'')}" placeholder="O teu nome nos grupos" aria-label="O teu nome" enterkeyhint="done"></div>
+  <p class="small">${esc(user.email||'')} · ${prof.banco&&prof.banco.tipo==='revolut'?'🏦 Revolut '+esc((PLANOS[prof.banco.plano]||PLANOS.standard).n):'🏦 Banco: define-o num grupo, em “Estás como”'}</p>
+  <div class="actions" style="margin-top:6px"><button id="logout">Sair da conta</button></div></div>`}
+function profMerge(d){const saiu=new Set(d.saiu||[]);let add=0;
+  (d.grupos||[]).forEach(id=>{if(!saiu.has(id)&&!mine.includes(id)){mine.push(id);sub(id);add++}});
+  Object.entries(d.eus||{}).forEach(([g,m])=>{if(!meMap[g])meMap[g]=m});try{localStorage.setItem(MEK,JSON.stringify(meMap))}catch(e){}
+  return add}
+let profUnsub=null;
+if(auth){onAuthStateChanged(auth,u=>{user=u;if(profUnsub){profUnsub();profUnsub=null}prof=null;
+  if(!u){render();return}render();let first=true;
+  profUnsub=onSnapshot(doc(fs,'perfis',u.uid),sn=>{const d=sn.exists()?sn.data():null;
+    if(first){first=false;prof=d?{...d}:{nome:(u.displayName||'').split(' ')[0]||'',emoji:'🙂',grupos:[],eus:{},saiu:[]};
+      const add=d?profMerge(d):0;cache();profSave(true);if(add)note(add===1?'1 grupo do teu perfil foi adicionado.':add+' grupos do teu perfil foram adicionados.',4000)}
+    else if(d){prof={...prof,nome:d.nome,emoji:d.emoji,banco:d.banco,saiu:d.saiu||prof.saiu}}
+    if(!edit)render()},e=>{note('Não consegui abrir o perfil ('+(e.code||'erro')+'). Vê as regras do Firestore.',7000)})})}
+async function doLogin(){const pr=new GoogleAuthProvider();pr.setCustomParameters({prompt:'select_account'});
+  try{await signInWithPopup(auth,pr)}catch(e){const c=e&&e.code||'';
+    if(c==='auth/popup-blocked'||c==='auth/operation-not-supported-in-this-environment'){try{await signInWithRedirect(auth,pr)}catch(e2){note('Não consegui entrar ('+(e2.code||'erro')+').',7000)}}
+    else if(c==='auth/unauthorized-domain')note('Falta autorizar este endereço no Firebase (Authentication → Definições → Domínios autorizados).',9000);
+    else if(c==='auth/operation-not-allowed'||c==='auth/configuration-not-found')note('Falta ativar o Google em Firebase → Authentication → Método de início de sessão.',9000);
+    else if(c!=='auth/popup-closed-by-user'&&c!=='auth/cancelled-popup-request')note('Não consegui entrar ('+(c||'erro')+').',7000)}}
+app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)return;
+  if(t.id==='login')doLogin();
+  else if(t.id==='logout'){signOut(auth).then(()=>note('Saíste da conta. Os grupos continuam neste telemóvel.',4000))}});
+app.addEventListener('change',ev=>{const t=ev.target;if(!prof)return;
+  if(t.id==='pf-nome'){const n=t.value.trim().slice(0,40);if(n){prof.nome=n;profSave()}else t.value=prof.nome||''}});
 /* leitura de recibos: função no servidor (netlify/functions/recibo.mjs) */
 const RECIBO='/.netlify/functions/recibo';
 async function toJpeg(f){const img=await createImageBitmap(f);const k=Math.min(1,1600/Math.max(img.width,img.height));
@@ -645,7 +683,7 @@ async function gemCall(key,parts,json,fb){let last='upstream_error';const tag=fb
   for(const m of (gModel[tag]?[gModel[tag],...GMODELS.filter(x=>x!==gModel[tag])]:GMODELS)){let r;
     const url=fb?'https://firebasevertexai.googleapis.com/v1beta/projects/'+firebaseConfig.projectId+'/models/'+m+':generateContent'
                :'https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent';
-    const h={'content-type':'application/json','x-goog-api-key':key};if(fb)h['x-firebase-appid']=firebaseConfig.appId;
+    const h={'content-type':'application/json','x-goog-api-key':String(key||'').replace(/[^A-Za-z0-9._\-]/g,'')};if(fb)h['x-firebase-appid']=firebaseConfig.appId;
     try{r=await fetch(url,{method:'POST',headers:h,body:JSON.stringify({contents:[{role:'user',parts}],generationConfig:json?{responseMimeType:'application/json',temperature:0}:{temperature:0}})})}catch(e){gErr='rede/CORS: '+(e&&e.message||e);throw {code:'upstream_error'}}
     if(r.ok){gModel[tag]=m;const j=await r.json();return ((j.candidates||[])[0]?.content?.parts||[]).map(x=>x.text||'').join('')}
     const j=await r.json().catch(()=>({}));const msg=JSON.stringify(j);gErr=r.status+' '+m+': '+((j.error&&j.error.message)||msg).slice(0,160);
