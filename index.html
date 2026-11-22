@@ -59,6 +59,19 @@ label input,label select{margin-top:6px;color:var(--ink)}
 .bar+.bar{border-top:1px solid var(--line)}
 .track{height:10px;border-radius:5px;background:var(--bg);position:relative;overflow:hidden}
 .track i{position:absolute;top:0;bottom:0;border-radius:5px}
+.you{margin-top:4px}.you.rec{background:#eaf4fb}.you.dev{background:#fff1ea}.you.ok{background:var(--lav)}
+.you-l{margin:0;font-size:14px;color:var(--mut)}.you-big{margin:2px 0 6px;font:600 24px Outfit,sans-serif}
+.you.rec .you-big{color:var(--blued)}.you.dev .you-big{color:var(--peachd)}.you.ok .you-big{color:var(--lavd)}
+.pay{padding:12px 0}.pay+.pay,.you-big+.pay{border-top:1px solid rgb(0 0 0/.07)}
+.pay-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.pay-who{min-width:0}
+.pay-amt{font:600 20px Outfit,sans-serif;white-space:nowrap}
+.pay-ctl{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.pay-ctl .curbtn,.pay-ctl select{width:auto;min-width:7.5em}.pay-ctl button:not(.curbtn){flex:1;background:var(--lav);color:var(--lavd)}
+.pay-ctl button.primary{background:var(--lavd);color:#fff}
+.prow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0}.prow+.prow{border-top:1px solid var(--line)}
+.prow .pn{font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.prow small{color:var(--mut);font-weight:400}
+.pill{margin-left:auto;padding:5px 12px;border-radius:999px;font:500 15px Outfit,sans-serif;white-space:nowrap}
+.pill.rec{background:var(--blue);color:var(--blued)}.pill.dev{background:var(--peach);color:var(--peachd)}.pill.ok{background:var(--lav);color:var(--lavd)}
+.opts{margin:16px 0 8px}.opts summary{cursor:pointer;color:var(--mut);padding:8px 0;font-weight:500}
 .pos{color:var(--blued)}.neg{color:var(--peachd)}
 .num{font:500 16px Outfit,sans-serif;white-space:nowrap;text-align:right}
 .tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 0}
@@ -227,7 +240,7 @@ const parse=s=>{const n=parseFloat(String(s).replace(/\s/g,'').replace(',','.'))
 const val=c=>(c/100).toFixed(2).replace('.',',');
 const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
 const app=$('#app'),sheet=$('#sheet'),modal=$('#modal');
-let appKey='';let groups={},cur=null,tab='desp',showCur=null,edit=null,db=null,rowCur={},confirmDel=null,noteT;
+let appKey='',payAsk=null;let groups={},cur=null,tab='desp',showCur=null,edit=null,db=null,rowCur={},confirmDel=null,noteT;
 const FB_OK=!!(firebaseConfig&&firebaseConfig.apiKey&&!String(firebaseConfig.apiKey).startsWith('COLA'));
 let fs=null,fbApp=null,auth=null;if(FB_OK){try{fbApp=initializeApp(firebaseConfig);fs=getFirestore(fbApp);auth=getAuth(fbApp)}catch(e){console.error(e)}}
 let user=null,prof=null,profT=null;
@@ -385,17 +398,31 @@ function render(){
       const pags=Object.keys(d.pag).filter(k=>d.pag[k]>0).map(k=>nome(g,k));
       return `<button class="item card" data-edit="${esc(d.id)}"><span class="ic">${esc(dEmo(d))}</span><h3>${esc(d.titulo||'Sem título')}</h3><small>${d.tipo==='reemb'?'Reembolso: '+esc(pags.join(', '))+' → '+esc(Object.keys(d.div).map(k=>nome(g,k)).join(', ')):'Pago por '+esc(pags.join(', '))} · ${esc(d.data||'')}</small><span class="amt">${fmt(d.total,d.moeda)}${d.moeda!==g.base?`<br><small style="font:400 13px Inter,sans-serif;color:var(--mut)">${fmt(toCur(g,RD(g,d,d.total),g.base),g.base)}</small>`:''}</span></button>`}).join(''):'<p class="empty">Sem despesas. Toca em “Nova despesa” para começar.</p>'}</div>`}
   if(tab==='sald'){
-    const max=Math.max(1,...Object.values(b).map(Math.abs)),tr=transf(g,b),me=meOf(g);
-    h+=`<label>Mostrar as contas em<select id="showcur">${curOpts(g,sc)}</select></label>
-    <div class="card" style="margin-top:12px">${g.membros.map(p=>{const v=b[p.id],w=Math.abs(v)/max*50;
-      return `<div class="bar ${p.id===me?'me':''}"><span>${esc(pn(p))}${p.id===me?' (tu)':''}</span><div class="track"><i style="left:${v>=0?50:50-w}%;width:${w}%;background:${v>=0?'#9fcdee':'#ffbfa3'}"></i></div><span class="num ${v>0.5?'pos':v<-0.5?'neg':''}">${v>0.5?'+':''}${fmt(toCur(g,v,sc),sc)}</span></div>`}).join('')}</div>
-    <h2 class="sec">Como acertar</h2>
-    <div class="seg" role="group" aria-label="Tipo de acerto"><button data-simp="1" aria-pressed="${simp}">Simplificado</button><button data-simp="0" aria-pressed="${!simp}">Detalhado</button></div>
-    <p class="small">${simp?'O mínimo de transferências possível: as dívidas cruzadas são compensadas entre todos.':'Cada pessoa paga diretamente a quem pagou por ela, despesa a despesa (só se compensa o que duas pessoas devem uma à outra).'} Cada pessoa pode escolher a moeda em que paga.</p>
-    <div class="card">${tr.length?tr.map(t=>{const key=t.de+'>'+t.para,m=rowCur[key]&&g.taxas[rowCur[key]]?rowCur[key]:sc,amt=toCur(g,t.v,m);
-      const bl=bankLine(g,t.de,t.v,m);
-      return `<div class="tr ${t.de===me||t.para===me?'me':''}"><div><span class="who">${esc(nome(g,t.de))}</span> paga a <span class="who">${esc(nome(g,t.para))}</span><div class="num neg" style="text-align:left;font-size:20px">${fmt(amt,m)}</div>${bl?`<div class="bkn" style="font-size:14px;margin-top:4px">${esc(bl)}</div>`:''}</div>
-      <div class="ctl"><select aria-label="Moeda" data-rc="${esc(key)}">${curOpts(g,m,true)}</select><button data-pay="${esc(key)}" data-amt="${amt}" data-m="${esc(m)}">Marcar pago</button></div></div>`}).join(''):'<p class="empty">Está tudo acertado.</p>'}</div>`}
+    const tr=transf(g,b),me=meOf(g),F=v=>fmt(toCur(g,Math.abs(v),sc),sc);
+    const trRow=(t,mine)=>{const key=t.de+'>'+t.para,m=rowCur[key]&&g.taxas[rowCur[key]]?rowCur[key]:sc,amt=toCur(g,t.v,m),bl=bankLine(g,t.de,t.v,m);
+      const quem=mine==='de'?`Pagas a <b>${esc(nome(g,t.para))}</b>`:mine==='para'?`<b>${esc(nome(g,t.de))}</b> paga-te`:`<b>${esc(nome(g,t.de))}</b> → <b>${esc(nome(g,t.para))}</b>`;
+      return `<div class="pay"><div class="pay-top"><span class="pay-who">${quem}</span><span class="pay-amt">${fmt(amt,m)}</span></div>${bl?`<div class="bkn">${esc(bl)}</div>`:''}
+      <div class="pay-ctl"><select aria-label="Pagar em que moeda" data-rc="${esc(key)}">${curOpts(g,m,true)}</select><button data-pay="${esc(key)}" data-amt="${amt}" data-m="${esc(m)}" class="${payAsk===key?'primary':''}">${payAsk===key?'Confirmar: já foi pago':'✓ Já foi pago'}</button></div></div>`};
+    // 1. a tua situação
+    if(me){const v=b[me],out=tr.filter(t=>t.de===me),inn=tr.filter(t=>t.para===me);
+      h+=`<div class="card you ${v>0.5?'rec':v<-0.5?'dev':'ok'}"><p class="you-l">A tua situação</p><p class="you-big">${v>0.5?'Vais receber '+F(v):v<-0.5?'Tens de pagar '+F(v):'Estás em dia ✓'}</p>
+      ${out.map(t=>trRow(t,'de')).join('')}${inn.map(t=>trRow(t,'para')).join('')}</div>`}
+    // 2. pessoas
+    const ord=[...g.membros].sort((x,y)=>b[y.id]-b[x.id]);
+    h+=`<h2 class="sec">Quem está a dever e a receber</h2><div class="card">${ord.map(p=>{const v=b[p.id];
+      return `<div class="prow ${p.id===me?'me':''}"><span class="pn">${esc(pn(p))}${p.id===me?' <small>(tu)</small>':''}</span><span class="pill ${v>0.5?'rec':v<-0.5?'dev':'ok'}">${v>0.5?'recebe '+F(v):v<-0.5?'deve '+F(v):'em dia'}</span></div>`}).join('')}
+      <p class="small" style="margin:10px 0 0">Quem pagou mais do que a sua parte <b>recebe</b>; quem pagou menos <b>deve</b>.</p></div>`;
+    // 3. pagamentos
+    const others=me?tr.filter(t=>t.de!==me&&t.para!==me):tr;
+    h+=`<h2 class="sec">${me?'Os outros pagamentos':'Pagamentos para ficar tudo acertado'}</h2>
+    <div class="card">${others.length?others.map(t=>trRow(t,'')).join(''):`<p class="empty" style="margin:0">${tr.length?'Não há mais pagamentos.':'Está tudo acertado 🎉'}</p>`}</div>
+    <details class="opts"><summary>⚙️ Opções</summary>
+      <label>Mostrar valores em<select id="showcur">${curOpts(g,sc)}</select></label>
+      <p class="small" style="margin:12px 0 4px">Como calcular os pagamentos</p>
+      <div class="seg" role="group" aria-label="Tipo de acerto"><button data-simp="1" aria-pressed="${simp}">Menos pagamentos</button><button data-simp="0" aria-pressed="${!simp}">Despesa a despesa</button></div>
+      <p class="small">${simp?'Recomendado: as dívidas são compensadas entre todos, para haver o mínimo de transferências.':'Cada um paga diretamente a quem pagou por si. Dá mais transferências.'}</p>
+      <p class="small">Quando alguém pagar, toca em <b>“✓ Já foi pago”</b>: fica registado como reembolso e os saldos atualizam-se. Podes escolher a moeda em que cada pagamento é feito.</p>
+    </details>`}
   if(tab==='conf'){
     const usados=new Set();g.despesas.forEach(d=>{Object.keys(d.pag).forEach(k=>usados.add(k));Object.keys(d.div).forEach(k=>usados.add(k))});
     h+=`<h2 class="sec" style="margin-top:4px">Grupo</h2><div class="card"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="g-emo" data-ein="grp" value="${esc(g.emoji||'💸')}" data-cur="${esc(g.emoji||'💸')}" aria-label="Emoji do grupo: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" id="g-emo-more" aria-label="Ver lista de emojis"></button></span><input id="g-nome" value="${esc(g.nome)}" aria-label="Nome do grupo" enterkeyhint="done"></div><div id="g-emos" hidden>${secPicker(g.emoji,'grp')}</div></div>
@@ -573,7 +600,7 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
   else if(t.dataset.tab){tab=t.dataset.tab;confirmDel=null;render()}
   else if(t.id==='add')openEditor(null);
   else if(t.dataset.edit)openEditor(g.despesas.find(d=>d.id===t.dataset.edit));
-  else if(t.dataset.pay){const [de,para]=t.dataset.pay.split('>'),amt=+t.dataset.amt;
+  else if(t.dataset.pay){if(payAsk!==t.dataset.pay){payAsk=t.dataset.pay;render();return}payAsk=null;const [de,para]=t.dataset.pay.split('>'),amt=+t.dataset.amt;
     g.despesas.push({id:uid(),tx:t.dataset.m!==g.base&&g.taxas[t.dataset.m]?{b:g.base,m:t.dataset.m,r:g.taxas[t.dataset.m]/g.taxas[g.base]}:null,titulo:'Reembolso',emoji:'🤝',tipo:'reemb',modo:'valor',moeda:t.dataset.m,total:amt,data:today(),cr:Date.now(),pag:{[de]:amt},div:{[para]:amt},fixP:[],fixD:[],partes:{}});
     save(g);note('Pagamento registado.',2500)}
   else if(t.dataset.rm){g.membros=g.membros.filter(p=>p.id!==t.dataset.rm);save(g)}
