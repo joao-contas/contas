@@ -281,7 +281,7 @@ const IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='M
 if(IOS){const l=document.querySelector('link[rel=manifest]');if(l)l.remove()}
 function keepUrl(){if(!IOS)return;const ids=mine.filter(id=>/^[a-z0-9]{12,40}$/.test(id));
   const q=ids.length?'?gs='+ids.join(','):'';
-  if(location.search!==q&&!/^#g=/.test(location.hash))history.replaceState(null,'',location.pathname+q);
+  if(location.search!==q&&!/^#g=/.test(location.hash))history.replaceState(history.state,'',location.pathname+q);
   const l=document.querySelector('link[rel=manifest]');if(l)l.remove()}
 function profSave(now){if(!user||!prof||!fs)return;clearTimeout(profT);profT=setTimeout(()=>{const ids=mine.filter(id=>id.length>=12);prof.grupos=ids;prof.eus={...(prof.eus||{}),...meMap};prof.upd=Date.now();setDoc(doc(fs,'perfis',user.uid),clean(prof)).catch(e=>note('Não consegui guardar o perfil ('+(e.code||'erro')+').',6000))},now?0:800)}
 const busy={},subs={};
@@ -306,8 +306,8 @@ async function removeGroup(id){forget(id);if(!fs)return;try{await deleteDoc(doc(
 function fromHash(){const qs=new URLSearchParams(location.search).get('gs');const ml=location.hash.match(/^#gs=([a-z0-9,]{12,})$/)||(qs&&/^[a-z0-9,]{12,}$/.test(qs)?[0,qs]:null);
   if(ml){let add=0;ml[1].split(',').filter(x=>/^[a-z0-9]{12,40}$/.test(x)).forEach(id=>{if(!mine.includes(id)){mine.push(id);add++}sub(id)});cache();render();return}
   const m=location.hash.match(/^#g=([a-z0-9]{12,40})$/);if(!m)return;const id=m[1];
-  history.replaceState(null,'',location.pathname+location.search);
-  if(!mine.includes(id))mine.push(id);cache();cur=id;tab='desp';showCur=null;rowCur={};
+  history.replaceState(history.state,'',location.pathname+location.search);
+  if(!mine.includes(id))mine.push(id);cache();if(!cur)navPush('g');cur=id;tab='desp';showCur=null;rowCur={};
   if(!groups[id])pendingOpen=id;sub(id);render();
   if(!fs)note('A app ainda não está ligada ao Firebase (ver GUIA).',6000)}
 addEventListener('hashchange',fromHash);
@@ -372,7 +372,7 @@ const CKW={EUR:'europa zona euro portugal espanha franca alemanha italia grecia 
 const norm=t=>String(t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const hay=m=>{let r='';try{r=regDN?regDN.of(m.slice(0,2)):''}catch(e){}return norm([m,curName(m),r,CKW[m]||''].join(' '))};
 let cpk=null;
-function openCur(sel){closeCur();const groups=[];let cur=null;
+function openCur(sel){closeCur(true);navPush('cur');const groups=[];let cur=null;
   for(const el of sel.children){if(el.tagName==='OPTGROUP'){groups.push({h:el.label,o:[...el.children].map(o=>o.value)})}else{if(!cur||cur.h!==''){cur={h:'',o:[]};groups.push(cur)}cur.o.push(el.value)}}
   cpk=document.createElement('div');cpk.className='cpk';
   cpk.innerHTML=`<div class="cpk-box" role="dialog" aria-label="Escolher moeda"><div class="cpk-top"><input type="search" placeholder="Procurar moeda ou país…" aria-label="Procurar moeda" autocomplete="off"><button type="button" data-x>Fechar</button></div><div class="cpk-list"></div></div>`;
@@ -388,7 +388,7 @@ function openCur(sel){closeCur();const groups=[];let cur=null;
     if(ev.target===cpk||(b&&b.dataset.x!=null)){closeCur();return}
     if(b&&b.dataset.v){sel.value=b.dataset.v;const btn=sel.nextElementSibling;if(btn&&btn.classList.contains('curbtn'))btn.firstChild.textContent=sel.options[sel.selectedIndex].text;closeCur();sel.dispatchEvent(new Event('change',{bubbles:true}))}});
   setTimeout(()=>inp.focus(),60)}
-function closeCur(){if(cpk){cpk.remove();cpk=null}}
+function closeCur(fp){if(cpk){cpk.remove();cpk=null;if(!fp)navPop('cur')}}
 document.addEventListener('keydown',ev=>{if(cpk&&ev.key==='Escape'){ev.stopImmediatePropagation();closeCur()}},true);
 function enhanceCur(root){root.querySelectorAll('select:not([data-enh])').forEach(sel=>{
   const os=[...sel.options];if(!os.length||!os.every(o=>/^[A-Z]{3}$/.test(o.value)))return;
@@ -502,7 +502,7 @@ function rebal(side){const g=G(),rows=edit[side],T=edit.total,on=order(g,rows);
   free.forEach(k=>{rows[k].v=base+(r>0?1:0);if(r>0)r--})}
 function check(side){const g=G(),rows=edit[side],on=order(g,rows),s=on.reduce((a,k)=>a+rows[k].v,0);
   return {ok:on.length>0&&s===edit.total&&on.every(k=>rows[k].v>=0),s,n:on.length}}
-function openEditor(d){const g=G();confirmDel=null;
+function openEditor(d){if(modal.hidden)navPush('ed');const g=G();confirmDel=null;
   const mk=(src,fx,isPag,first)=>{const o={};g.membros.forEach((p,i)=>{const has=src?(p.id in src):(isPag?(meOf(g)?p.id===meOf(g):i===0):true);
     o[p.id]={on:has&&(!src||!isPag||src[p.id]>0),v:src&&src[p.id]||0,fix:!!(fx&&fx.includes(p.id)),p:(d&&d.partes&&d.partes[p.id])||1}});return o};
   edit=d?{pm:d.pe?d.pe.m:'',pv:d.pe?val(d.pe.v):'',tx:d.tx||null,itens:clean(d.itens||[]),id:d.id,emoji:dEmo(d),emoFix:!!d.emoji,titulo:d.titulo,moeda:d.moeda,total:d.total,data:d.data,tipo:d.tipo||'desp',modo:d.modo||'valor',cr:d.cr,pag:mk(d.pag,d.fixP,true),div:mk(d.div,d.fixD,false)}
@@ -599,7 +599,7 @@ async function scan(f){if(f&&edit&&gkey()&&!(samp&&samp.gem))samp=mkSamp();if(!f
     if(c==='not_granted'||c==='sampling_disabled'||c==='images_unavailable'||c==='not_declared'){canPhoto=false;if(st)st.textContent='A leitura de recibos não está disponível nesta conta.'}
     else if(st)st.textContent=c==='gem_key'?'A chave do Gemini deixou de funcionar. Vê em Definições → Leitura de recibos.':c==='busy'?'A Google está sobrecarregada neste momento. Tenta outra vez daqui a um minuto.':c==='rate_limited'?'Demasiados pedidos seguidos. Tenta daqui a pouco.':c==='image_rejected'?'Não consegui usar essa imagem. Tenta outra foto.':c==='cancelled'?'':'Não consegui ler o recibo. Tenta outra vez, com a foto mais nítida.'+(gErr?' ('+gErr+')':'')}
   finally{sheet.querySelectorAll('.scan').forEach(l=>l.classList.remove('busy'))}}
-function closeEditor(){modal.hidden=true;edit=null;confirmDel=null}
+function closeEditor(fp){if(!fp&&!modal.hidden)navPop('ed');modal.hidden=true;edit=null;confirmDel=null}
 function saveEditor(){const g=G(),e=edit;let tx=null;if(e.moeda!==g.base){const x=parseFloat(String(e.rx||'').replace(',','.'));if(x>0){tx={b:g.base,m:e.moeda,r:x};g.taxas[e.moeda]=x*g.taxas[g.base]}}const pick=(rows)=>{const o={};order(g,rows).forEach(k=>o[k]=rows[k].v);return o};
   const pe=e.pm&&e.pm!==e.moeda&&parse(e.pv||'')>0?{m:e.pm,v:parse(e.pv)}:null;
   const d={id:e.id||uid(),tx,pe,emoji:e.emoji,itens:e.itens||[],titulo:e.titulo.trim()||(e.tipo==='reemb'?'Reembolso':'Despesa'),moeda:e.moeda,total:e.total,data:e.data||today(),tipo:e.tipo,modo:e.modo,cr:e.cr||Date.now(),
@@ -649,7 +649,7 @@ $('#hero').addEventListener('click',async ev=>{const t=ev.target.closest('button
     else p.banco.limite=!!t.dataset.bklim;
     save(g);if(prof){prof.banco=p.banco?{...p.banco}:null;profSave();propagate()}}});
 $('#hero').addEventListener('change',ev=>{const t=ev.target,g=G();if(!g||!t.dataset.bkm)return;const p=g.membros.find(x=>x.id===meOf(g));if(p&&p.banco){p.banco.moeda=t.value;save(g);if(prof){prof.banco={...p.banco};profSave();propagate()}}});
-$('#back').addEventListener('click',()=>{cur=null;shareOpen=false;bkOpen=false;confirmDel=null;render();scrollTo(0,0)});
+$('#back').addEventListener('click',()=>{navPop('g');cur=null;shareOpen=false;bkOpen=false;confirmDel=null;render();scrollTo(0,0)});
 app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)return;const g=G();
   if(t.dataset.emo){setEmo(t.dataset.emo,t.dataset.e,t.parentNode);return}
   if(t.id==='ng-emo-more'||t.id==='g-emo-more'){const el=$(t.id==='ng-emo-more'?'#ng-emos':'#g-emos');el.hidden=!el.hidden;return}
@@ -657,10 +657,10 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
   if(t.dataset.npx){newPeople.splice(+t.dataset.npx,1);$('#ng-chips').innerHTML=chipsHTML();return}
   if(t.dataset.npemo){const q=newPeople[+t.dataset.npemo];q.emoji=PEMO[(PEMO.indexOf(q.emoji)+1)%PEMO.length];t.textContent=q.emoji;return}
   if(t.dataset.pickm){pickM=pickM===t.dataset.pickm?null:t.dataset.pickm;render();return}
-  if(t.dataset.gmenu!=null){gMenu=t.dataset.gmenu||null;gDelAsk=null;swOpenEl=null;render();return}
-  if(t.dataset.gleave){const n=(groups[t.dataset.gleave]||{}).nome;gMenu=null;forget(t.dataset.gleave);note('Saíste de “'+n+'”.',3000);return}
-  if(t.dataset.gdel){const n=(groups[t.dataset.gdel]||{}).nome;gMenu=null;gDelAsk=null;removeGroup(t.dataset.gdel);note('Grupo “'+n+'” apagado.',3000);return}
-  if(t.dataset.open){cur=t.dataset.open;tab='desp';showCur=null;rowCur={};render();scrollTo(0,0)}
+  if(t.dataset.gmenu!=null){if(t.dataset.gmenu&&!gMenu)navPush('gm');else if(!t.dataset.gmenu&&gMenu)navPop('gm');gMenu=t.dataset.gmenu||null;gDelAsk=null;swOpenEl=null;render();return}
+  if(t.dataset.gleave){const n=(groups[t.dataset.gleave]||{}).nome;navPop('gm');gMenu=null;forget(t.dataset.gleave);note('Saíste de “'+n+'”.',3000);return}
+  if(t.dataset.gdel){const n=(groups[t.dataset.gdel]||{}).nome;navPop('gm');gMenu=null;gDelAsk=null;removeGroup(t.dataset.gdel);note('Grupo “'+n+'” apagado.',3000);return}
+  if(t.dataset.open){navPush('g');cur=t.dataset.open;tab='desp';showCur=null;rowCur={};render();scrollTo(0,0)}
   else if(t.dataset.simp){simp=t.dataset.simp==='1';render()}
   else if(t.dataset.tab){tab=t.dataset.tab;confirmDel=null;render()}
   else if(t.id==='add')openEditor(null);
@@ -715,7 +715,7 @@ app.addEventListener('change',async ev=>{const t=ev.target;if(t.id!=='impfile')r
     cur=id;tab='desp';save(g);note('Grupo “'+g.nome+'” importado com '+g.despesas.length+' despesas.',4000)}
   catch(e){note('Este ficheiro não é um grupo válido.',4000)}});
 app.addEventListener('submit',ev=>{ev.preventDefault();const f=ev.target,g=G();
-  if(f.id==='newg'){newOpen=false;addPending();const n=$('#ng-n').value.trim(),ps=newPeople;
+  if(f.id==='newg'){if(newOpen)navPop('new');newOpen=false;addPending();const n=$('#ng-n').value.trim(),ps=newPeople;
     if(!n){note('Dá um nome ao grupo.',3000);return}if(!ps.length){note('Junta pelo menos uma pessoa.',3000);$('#ng-p').focus();return}const id=gid();cur=id;tab='desp';const ge=newGE;newPeople=[];newName='';newGE='✈️';
     save({id,nome:n,base:$('#ng-m').value,taxas:(()=>{const bm=$('#ng-m').value,t=DEF_RATES[bm]?{...DEF_RATES}:{[bm]:1};if(live){for(const m in t)if(live.rates[m])t[m]=live.rates[m];if(live.rates[bm])t[bm]=live.rates[bm]}return t})(),emoji:ge,membros:ps.map(q=>({id:uid(),nome:q.nome,emoji:q.emoji})),despesas:[],upd:Date.now()})}
   else if(f.id==='addm'){const n=$('#am').value.trim();if(n){focusAdd=true;g.membros.push({id:uid(),nome:n,emoji:PEMO[g.membros.length%PEMO.length]});save(g)}}
@@ -771,14 +771,14 @@ async function doLogin(){const pr=new GoogleAuthProvider();pr.setCustomParameter
     else if(c!=='auth/popup-closed-by-user'&&c!=='auth/cancelled-popup-request')note('Não consegui entrar ('+(c||'erro')+').',7000)}}
 app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)return;
   if(t.id==='login')doLogin();
-  else if(t.id==='pfopen'){profOpen=true;render()}
-  else if(t.id==='pfclose'){profOpen=false;render()}
+  else if(t.id==='pfopen'){navPush('pf');profOpen=true;render()}
+  else if(t.id==='pfclose'){navPop('pf');profOpen=false;render()}
   else if(prof&&(t.dataset.pfbk!=null||t.dataset.pfplan||t.dataset.pflim!=null)){
     if(t.dataset.pfbk!=null){prof.banco=t.dataset.pfbk?{tipo:'revolut',plano:'standard',moeda:(prof.banco&&prof.banco.moeda)||'EUR',limite:false}:null}
     else if(t.dataset.pfplan){prof.banco.plano=t.dataset.pfplan;if(!LIMITE[prof.banco.plano])prof.banco.limite=false}
     else prof.banco.limite=!!t.dataset.pflim;
     profSave();propagate();render()}
-  else if(t.id==='opennew'){newOpen=true;render();setTimeout(()=>{const n=$('#ng-n');if(n)n.focus()},50)}
+  else if(t.id==='opennew'){navPush('new');newOpen=true;render();setTimeout(()=>{const n=$('#ng-n');if(n)n.focus()},50)}
   else if(t.id==='logout'){profOpen=false;signOut(auth).then(()=>note('Saíste da conta. Os grupos continuam neste telemóvel.',4000))}});
 app.addEventListener('change',ev=>{const t=ev.target;if(!prof)return;
   if(t.id==='pf-nome'){const n=t.value.trim().slice(0,40);if(n){prof.nome=n;profSave();propagate()}else t.value=prof.nome||''}
@@ -842,13 +842,13 @@ if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWor
 
 /* ---------- câmara dentro da app, com acesso à galeria ---------- */
 let camStream=null;
-function camClose(){if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null}const o=document.getElementById('camov');if(o)o.remove()}
+function camClose(fp){if(!fp&&document.getElementById('camov'))navPop('cam');if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null}const o=document.getElementById('camov');if(o)o.remove()}
 function camPick(){const i=document.getElementById('camfile');if(i)i.click()}
 async function camOpen(){
   if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){camPick();return}
   const ov=document.createElement('div');ov.id='camov';ov.innerHTML=`<video playsinline autoplay muted></video><p class="cam-msg">A abrir a câmara…</p>
   <div class="cam-bar"><button type="button" class="cam-side" data-cam="gal" aria-label="Escolher da galeria">🖼️<span>Galeria</span></button><button type="button" class="cam-shot" data-cam="shot" aria-label="Tirar foto"></button><button type="button" class="cam-side" data-cam="x" aria-label="Fechar">✕<span>Fechar</span></button></div>`;
-  document.body.appendChild(ov);const v=ov.querySelector('video');
+  document.body.appendChild(ov);navPush('cam');const v=ov.querySelector('video');
   ov.addEventListener('click',ev=>{const b=ev.target.closest('[data-cam]');if(!b)return;const a=b.dataset.cam;
     if(a==='x')camClose();
     else if(a==='gal'){camClose();camPick()}
@@ -874,6 +874,20 @@ function swEnd(){if(!swEl)return;const f=swEl;swEl=null;f.classList.remove('drag
   if(Math.abs(x)>60){swSet(f,x>0?110:-110);swOpenEl=f}else{swSet(f,0);if(swOpenEl===f)swOpenEl=null}}
 app.addEventListener('pointerup',swEnd);app.addEventListener('pointercancel',swEnd);
 app.addEventListener('click',ev=>{if(swMoved){const f=ev.target.closest('.sw-fg');if(f){ev.stopImmediatePropagation();ev.preventDefault();swMoved=false}}else if(swOpenEl&&ev.target.closest('.sw-fg')===swOpenEl){ev.stopImmediatePropagation();swClose()}},true);
+
+
+/* ---------- voltar atrás (botão/gesto do telemóvel) passo a passo ---------- */
+let navIgnore=0;
+function navPush(k){try{history.pushState({k},'',location.href)}catch(e){}}
+function navPop(k){try{if(history.state&&history.state.k===k){navIgnore++;history.back()}}catch(e){}}
+addEventListener('popstate',()=>{if(navIgnore){navIgnore--;return}
+  if(document.getElementById('camov')){camClose(true);return}
+  if(cpk){closeCur(true);return}
+  if(!modal.hidden){closeEditor(true);return}
+  if(typeof gMenu!=='undefined'&&gMenu){gMenu=null;render();return}
+  if(typeof profOpen!=='undefined'&&profOpen){profOpen=false;render();return}
+  if(newOpen){newOpen=false;render();return}
+  if(cur){cur=null;shareOpen=false;bkOpen=false;confirmDel=null;render();scrollTo(0,0);return}});
 
 }
 </script>
