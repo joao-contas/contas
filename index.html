@@ -506,7 +506,7 @@ async function scan(f){if(f&&edit&&gkey()&&!(samp&&samp.gem))samp=mkSamp();if(!f
     $('#e-scan').textContent=`Recibo lido${edit.itens.length?': '+edit.itens.length+' artigos':''}. Confirma o total${soma&&soma!==edit.total?' (a soma dos artigos dá '+fmt(soma,edit.moeda)+')':''}.`+msg}
   catch(e){const st=$('#e-scan');const c=e&&e.code;
     if(c==='not_granted'||c==='sampling_disabled'||c==='images_unavailable'||c==='not_declared'){canPhoto=false;if(st)st.textContent='A leitura de recibos não está disponível nesta conta.'}
-    else if(st)st.textContent=c==='gem_key'?'A chave do Gemini deixou de funcionar. Vê em Definições → Leitura de recibos.':c==='rate_limited'?'Demasiados pedidos seguidos. Tenta daqui a pouco.':c==='image_rejected'?'Não consegui usar essa imagem. Tenta outra foto.':c==='cancelled'?'':'Não consegui ler o recibo. Tenta outra vez, com a foto mais nítida.'}
+    else if(st)st.textContent=c==='gem_key'?'A chave do Gemini deixou de funcionar. Vê em Definições → Leitura de recibos.':c==='busy'?'A Google está sobrecarregada neste momento. Tenta outra vez daqui a um minuto.':c==='rate_limited'?'Demasiados pedidos seguidos. Tenta daqui a pouco.':c==='image_rejected'?'Não consegui usar essa imagem. Tenta outra foto.':c==='cancelled'?'':'Não consegui ler o recibo. Tenta outra vez, com a foto mais nítida.'}
   finally{sheet.querySelectorAll('.scan').forEach(l=>l.classList.remove('busy'))}}
 function closeEditor(){modal.hidden=true;edit=null;confirmDel=null}
 function saveEditor(){const g=G(),e=edit;let tx=null;if(e.moeda!==g.base){const x=parseFloat(String(e.rx||'').replace(',','.'));if(x>0){tx={b:g.base,m:e.moeda,r:x};g.taxas[e.moeda]=x*g.taxas[g.base]}}const pick=(rows)=>{const o={};order(g,rows).forEach(k=>o[k]=rows[k].v);return o};
@@ -642,13 +642,14 @@ function gkey(){let k='';try{k=localStorage.getItem('contas-gemini')||''}catch(e
 let gErr='';const GMODELS=['gemini-flash-latest','gemini-2.5-flash','gemini-4-hydrogen','gemini-2.0-flash'];let gModel={};
 /* fb=true: usa o projeto Firebase (Firebase AI Logic, Gemini Developer API grátis); fb=false: chave pessoal do Gemini */
 async function gemCall(key,parts,json,fb){let last='upstream_error';const tag=fb?'fb':'k';
-  for(const m of (gModel[tag]?[gModel[tag]]:GMODELS)){let r;
+  for(const m of (gModel[tag]?[gModel[tag],...GMODELS.filter(x=>x!==gModel[tag])]:GMODELS)){let r;
     const url=fb?'https://firebasevertexai.googleapis.com/v1beta/projects/'+firebaseConfig.projectId+'/models/'+m+':generateContent'
                :'https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent';
     const h={'content-type':'application/json','x-goog-api-key':key};if(fb)h['x-firebase-appid']=firebaseConfig.appId;
     try{r=await fetch(url,{method:'POST',headers:h,body:JSON.stringify({contents:[{role:'user',parts}],generationConfig:json?{responseMimeType:'application/json',temperature:0}:{temperature:0}})})}catch(e){gErr='rede/CORS: '+(e&&e.message||e);throw {code:'upstream_error'}}
     if(r.ok){gModel[tag]=m;const j=await r.json();return ((j.candidates||[])[0]?.content?.parts||[]).map(x=>x.text||'').join('')}
     const j=await r.json().catch(()=>({}));const msg=JSON.stringify(j);gErr=r.status+' '+m+': '+((j.error&&j.error.message)||msg).slice(0,160);
+    if(r.status>=500){last='busy';continue}
     if(r.status===404||(r.status===429&&/limit: ?0\b/.test(msg))){last=r.status===429?'rate_limited':'upstream_error';continue}
     if(r.status===429)throw {code:'rate_limited'};
     if(/SERVICE_DISABLED|has not been used|is disabled|not enabled/i.test(msg))throw {code:'fb_off'};
@@ -657,7 +658,7 @@ async function gemCall(key,parts,json,fb){let last='upstream_error';const tag=fb
     if(r.status===400&&/model/i.test(msg)){continue}
     throw {code:r.status===401||r.status===403?'bad_key':'upstream_error'}}
   throw {code:last}}
-async function gemTest(k,fb){try{await gemCall(k,[{text:'Responde só: ok'}],false,fb);return true}catch(e){return e.code==='rate_limited'}}
+async function gemTest(k,fb){try{await gemCall(k,[{text:'Responde só: ok'}],false,fb);return true}catch(e){return e.code==='rate_limited'||e.code==='busy'}}
 let fbAI=false,fbChk='a verificar…';
 function mkSamp(){return {gem:true,json:async(prompt,o)=>{let image;try{image=await toJpeg(o.images[0])}catch(e){throw {code:'image_rejected'}}
     const parts=[{text:prompt},{inlineData:{mimeType:'image/jpeg',data:image}}];let t;
