@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<script>try{var _t=localStorage.getItem('ej-theme')||'light';if(_t==='dark'||(_t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.dataset.theme='dark';var _l=localStorage.getItem('ej-lang');if(_l)document.documentElement.lang=_l==='en'?'en':_l==='es'?'es':'pt-PT'}catch(e){}</script>
+<script>try{var _t=localStorage.getItem('ej-theme')||'light';var _h=new Date().getHours();if(_t==='dark'||(_t==='auto'&&(_h>=19||_h<7)))document.documentElement.dataset.theme='dark';var _l=localStorage.getItem('ej-lang');if(_l)document.documentElement.lang=_l==='en'?'en':_l==='es'?'es':'pt-PT'}catch(e){}</script>
 <style>
 /* VOICE: calmo, minimalista, amigável
    IDEA: um caderno de contas leve, papel claro com etiquetas em tons pastel
@@ -318,6 +318,7 @@ html[data-theme=dark] .mrow input:disabled{opacity:.7}
 .exb small{font-size:11px;color:var(--mut)}.exv{font-size:10.5px;color:var(--mut);white-space:nowrap}
 .exav{position:absolute;left:0;right:0;bottom:calc(19px + 132px * var(--avf));border-top:1.5px dashed var(--peachd);pointer-events:none;opacity:.7}
 .mineseg{display:flex;margin:12px 0 0}.mineseg button{flex:1;min-height:38px;font-size:14px}.mineseg+.srch{margin-top:10px}
+.item.notme{opacity:.5;box-shadow:none}.item.notme .ic{filter:grayscale(1)}
 </style>
 </head>
 <body>
@@ -533,8 +534,9 @@ function trS(t,attr){const li=LANG==='en'?0:LANG==='es'?1:-1;if(li<0||!t)return 
 function trTree(root){if(LANG==='pt'||!root)return;if(root.nodeType===3)root=root.parentNode;if(!root||!root.querySelectorAll&&root.nodeType!==1)return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;const ch=[];while(n=w.nextNode()){const p=n.parentNode;if(!p||(p.closest&&p.closest('script,style,textarea')))continue;const r=trS(n.nodeValue);if(r!=null&&r!==n.nodeValue)ch.push([n,r])}ch.forEach(([n,r])=>n.nodeValue=r);
   const els=[root,...root.querySelectorAll('[placeholder],[aria-label]')];els.forEach(e=>{if(!e.getAttribute)return;['placeholder','aria-label'].forEach(a=>{const v=e.getAttribute(a);if(v){const r=trS(v,1);if(r!=null&&r!==v)e.setAttribute(a,r)}})})}
 if(LANG!=='pt'){new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')trTree(m.target.parentNode);else m.addedNodes.forEach(x=>{if(x.nodeType===3)trTree(x.parentNode);else if(x.nodeType===1)trTree(x)})}}).observe(document.body,{childList:true,subtree:true,characterData:true});setTimeout(()=>trTree(document.body),0)}
-function themeApply(){const d=THEME==='dark'||(THEME==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.dataset.theme='dark';else delete document.documentElement.dataset.theme;const m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',d?'#0f1a26':'#d6ecf0')}
-try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(THEME==='auto')themeApply()})}catch(e){}
+function isNight(){const h=new Date().getHours();return h>=19||h<7}
+function themeApply(){const d=THEME==='dark'||(THEME==='auto'&&isNight());if(d)document.documentElement.dataset.theme='dark';else delete document.documentElement.dataset.theme;const m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',d?'#0f1a26':'#d6ecf0')}
+setInterval(()=>{if(THEME==='auto')themeApply()},60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&THEME==='auto')themeApply()});
 function payGet(){try{return JSON.parse(localStorage.getItem('ej-pay')||'{}')||{}}catch(e){return {}}}
 function paySet(o){try{if(o.mb||o.iban)localStorage.setItem('ej-pay',JSON.stringify(o));else localStorage.removeItem('ej-pay')}catch(e){}}
 function payTxt(){const p=payGet(),l=[];if(p.mb)l.push('MB Way: '+p.mb);if(p.iban)l.push('IBAN: '+p.iban.replace(/(.{4})/g,'$1 ').trim());return l.join('\n')}
@@ -547,7 +549,7 @@ document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.clos
   if(t.id==='pay-clr'){paySet({});note('Dados de pagamento apagados.',2500);render()}
   else{const x=payTxt();if(!x)return;(navigator.clipboard?navigator.clipboard.writeText(x):Promise.reject()).then(()=>note('Copiado. Cola na mensagem.',3000)).catch(()=>note(x,12000))}});
 function prefsHTML(){const sb=(attr,v,cur,t)=>`<button type="button" ${attr}="${v}" aria-pressed="${cur===v}">${t}</button>`;
-  return `<div class="prefs"><div class="pr"><span>Tema</span><div class="seg">${sb('data-theme-set','auto',THEME,'Automático')}${sb('data-theme-set','light',THEME,'Claro')}${sb('data-theme-set','dark',THEME,'Escuro')}</div></div>
+  return `<div class="prefs"><div class="pr"><span>Tema${ii('Automático: escuro das 19h às 7h, pela hora do telemóvel (que segue o fuso horário de onde estás).')}</span><div class="seg">${sb('data-theme-set','auto',THEME,'Automático')}${sb('data-theme-set','light',THEME,'Claro')}${sb('data-theme-set','dark',THEME,'Escuro')}</div></div>
   <div class="pr"><span>Idioma</span><div class="seg">${sb('data-lang-set','pt',LANG,'PT')}${sb('data-lang-set','en',LANG,'EN')}${sb('data-lang-set','es',LANG,'ES')}</div></div>${payHTML()}</div>`}
 document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('[data-theme-set],[data-lang-set]');if(!t)return;
   if(t.dataset.themeSet){THEME=t.dataset.themeSet;try{localStorage.setItem('ej-theme',THEME)}catch(e){}themeApply();render()}
@@ -642,7 +644,7 @@ function render(){gateUpd();
     {const me=meOf(g);if(me)h+=walletHTML(g,me)}
     h+=`<div class="addrow"><button class="primary" id="add">+ Nova despesa</button></div>${searchHTML(g)}<div class="list">${ds.length?ds.filter(d=>matchQ(g,d)&&mineOk(g,d)).map(d=>{
       const pags=Object.keys(d.pag).filter(k=>d.pag[k]>0).map(k=>nome(g,k));
-      return `<button class="item card" data-edit="${esc(d.id)}"><span class="ic">${esc(dEmo(d))}</span><h3>${esc(d.titulo||'Sem título')}${d.foto?' <span class="clip">📎</span>':''}</h3><small>${d.tipo==='reemb'?'Reembolso: '+esc(pags.join(', '))+' → '+esc(Object.keys(d.div).map(k=>nome(g,k)).join(', ')):'Pago por '+esc(pags.join(', '))} · ${esc(d.data||'')}</small><span class="amt">${fmt(d.total,d.moeda)}${d.moeda!==g.base?`<br><small style="font:400 13px Inter,sans-serif;color:var(--mut)">${fmt(toCur(g,RD(g,d,d.total),g.base),g.base)}</small>`:''}</span></button>`}).join(''):'<p class="empty">Sem despesas. Toca em “Nova despesa” para começar.</p>'}</div>`}
+      return `<button class="item card ${(()=>{const me=meOf(g);return me&&!inMine(g,d,me)?'notme':''})()}" data-edit="${esc(d.id)}"><span class="ic">${esc(dEmo(d))}</span><h3>${esc(d.titulo||'Sem título')}${d.foto?' <span class="clip">📎</span>':''}</h3><small>${d.tipo==='reemb'?'Reembolso: '+esc(pags.join(', '))+' → '+esc(Object.keys(d.div).map(k=>nome(g,k)).join(', ')):'Pago por '+esc(pags.join(', '))} · ${esc(d.data||'')}</small><span class="amt">${fmt(d.total,d.moeda)}${d.moeda!==g.base?`<br><small style="font:400 13px Inter,sans-serif;color:var(--mut)">${fmt(toCur(g,RD(g,d,d.total),g.base),g.base)}</small>`:''}</span></button>`}).join(''):'<p class="empty">Sem despesas. Toca em “Nova despesa” para começar.</p>'}</div>`}
   if(tab==='res'){const nd=g.despesas.filter(d=>d.tipo!=='reemb'),dias=new Set(nd.map(d=>d.data).filter(Boolean)).size,tt=gasto(g),B=v=>fmt(toCur(g,v,g.base),g.base);
     h+=nd.length?`<div class="rsst"><div class="stat"><b>${nd.length}</b><span>despesas</span></div><div class="stat"><b>${B(tt/Math.max(1,g.membros.length))}</b><span>por pessoa</span></div><div class="stat"><b>${B(tt/Math.max(1,dias))}</b><span>por dia (${dias} dia${dias===1?'':'s'})</span></div></div>${exHTML(g)}`:'<p class="empty">Ainda não há despesas para resumir.</p>';h+=histHTML(g)}
   if(tab==='sald'){
