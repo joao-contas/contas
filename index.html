@@ -203,7 +203,11 @@ label .curbtn{margin-top:6px}
 .whol{display:grid;gap:8px;margin-top:16px}
 .whob{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 16px;border-radius:16px;background:#fff;color:var(--ink);font-size:17px;font-weight:600;text-align:left;box-shadow:var(--shadow)}
 .whob span{font-size:24px}.whob small{margin-left:auto;font-weight:400;color:var(--mut);font-size:13px}.whob.taken{opacity:.55}
-.whob:active{background:var(--lav)}.levd{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:0;background:none;box-shadow:none;color:var(--mut);padding:10px 2px;font-weight:400;font-size:14px;text-align:left}.levd s{opacity:.75}.esg{font-size:12px;background:var(--line);color:var(--mut);border-radius:999px;padding:3px 10px}.levx{opacity:.7;cursor:pointer}.wal .iirow{padding:0 14px 10px}.addrow{display:flex!important}.addrow #add{flex:1;width:100%}.rbb{width:100%;min-height:0;background:none;box-shadow:none;color:var(--ink);text-align:left;padding:7px 4px;border-radius:10px;font-weight:400}.rbb:active{background:var(--lav)}.rbb b{white-space:nowrap}.simprow{display:flex;align-items:center;gap:6px;margin:0 0 14px}.dots{width:38px;height:38px;min-height:0;padding:0;border-radius:50%;background:var(--line);color:var(--ink);font-size:20px;line-height:1;flex:none;box-shadow:none}.dots.on{background:var(--ink);color:#fff}.sopt{margin:-6px 0 14px;padding:12px 16px}.sopt label{margin:0}.simprow .seg{flex:1;margin:0}.simprow .seg button{flex:1;white-space:nowrap;font-size:13.5px;padding:0 6px;min-height:38px}
+.whob:active{background:var(--lav)}
+.mebar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
+.mechip{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px 0 8px;border-radius:999px;background:rgb(255 255 255/.8);color:var(--ink);font-weight:600;font-size:16px;box-shadow:var(--shadow)}
+.mechip .me-e{font-size:22px}.mechip .me-sw{color:var(--mut);font-weight:400;font-size:14px;margin-left:2px}.mechip.ask{background:var(--ink);color:#fff;padding:0 16px}
+.mebal{font:600 22px/1 Outfit,sans-serif;white-space:nowrap}.mebal.dev{color:var(--peachd)}.mebal.rec{color:#2f7a4f}.mebal.ok{color:var(--lavd);font-size:17px}main{padding-top:8px!important}.levd{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:0;background:none;box-shadow:none;color:var(--mut);padding:10px 2px;font-weight:400;font-size:14px;text-align:left}.levd s{opacity:.75}.esg{font-size:12px;background:var(--line);color:var(--mut);border-radius:999px;padding:3px 10px}.levx{opacity:.7;cursor:pointer}.wal .iirow{padding:0 14px 10px}.addrow{display:flex!important}.addrow #add{flex:1;width:100%}.rbb{width:100%;min-height:0;background:none;box-shadow:none;color:var(--ink);text-align:left;padding:7px 4px;border-radius:10px;font-weight:400}.rbb:active{background:var(--lav)}.rbb b{white-space:nowrap}.simprow{display:flex;align-items:center;gap:6px;margin:0 0 14px}.dots{width:38px;height:38px;min-height:0;padding:0;border-radius:50%;background:var(--line);color:var(--ink);font-size:20px;line-height:1;flex:none;box-shadow:none}.dots.on{background:var(--ink);color:#fff}.sopt{margin:-6px 0 14px;padding:12px 16px}.sopt label{margin:0}.simprow .seg{flex:1;margin:0}.simprow .seg button{flex:1;white-space:nowrap;font-size:13.5px;padding:0 6px;min-height:38px}
 .avbtn{position:absolute;right:-6px;top:-4px;width:44px;height:44px;min-height:0;padding:0;border-radius:50%;background:var(--lavd);color:#fff;font:600 19px/1 Outfit,sans-serif;box-shadow:var(--shadow);z-index:2}
 .pfov{align-items:flex-start;padding-top:calc(70px + env(safe-area-inset-top))}.pfbox{text-align:left}
 .pfhd{display:flex;align-items:center;gap:12px;margin-bottom:16px}.pfhd b{display:block;font-size:19px}.pfbox .actions{margin-top:16px!important}.pfhd small{color:var(--mut);font-size:13px}
@@ -246,6 +250,28 @@ body.gated{overflow:hidden}
 h2.sec{font-size:21px;margin:30px 0 8px}
 @media(max-width:600px){.prow{grid-template-columns:minmax(0,1fr) 7.2em 44px}.bar{grid-template-columns:5.5em minmax(0,1fr) auto}.row2{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}.inline{flex-wrap:wrap}}
 @media(prefers-reduced-motion:no-preference){.track i{transition:width .4s ease,left .4s ease}.modal:not([hidden]) .sheet{animation:up .25s ease}@keyframes up{from{transform:translateY(16px);opacity:0}}}
+
+/* 3 estilos de botão: principal (teal), secundário (bege), link (texto) */
+.shr,.pay-ctl button:not(.curbtn):not(.primary),.scan.alt,.auto,.morebtn,.pph .x,.danger{background:var(--line)!important;box-shadow:none!important}
+.shr,.pay-ctl button:not(.curbtn):not(.primary),.scan.alt,.morebtn,.pph .x{color:var(--ink)!important}
+.auto{color:var(--ink)!important}.danger{color:var(--peachd)!important}
+.morebtn.on{background:var(--ink)!important;color:#fff!important}
+.rsst .stat{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}.rsst .stat b{display:block}
+.mecard{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px}.mecard .mechip{box-shadow:none;background:transparent;padding:0}.mecard button{min-height:40px}
+.mems{display:inline-flex;align-items:center;gap:10px;background:none;box-shadow:none;padding:4px 6px 4px 0;min-height:0;color:var(--mut);font-weight:500;font-size:15px}
+.avs{display:inline-flex}.av{width:32px;height:32px;border-radius:50%;background:#fff;border:2px solid var(--lav);display:inline-flex;align-items:center;justify-content:center;font-size:17px;margin-left:-8px;box-shadow:0 1px 3px rgb(22 45 80/.1)}.av:first-child{margin-left:0}.av.more{font-size:12px;font-weight:600;color:var(--ink)}
+.mems.on .mc{color:var(--lavd)}#iib .mrw{padding:3px 0;font-style:normal;font-size:14px}#iib .tg{font-size:11px;background:var(--lav);color:var(--lavd);border-radius:999px;padding:1px 7px;margin-left:4px}
+.balc{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin-top:12px;padding:14px 16px;min-height:0;border-radius:20px;background:var(--card);box-shadow:var(--shadow);text-align:left;color:var(--ink);font-weight:400}
+.balc .bl{display:flex;flex-direction:column;gap:3px;min-width:0}.balc .bv{font:600 26px/1.1 Outfit,sans-serif}.balc .bl small{font-size:14px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.balc .bt{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:none}.balc .bt small{font-size:12px;color:var(--mut)}.balc .bt b{font:500 16px/1.1 Outfit,sans-serif;color:var(--mut)}
+.balc.dev .bv{color:var(--peachd)}.balc.rec .bv{color:#2f7a4f}.balc.ok .bv{color:var(--lavd);font-size:22px}.balc:active{transform:scale(.99)}
+.av{background:var(--lavd);color:#fff;font:600 14px/1 Outfit,sans-serif!important;border:2px solid #e9f3f3!important;width:30px!important;height:30px!important;margin-left:-6px!important}.av:first-child{margin-left:0!important}.av.more{background:var(--line)!important;color:var(--ink)}
+.avp{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;color:#fff;font:600 12px/1 Outfit,sans-serif;flex:none;vertical-align:middle;letter-spacing:-.02em}
+.avp.xs{width:20px;height:20px;font-size:10px}.avp.sm{width:24px;height:24px;font-size:11px}.avp.lg{width:40px;height:40px;font-size:16px}.avp.xl{width:48px;height:48px;font-size:19px}
+.whob .avp{width:34px;height:34px;font-size:14px}.ppr .avp{margin-right:2px}.mrw .avp{margin-right:4px}
+.avpick{width:44px;height:44px;min-height:0;padding:0;border-radius:50%;background:none;box-shadow:none;display:flex;align-items:center;justify-content:center}.mrow{grid-template-columns:auto minmax(0,1fr) 44px!important}
+.cpal{display:flex;flex-wrap:wrap;gap:10px;padding:8px 2px 12px}.cpal button{width:32px;height:32px;min-height:0;padding:0;border-radius:50%;box-shadow:none;border:3px solid transparent}.cpal button.on{border-color:var(--ink)}
+.mecard .avp{margin-right:6px}
 </style>
 </head>
 <body>
@@ -302,7 +328,7 @@ function bankPanel(g){const me=meOf(g);if(!me)return '';const p=g.membros.find(x
   <button class="linkbtn" id="bkdone">Feito</button></div>`}
 let bkOpen=false;
 let newGE='✈️',pickM=null,newName='',newPeople=[],focusAdd=false;
-const chipsHTML=()=>newPeople.map((q,i)=>`<span class="chip"><button type="button" data-npemo="${i}" aria-label="Trocar emoji">${esc(q.emoji)}</button><span class="nm">${esc(q.nome)}</span><button type="button" class="chip-x" data-npx="${i}" aria-label="Remover ${esc(q.nome)}">×</button></span>`).join('');
+const chipsHTML=()=>newPeople.map((q,i)=>`<span class="chip"><span class="nm">${esc(q.nome)}</span><button type="button" class="chip-x" data-npx="${i}" aria-label="Remover ${esc(q.nome)}">×</button></span>`).join('');
 function addPending(){const inp=$('#ng-p');if(!inp)return;inp.value.split(/[,;\n]/).map(x=>x.trim()).filter(Boolean).forEach(nm=>newPeople.push({nome:nm,emoji:PEMO[newPeople.length%PEMO.length]}));inp.value='';$('#ng-chips').innerHTML=chipsHTML()}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -381,7 +407,7 @@ async function updateRates(g){const L=await fetchRates(true);if(!L){note('Sem li
   let n=0;for(const m in g.taxas){if(L.rates[m]){g.taxas[m]=L.rates[m];n++}}
   g.taxasUpd=L.upd||'';save(g);note(n+' taxas atualizadas.',3000)}
 const G=()=>groups[cur];
-const pn=p=>(p.emoji?p.emoji+' ':'')+p.nome;
+const pn=p=>p.nome;
 const nome=(g,k)=>{const p=g.membros.find(p=>p.id===k);return p?pn(p):'?'};
 const R=(g,c,m)=>c/(g.taxas[m]||1);
 const RD=(g,d,c)=>d.tx&&d.tx.r>0&&g.taxas[d.tx.b]?c/d.tx.r/g.taxas[d.tx.b]:R(g,c,d.moeda);
@@ -405,15 +431,26 @@ const transf=(g,b)=>simp?acertos(b):detalhado(g);
 const MEK='contas-eu';let meMap={},skipMe={},shareOpen=false,pendingHashId=null;try{meMap=JSON.parse(localStorage.getItem(MEK)||'{}')||{}}catch(e){}
 const meOf=g=>g&&meMap[g.id]&&g.membros.some(p=>p.id===meMap[g.id])?meMap[g.id]:null;
 function setMe(gid,mid){if(mid)meMap[gid]=mid;else{delete meMap[gid];if(prof&&prof.eus)delete prof.eus[gid]}try{localStorage.setItem(MEK,JSON.stringify(meMap))}catch(e){}profSave()}
+var meAsk=false,pickC=null;
+app.addEventListener('click',ev=>{const t=ev.target.closest('#meswap');if(!t)return;const g=G();if(!g)return;if(!meAsk){meAsk=true;render();setTimeout(()=>{if(meAsk){meAsk=false;render()}},4000);return}meAsk=false;if(tab==='conf'){navPop('conf');tab=confPrev||'desp'}claim(g,null);setMe(g.id,null);skipMe[g.id]=false;noAuto[g.id]=true;bkOpen=false;render()});
 function meBox(g,b){{const m0=meOf(g);if(m0&&!(g.claims||{})[m0]&&typeof claim==='function')setTimeout(()=>{if(!(g.claims||{})[m0])claim(g,m0)},0)}let me=meOf(g);
-  if(!me&&prof&&prof.nome&&!skipMe[g.id]&&!noAuto[g.id]){const p=g.membros.find(x=>norm(x.nome)===norm(prof.nome));if(p&&!takenBy(g,p.id)){setMe(g.id,p.id);me=p.id}}
-  if(me&&prof){const p=g.membros.find(x=>x.id===me);if(p){if(prof.emoji&&p.emoji!==prof.emoji){p.emoji=prof.emoji;setTimeout(()=>save(g),0)}}}
+  if(!me&&prof&&prof.nome&&!skipMe[g.id]&&!noAuto[g.id]){const p=g.membros.find(x=>norm(x.nome)===norm(prof.nome));if(p&&!takenBy(g,p.id)){setMe(g.id,p.id);me=p.id;setTimeout(render,0)}}
+  if(me&&prof){const p=g.membros.find(x=>x.id===me);if(p){if(prof.emoji&&p.emoji!==prof.emoji){p.emoji=prof.emoji;setTimeout(()=>save(g),0)}if(prof.cor&&p.cor!==prof.cor){p.cor=prof.cor;setTimeout(()=>save(g),0)}}}
   if(me){const v=b[me],p=g.membros.find(x=>x.id===me);
-    return `<div class="mebox">Estás como <b>${esc(pn(p))}</b> · ${v>0.5?'recebes <b>'+fmt(toCur(g,v,g.base),g.base)+'</b>':v<-0.5?'deves <b>'+fmt(toCur(g,-v,g.base),g.base)+'</b>':'estás em dia ✓'} <button class="linkbtn" id="chgme">Não és tu?</button>
-    </div>`}
+    {const tr=transf(g,b),nm=a=>{const u=[...new Set(a)].map(k=>nome(g,k));return u.length>2?u.slice(0,2).join(', ')+' e mais '+(u.length-2):u.join(' e ')};
+    const line=v<-0.5?'Pagas a '+nm(tr.filter(t=>t.de===me).map(t=>t.para)):v>0.5?'Recebes de '+nm(tr.filter(t=>t.para===me).map(t=>t.de)):'Não deves nada a ninguém';
+    return `<button class="balc ${v>0.5?'rec':v<-0.5?'dev':'ok'}" id="balgo"><span class="bl"><b class="bv">${v>0.5?'+'+fmt(toCur(g,v,g.base),g.base):v<-0.5?'−'+fmt(toCur(g,-v,g.base),g.base):'✓ Em dia'}</b><small>${esc(line)}</small></span><span class="bt"><small>Total</small><b>${fmt(toCur(g,gasto(g),g.base),g.base)}</b></span></button>`}}
 
-  return `<div class="whoov" role="dialog" aria-modal="true"><div class="whobox"><div class="whoem">${esc(g.emoji||'✈️')}</div><h2>Bem-vindo a ${esc(g.nome)}</h2><p>Quem és tu neste grupo?${ii('Não estás na lista? Pede a quem criou o grupo para te adicionar.')}</p><div class="whol">${g.membros.map(p=>{const tk=takenBy(g,p.id);return `<button class="whob ${tk?'taken':''}" data-me="${esc(p.id)}"><span>${esc(p.emoji||'🙂')}</span>${esc(p.nome)}${tk?' <small>🔒 já escolhido</small>':''}</button>`}).join('')}</div></div></div>`}
-var IIS=[];function ii(t){let k=IIS.indexOf(t);if(k<0){IIS.push(t);k=IIS.length-1}return `<button type="button" class="ii" data-ii="${k}" aria-label="Explicação">i</button>`}
+  return `<div class="whoov" role="dialog" aria-modal="true"><div class="whobox"><div class="whoem">${esc(g.emoji||'✈️')}</div><h2>Bem-vindo a ${esc(g.nome)}</h2><p>Quem és tu neste grupo?${ii('Não estás na lista? Pede a quem criou o grupo para te adicionar.')}</p><div class="whol">${g.membros.map(p=>{const tk=takenBy(g,p.id);return `<button class="whob ${tk?'taken':''}" data-me="${esc(p.id)}">${avP(g,p)}${esc(p.nome)}${tk?' <small>🔒 já escolhido</small>':''}</button>`}).join('')}</div></div></div>`}
+var AVC=['#18788c','#1f4a85','#c0603a','#b8892a','#5f8fb4','#3f8a68','#7a5ea8','#b5506e','#4c5d73','#2a9d8f','#d1495b','#e07a1f','#8a9a2b','#0f9d8a','#3a6fd8','#9b59b6','#e05a9c','#6d4c41','#00838f','#558b2f','#c2185b','#5c6bc0','#ef6c00','#455a64'];
+function avcN(i){return i<AVC.length?AVC[i]:`hsl(${Math.round((i*137.508)%360)} 55% 42%)`}
+function colOf(p){if(!p)return AVC[0];if(p.cor)return p.cor;const g=G();const i=g?g.membros.findIndex(x=>x.id===p.id):-1;if(i>=0)return avcN(i);let h=0;for(const c of String(p.id||p.nome||''))h=(h*31+c.charCodeAt(0))>>>0;return AVC[h%AVC.length]}
+function iniMap(g){const ms=g.membros,out={},W=p=>(p.nome||'?').trim().split(/\s+/),F=p=>((W(p)[0]||'?')[0]||'?').toUpperCase(),cnt={};
+  ms.forEach(p=>{const k=F(p);cnt[k]=(cnt[k]||0)+1});
+  ms.forEach(p=>{const w=W(p),a=F(p);out[p.id]=cnt[a]===1?a:(w[1]?a+w[1][0].toUpperCase():a+((w[0]||'')[1]||'').toLowerCase())});
+  const seen={};ms.forEach((p,j)=>{let c=out[p.id];if(seen[c]){const w=W(p),a=F(p),cs=[];w.slice(1).forEach(x=>x&&cs.push(a+x[0].toUpperCase()));const fl=(w[0]||'');for(let i=1;i<fl.length;i++)cs.push(a+fl[i].toLowerCase());c=cs.find(x=>!seen[x])||c+(j+1)}seen[c]=1;out[p.id]=c});return out}
+function avP(g,p,cls){return `<span class="avp ${cls||''}" style="background:${colOf(p)}">${esc(iniMap(g)[p.id]||((p.nome||'?')[0]||'?').toUpperCase())}</span>`}
+var IIS=[];function iiK(t){let k=IIS.indexOf(t);if(k<0){IIS.push(t);k=IIS.length-1}return k}function ii(t){let k=IIS.indexOf(t);if(k<0){IIS.push(t);k=IIS.length-1}return `<button type="button" class="ii" data-ii="${k}" aria-label="Explicação">i</button>`}
 const gasto=g=>g.despesas.filter(d=>d.tipo!=='reemb').reduce((s,d)=>s+RD(g,d,d.total),0);
 const ALLC='AED AFN ALL AMD AOA ARS AUD AWG AZN BAM BBD BDT BGN BHD BIF BMD BND BOB BRL BSD BTN BWP BYN BZD CAD CDF CHF CLP CNY COP CRC CUP CVE CZK DJF DKK DOP DZD EGP ERN ETB EUR FJD FKP GBP GEL GHS GIP GMD GNF GTQ GYD HKD HNL HTG HUF IDR ILS INR IQD IRR ISK JMD JOD JPY KES KGS KHR KMF KPW KRW KWD KYD KZT LAK LBP LKR LRD LSL LYD MAD MDL MGA MKD MMK MNT MOP MRU MUR MVR MWK MXN MYR MZN NAD NGN NIO NOK NPR NZD OMR PAB PEN PGK PHP PKR PLN PYG QAR RON RSD RUB RWF SAR SBD SCR SDG SEK SGD SHP SLE SOS SRD SSP STN SVC SYP SZL THB TJS TMT TND TOP TRY TTD TWD TZS UAH UGX USD UYU UZS VES VND VUV WST XAF XCD XCG XOF XPF YER ZAR ZMW ZWG'.split(' ');
 const TOPC=['EUR','USD','CRC','GBP','BRL','CHF','CAD','MXN','JPY'];
@@ -460,7 +497,7 @@ const allOpts=sel=>`<optgroup label="Mais usadas">${TOPC.map(m=>`<option value="
 
 function render(){gateUpd();
   if(cur&&!groups[cur]){if(pendingOpen===cur){$('#back').hidden=false;$('#title').textContent='A abrir o grupo…';$('#sub').textContent='';$('#hero').innerHTML='';app.innerHTML='<p class="empty">A carregar…</p>';return}cur=null}
-  $('#back').hidden=!cur;{const av=$('#avatar');const sh=!cur&&!!user;av.hidden=!sh;if(sh)av.textContent=avL()}$('#more').hidden=!cur||(!!G()&&!meOf(G())&&G().membros.length>0);$('#more').classList.toggle('on',tab==='conf');if(tab==='conf')$('#more').hidden=true;$('#back').textContent=cur&&tab==='conf'?'‹ Voltar ao grupo':'‹ Todos os grupos';
+  $('#back').hidden=!cur;{const av=$('#avatar');const sh=!cur&&!!user;av.hidden=!sh;if(sh){av.textContent=avL();av.style.background=(prof&&prof.cor)||''}}$('#more').hidden=!cur||(!!G()&&!meOf(G())&&G().membros.length>0);$('#more').classList.toggle('on',tab==='conf');if(tab==='conf')$('#more').hidden=true;$('#back').textContent=cur&&tab==='conf'?'‹ Voltar ao grupo':'‹ Todos os grupos';
   if(cur)document.querySelector('.top').classList.remove('home');
   if(!cur){
     document.querySelector('.top').classList.add('home');
@@ -492,7 +529,7 @@ function render(){gateUpd();
     return}
   const g=G(),b=saldos(g),sc=showCur&&g.taxas[showCur]?showCur:g.base;
   $('#title').textContent=(g.emoji?g.emoji+' ':'')+g.nome;
-  $('#sub').textContent=g.membros.map(pn).join(' · ');
+  {const ow=typeof ownerOf==='function'?ownerOf(g):null,me=meOf(g),mk=iiK(g.membros.map(p=>`<div class="mrw">${avP(g,p,'sm')} ${esc(p.nome)}${p.id===me?' <span class="tg">tu</span>':''}${p.id===ow?' <span class="tg">criou</span>':''}</div>`).join(''));$('#sub').innerHTML=`<button type="button" class="mems" data-ii="${mk}" aria-label="Ver pessoas do grupo"><span class="avs">${g.membros.slice(0,6).map(p=>`<span class="av" style="background:${colOf(p)}">${esc(iniMap(g)[p.id])}</span>`).join('')}${g.membros.length>6?`<span class="av more">+${g.membros.length-6}</span>`:''}</span></button>`}
   $('#hero').innerHTML=`<button class="shr" id="share">Partilhar link</button>${meBox(g,b)}`;
   if(!meOf(g)&&g.membros.length){app.innerHTML='';return}
   if(tab==='conf'){$('#title').textContent='⚙️ Definições';$('#sub').textContent=(g.emoji?g.emoji+' ':'')+g.nome;$('#hero').innerHTML=''}
@@ -520,7 +557,7 @@ function render(){gateUpd();
     // 2. pessoas
     const ord=[...g.membros].sort((x,y)=>b[y.id]-b[x.id]);
     h+=`<h2 class="sec">Quem está a dever e a receber</h2><div class="card">${ord.map(p=>{const v=b[p.id];
-      return `<div class="prow ${p.id===me?'me':''}"><span class="pn">${esc(pn(p))}${p.id===me?' <small>(tu)</small>':''}</span><span class="pill ${v>0.5?'rec':v<-0.5?'dev':'ok'}">${v>0.5?'recebe '+F(v):v<-0.5?'deve '+F(v):'em dia'}</span></div>`}).join('')}
+      return `<div class="prow ${p.id===me?'me':''}"><span class="pn">${avP(g,p,'sm')} ${esc(p.nome)}${p.id===me?' <small>(tu)</small>':''}</span><span class="pill ${v>0.5?'rec':v<-0.5?'dev':'ok'}">${v>0.5?'recebe '+F(v):v<-0.5?'deve '+F(v):'em dia'}</span></div>`}).join('')}
       <p class="small" style="margin:10px 0 0"></p></div>`;
     // 3. pagamentos
     const others=me?tr.filter(t=>t.de!==me&&t.para!==me):tr;
@@ -529,8 +566,8 @@ function render(){gateUpd();
     ${tr.length?'<div class="actions" style="margin-top:10px"><button id="shareacc">📤 Partilhar acerto no WhatsApp</button></div>':''}`}
   if(tab==='conf'){
     const usados=new Set();g.despesas.forEach(d=>{Object.keys(d.pag).forEach(k=>usados.add(k));Object.keys(d.div).forEach(k=>usados.add(k))});
-    h+=`<h2 class="sec" style="margin-top:4px">Grupo</h2><div class="card"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="g-emo" data-ein="grp" value="${esc(g.emoji||'💸')}" data-cur="${esc(g.emoji||'💸')}" aria-label="Emoji do grupo: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" id="g-emo-more" aria-label="Ver lista de emojis"></button></span><input id="g-nome" value="${esc(g.nome)}" aria-label="Nome do grupo" enterkeyhint="done"></div><div id="g-emos" hidden>${secPicker(g.emoji,'grp')}</div></div>
-    <h2 class="sec">Participantes${ii(isOwner(g)?'Toca no emoji ou no nome para mudar.':'Podes mudar o teu nome e emoji. 🔒 Só '+esc(nome(g,ownerOf(g)))+' (quem criou o grupo) junta ou tira pessoas.')}</h2><div class="card">${g.membros.map(p=>`<div class="mrow"><span class="ewrap"><input class="ein" data-ein="m:${esc(p.id)}" ${canEdit(g,p.id)?'':'disabled'} value="${esc(p.emoji||'🙂')}" data-cur="${esc(p.emoji||'🙂')}" aria-label="Emoji de ${esc(p.nome)}: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" data-pickm="${esc(p.id)}" aria-label="Ver lista de emojis"></button></span><input data-ren="${esc(p.id)}" value="${esc(p.nome)}" aria-label="Nome" enterkeyhint="done" ${canEdit(g,p.id)?'':'disabled'}>${usados.has(p.id)||!isOwner(g)?'<span></span>':`<button class="x" data-rm="${esc(p.id)}" aria-label="Remover ${esc(p.nome)}">×</button>`}</div>${pickM===p.id?picker(PEMO,p.emoji,'m:'+p.id):''}`).join('')}
+    h+=`${(()=>{const mp=g.membros.find(x=>x.id===meOf(g));return mp?`<h2 class="sec" style="margin-top:4px">Tu</h2><div class="card mecard"><span class="mechip">${avP(g,mp)}${esc(mp.nome)}</span><button id="meswap" class="${meAsk?'danger':''}">${meAsk?'Confirmar troca':'⇄ Trocar de pessoa'}</button></div>`:''})()}<h2 class="sec">Grupo</h2><div class="card"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="g-emo" data-ein="grp" value="${esc(g.emoji||'💸')}" data-cur="${esc(g.emoji||'💸')}" aria-label="Emoji do grupo: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" id="g-emo-more" aria-label="Ver lista de emojis"></button></span><input id="g-nome" value="${esc(g.nome)}" aria-label="Nome do grupo" enterkeyhint="done"></div><div id="g-emos" hidden>${secPicker(g.emoji,'grp')}</div></div>
+    <h2 class="sec">Participantes${ii(isOwner(g)?'Toca na bola para mudar a cor ou no nome para o mudar.':'Podes mudar o teu nome e cor. 🔒 Só '+esc(nome(g,ownerOf(g)))+' (quem criou o grupo) junta ou tira pessoas.')}</h2><div class="card">${g.membros.map(p=>`<div class="mrow"><button type="button" class="avpick" data-cpick="${esc(p.id)}" ${canEdit(g,p.id)?'':'disabled'} aria-label="Cor de ${esc(p.nome)}">${avP(g,p,'lg')}</button><input data-ren="${esc(p.id)}" value="${esc(p.nome)}" aria-label="Nome" enterkeyhint="done" ${canEdit(g,p.id)?'':'disabled'}>${usados.has(p.id)||!isOwner(g)?'<span></span>':`<button class="x" data-rm="${esc(p.id)}" aria-label="Remover ${esc(p.nome)}">×</button>`}</div>${pickC===p.id?`<div class="cpal">${AVC.map(c=>`<button type="button" data-col="${c}" data-colp="${esc(p.id)}" style="background:${c}" class="${colOf(p)===c?'on':''}" aria-label="Cor"></button>`).join('')}</div>`:''}`).join('')}
     ${isOwner(g)?'<form id="addm" class="mrow" style="grid-template-columns:minmax(0,1fr) 48px"><input id="am" placeholder="Juntar pessoa…" enterkeyhint="enter" autocomplete="off"><button class="plus" aria-label="Adicionar">+</button></form>':''}</div>
     <h2 class="sec">Moedas e taxas${ii('Taxas de referência do mercado'+(g.taxasUpd?' (atualizadas: '+esc(new Date(g.taxasUpd).toLocaleDateString('pt-PT'))+')':'')+'. Fonte: <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">ExchangeRate-API</a>')}</h2>
     <button id="rates" style="margin-bottom:10px">↻ Atualizar taxas</button>
@@ -569,8 +606,8 @@ function openEditor(d){if(modal.hidden)navPush('ed');const g=G();confirmDel=null
   if(!d){rebal('pag');rebal('div')}
   drawEditor();modal.hidden=false;setTimeout(()=>{const t=$('#e-t');if(t&&!d)t.focus()},50)}
 function rowsHTML(side){const g=G(),rows=edit[side],partes=side==='div'&&edit.modo==='partes',art=side==='div'&&edit.modo==='artigos';
-  if(art)return g.membros.map(p=>{const r=rows[p.id];return `<div class="prow"><label class="chk"><input type="checkbox" data-side="div" data-k="${esc(p.id)}" ${r.on?'checked':''}><span>${esc(pn(p))}</span></label><span class="calc" data-calc="${esc(p.id)}">${r.on?val(r.v):''}</span><span></span></div>`}).join('');
-  return g.membros.map(p=>{const r=rows[p.id];return `<div class="prow"><label class="chk"><input type="checkbox" data-side="${side}" data-k="${esc(p.id)}" ${r.on?'checked':''}><span>${esc(pn(p))}</span></label>
+  if(art)return g.membros.map(p=>{const r=rows[p.id];return `<div class="prow"><label class="chk"><input type="checkbox" data-side="div" data-k="${esc(p.id)}" ${r.on?'checked':''}><span>${avP(g,p,'sm')} ${esc(p.nome)}</span></label><span class="calc" data-calc="${esc(p.id)}">${r.on?val(r.v):''}</span><span></span></div>`}).join('');
+  return g.membros.map(p=>{const r=rows[p.id];return `<div class="prow"><label class="chk"><input type="checkbox" data-side="${side}" data-k="${esc(p.id)}" ${r.on?'checked':''}><span>${avP(g,p,'sm')} ${esc(p.nome)}</span></label>
   ${partes?`<span class="pt"><input class="v" inputmode="numeric" data-part="${esc(p.id)}" value="${r.on?r.p:''}" ${r.on?'':'disabled'} aria-label="Partes de ${esc(p.nome)}"></span>`
           :`<input class="v" inputmode="decimal" data-amt="${side}" data-k="${esc(p.id)}" value="${r.on?val(r.v):''}" ${r.on?'':'disabled'} aria-label="Valor de ${esc(p.nome)}">`}
   ${partes?`<span class="calc" data-calc="${esc(p.id)}">${r.on?val(r.v):''}</span>`:`<button class="auto" data-auto="${side}" data-k="${esc(p.id)}" ${r.fix&&r.on?'':'hidden'} title="Voltar a calcular automaticamente">auto</button>`}</div>`}).join('')}
@@ -715,6 +752,7 @@ $('#hero').addEventListener('click',async ev=>{const t=ev.target.closest('button
   if(t.dataset.joinme&&prof){const p={id:gid().slice(0,8),nome:prof.nome,emoji:prof.emoji||'🙂'};if(prof.banco)p.banco={...prof.banco};g.membros.push(p);setMe(g.id,p.id);save(g);return}
   if(t.dataset.me!=null){if(t.dataset.me){if(takenBy(g,t.dataset.me)&&askTake!==t.dataset.me){askTake=t.dataset.me;note(nome(g,t.dataset.me)+' já foi escolhido noutro telemóvel. Se és mesmo tu, toca outra vez.',5000);return}askTake=null;setMe(g.id,t.dataset.me);claim(g,t.dataset.me)}else skipMe[g.id]=true;render()}
   else if(t.id==='chgme'){claim(g,null);setMe(g.id,null);skipMe[g.id]=false;noAuto[g.id]=true;bkOpen=false;render()}
+  else if(t.id==='balgo'){tab='sald';render();const tb=document.querySelector('.tabs');if(tb)tb.scrollIntoView({behavior:'smooth',block:'start'})}
   else if(t.id==='bkedit'||t.id==='bkdone'){bkOpen=t.id==='bkedit'?!bkOpen:false;render()}
   else if(t.dataset.bk1!=null||t.dataset.bkplan||t.dataset.bklim!=null){const p=g.membros.find(x=>x.id===meOf(g));if(!p)return;
     if(t.dataset.bk1!=null){if(t.dataset.bk1)p.banco={tipo:'revolut',plano:'standard',moeda:g.base,limite:false};else delete p.banco}
@@ -733,6 +771,8 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
   if(t.id==='ng-add'){addPending();$('#ng-p').focus();return}
   if(t.dataset.npx){newPeople.splice(+t.dataset.npx,1);$('#ng-chips').innerHTML=chipsHTML();return}
   if(t.dataset.npemo){const q=newPeople[+t.dataset.npemo];q.emoji=PEMO[(PEMO.indexOf(q.emoji)+1)%PEMO.length];t.textContent=q.emoji;return}
+  if(t.dataset.cpick){pickC=pickC===t.dataset.cpick?null:t.dataset.cpick;render();return}
+  if(t.dataset.col&&t.dataset.colp){const g=G(),p=g.membros.find(x=>x.id===t.dataset.colp);if(p&&canEdit(g,p.id)){p.cor=t.dataset.col;pickC=null;if(p.id===meOf(g)&&typeof prof!=='undefined'&&prof){prof.cor=p.cor;try{profSave()}catch(e){}}save(g)}return}
   if(t.dataset.pickm){pickM=pickM===t.dataset.pickm?null:t.dataset.pickm;render();return}
   if(t.dataset.gmenu!=null){if(t.dataset.gmenu&&!gMenu)navPush('gm');else if(!t.dataset.gmenu&&gMenu)navPop('gm');gMenu=t.dataset.gmenu||null;gDelAsk=null;swOpenEl=null;render();return}
   if(t.dataset.gleave){const n=(groups[t.dataset.gleave]||{}).nome;navPop('gm');gMenu=null;forget(t.dataset.gleave);note('Saíste de “'+n+'”.',3000);return}
@@ -824,7 +864,7 @@ function profCard(){if(!auth)return '';
   if(!prof)return `<div class="card pf"><span class="pf-t">👤 A carregar o perfil…</span></div>`;
   const bk='';
   if(!profOpen)return '';
-  return `<div class="whoov pfov"><div class="whobox pfbox"><div class="pfhd"><span class="avbig">${esc(avL())}</span><div><b>${esc(prof.nome||'Sem nome')}${ii('O nome e o emoji mudam em todos os teus grupos.')}</b><small>${esc(user.email||'')}</small></div></div><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="pf-emo" data-ein="prof" value="${esc(prof.emoji||'🙂')}" data-cur="${esc(prof.emoji||'🙂')}" aria-label="O teu emoji: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"></span><input id="pf-nome" value="${esc(prof.nome||'')}" placeholder="O teu nome nos grupos" aria-label="O teu nome" enterkeyhint="done"></div>
+  return `<div class="whoov pfov"><div class="whobox pfbox"><div class="pfhd"><span class="avbig" style="background:${prof.cor||'var(--lavd)'}">${esc(avL())}</span><div><b>${esc(prof.nome||'Sem nome')}${ii('O nome e a cor mudam em todos os teus grupos.')}</b><small>${esc(user.email||'')}</small></div></div><div class="inline" style="margin:0"><input id="pf-nome" value="${esc(prof.nome||'')}" placeholder="O teu nome nos grupos" aria-label="O teu nome" enterkeyhint="done"></div><div class="cpal" style="padding:12px 2px 0">${AVC.map(c=>`<button type="button" data-pfcol="${c}" style="background:${c}" class="${prof.cor===c?'on':''}" aria-label="Cor"></button>`).join('')}</div>
 
   <div class="actions" style="margin-top:6px"><button id="logout">Sair da conta</button><button class="primary" id="pfclose">Feito</button></div></div></div>`}
 function avL(){const n=(prof&&prof.nome)||(user&&(user.displayName||user.email))||'?';return (n.trim()[0]||'?').toUpperCase()}
@@ -838,6 +878,7 @@ function pfBank(){const b=prof.banco||{},rv=b.tipo==='revolut',pl=b.plano||'stan
 function propagate(only,nameToo){const skipped=[];if(!prof)return skipped;(only?[only]:mine).forEach(id=>{const g=groups[id],mid=meMap[id];if(!g||!mid)return;const p=g.membros.find(x=>x.id===mid);if(!p)return;let ch=false;
   if(nameToo&&prof.nome&&p.nome!==prof.nome){if(dupName(g,prof.nome,p.id))skipped.push(g.nome);else{p.nome=prof.nome;ch=true}}
   if(prof.emoji&&p.emoji!==prof.emoji){p.emoji=prof.emoji;ch=true}
+  if(prof.cor&&p.cor!==prof.cor){p.cor=prof.cor;ch=true}
   if(ch)save(g)});return skipped}
 function profMerge(d){const saiu=new Set(d.saiu||[]);let add=0;
   (d.grupos||[]).forEach(id=>{if(!saiu.has(id)&&!mine.includes(id)){mine.push(id);sub(id);add++}});
@@ -849,7 +890,7 @@ if(auth){onAuthStateChanged(auth,u=>{user=u;authReady=true;if(profUnsub){profUns
   profUnsub=onSnapshot(doc(fs,'perfis',u.uid),sn=>{const d=sn.exists()?sn.data():null;
     if(first){first=false;prof=d?{...d}:{nome:(u.displayName||'').split(' ')[0]||'',emoji:'🙂',grupos:[],eus:{},saiu:[]};
       const add=d?profMerge(d):0;cache();profSave(true);setTimeout(propagate,0);if(add)note(add===1?'1 grupo do teu perfil foi adicionado.':add+' grupos do teu perfil foram adicionados.',4000)}
-    else if(d){prof={...prof,nome:d.nome,emoji:d.emoji,banco:d.banco,saiu:d.saiu||prof.saiu};const add=profMerge(d);if(add){cache();note(add===1?'Novo grupo adicionado.':add+' grupos novos adicionados.',3500)}}
+    else if(d){prof={...prof,nome:d.nome,emoji:d.emoji,cor:d.cor,banco:d.banco,saiu:d.saiu||prof.saiu};const add=profMerge(d);if(add){cache();note(add===1?'Novo grupo adicionado.':add+' grupos novos adicionados.',3500)}}
     if(!edit)render()},e=>{note('Não consegui abrir o perfil ('+(e.code||'erro')+'). Vê as regras do Firestore.',7000)})})}
 async function doLogin(){const pr=new GoogleAuthProvider();pr.setCustomParameters({prompt:'select_account'});
   try{await signInWithPopup(auth,pr)}catch(e){const c=e&&e.code||'';
@@ -860,6 +901,7 @@ async function doLogin(){const pr=new GoogleAuthProvider();pr.setCustomParameter
 app.addEventListener('click',ev=>{if(ev.target.classList&&ev.target.classList.contains('pfov')){navPop('pf');profOpen=false;render();return}const t=ev.target.closest('button');if(!t)return;
   if(t.id==='login')doLogin();
   else if(t.id==='pfopen'){navPush('pf');profOpen=true;render()}
+  else if(t.dataset.pfcol&&prof){prof.cor=t.dataset.pfcol;profSave();propagate();render()}
   else if(t.id==='pfclose'){navPop('pf');profOpen=false;render()}
   else if(prof&&(t.dataset.pfbk!=null||t.dataset.pfplan||t.dataset.pflim!=null)){
     if(t.dataset.pfbk!=null){prof.banco=t.dataset.pfbk?{tipo:'revolut',plano:'standard',moeda:(prof.banco&&prof.banco.moeda)||'EUR',limite:false}:null}
@@ -985,16 +1027,16 @@ function ppHTML(g){if(!g.membros.length||!g.despesas.some(d=>d.tipo!=='reemb'))r
   const ord=g.membros.map((p,i)=>({p,i,v:t[p.id]})).sort((a,b)=>b.v-a.v);
   if(ppOpen)setTimeout(ppDraw,0);
   
-  let off=25,arcs='';ord.forEach(o=>{if(o.v<=0||tot<=0)return;const pc=o.v/tot*100;arcs+=`<circle r="15.915" cx="21" cy="21" stroke="${PPC[o.i%PPC.length]}" stroke-dasharray="${Math.max(pc-0.6,0.4)} ${100-Math.max(pc-0.6,0.4)}" stroke-dashoffset="${off}" data-pp="${esc(o.p.id)}" class="${ppOpen===o.p.id?'on':''}"><title>${esc(o.p.nome)}</title></circle>`;off-=pc});
+  let off=25,arcs='';ord.forEach(o=>{if(o.v<=0||tot<=0)return;const pc=o.v/tot*100;arcs+=`<circle r="15.915" cx="21" cy="21" stroke="${colOf(o.p)}" stroke-dasharray="${Math.max(pc-0.6,0.4)} ${100-Math.max(pc-0.6,0.4)}" stroke-dashoffset="${off}" data-pp="${esc(o.p.id)}" class="${ppOpen===o.p.id?'on':''}"><title>${esc(o.p.nome)}</title></circle>`;off-=pc});
   return `<div class="card ppc"><h3 class="ppc-t">Quem pagou o quê${ii('Toca numa pessoa para ver o que pagou.')}</h3>
   <div class="ppw"><div class="ppd"><svg viewBox="0 0 42 42">${arcs}</svg><div class="ppt"><b>${B(tot)}</b><span>pago no total</span></div></div>
-  <div class="ppl">${ord.map(o=>`<button class="ppr" data-pp="${esc(o.p.id)}"><i style="background:${PPC[o.i%PPC.length]}"></i><span class="n">${esc(pn(o.p))}</span><span class="v">${B(o.v)}</span><span class="p">${tot>0?Math.round(o.v/tot*100):0}%</span></button>`).join('')}</div></div></div>`}
+  <div class="ppl">${ord.map(o=>`<button class="ppr" data-pp="${esc(o.p.id)}">${avP(g,o.p,'sm')}<span class="n">${esc(o.p.nome)}</span><span class="v">${B(o.v)}</span><span class="p">${tot>0?Math.round(o.v/tot*100):0}%</span></button>`).join('')}</div></div></div>`}
 function ppDraw(){const g=G(),ov=document.getElementById('ppov');if(!g||!ppOpen||!ov)return;const p=g.membros.find(x=>x.id===ppOpen);if(!p){ppClose();return}
   const {t,c,n,tot}=ppData(g),B=v=>fmt(toCur(g,v,g.base),g.base),bal=saldos(g)[p.id]||0;
   const ds=g.despesas.filter(d=>d.tipo!=='reemb'&&d.pag[p.id]>0).sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b.cr||0)-(a.cr||0));
   const rs=g.despesas.filter(d=>d.tipo==='reemb'&&(d.pag[p.id]>0||d.div[p.id]>0));
   const it=(d,v,sub)=>`<button class="ppi" data-ppe="${esc(d.id)}"><span class="ic">${esc(dEmo(d))}</span><span class="t"><b>${esc(d.titulo||'Sem título')}</b><small>${esc(sub)}</small></span><span class="a">${fmt(v,d.moeda)}${d.moeda!==g.base?`<small>${B(RD(g,d,v))}</small>`:''}</span></button>`;
-  ov.querySelector('.whobox').innerHTML=`<div class="pph"><span class="e">${esc(p.emoji||'🙂')}</span><div><h2>${esc(p.nome)}</h2><p>${n[p.id]} despesa${n[p.id]===1?'':'s'} paga${n[p.id]===1?'':'s'} · ${tot>0?Math.round(t[p.id]/tot*100):0}% do total</p></div><button class="x" data-ppx="1" aria-label="Fechar">✕</button></div>
+  ov.querySelector('.whobox').innerHTML=`<div class="pph">${avP(g,p,'xl')}<div><h2>${esc(p.nome)}</h2><p>${n[p.id]} despesa${n[p.id]===1?'':'s'} paga${n[p.id]===1?'':'s'} · ${tot>0?Math.round(t[p.id]/tot*100):0}% do total</p></div><button class="x" data-ppx="1" aria-label="Fechar">✕</button></div>
   <div class="ppbig"><div><b>${B(t[p.id])}</b><span>pagou</span></div><div><b>${B(c[p.id])}</b><span>a parte dele</span></div><div class="${bal>0.5?'rec':bal<-0.5?'dev':''}"><b>${bal>0.5?'+':bal<-0.5?'−':''}${B(Math.abs(bal))}</b><span>${bal>0.5?'recebe':bal<-0.5?'deve':'em dia'}</span></div></div>
   <div class="ppx"><h3>O que pagou</h3>${ds.length?ds.map(d=>{const v=d.pag[p.id],sh=Object.keys(d.pag).filter(k=>d.pag[k]>0).length>1;return it(d,v,(d.data||'')+(sh?' · parte de '+fmt(d.total,d.moeda):''))}).join(''):'<p class="small">Ainda não pagou nenhuma despesa.</p>'}
   ${rs.length?`<h3>Reembolsos</h3>${rs.map(d=>{const deu=d.pag[p.id]>0;return it(d,deu?d.pag[p.id]:d.div[p.id],(deu?'Deu a ':'Recebeu de ')+Object.keys(deu?d.div:d.pag).map(k=>nome(g,k)).join(', '))}).join('')}`:''}</div>`;
@@ -1027,7 +1069,7 @@ function gateUpd(){let gt=document.getElementById('gate');const need=!!auth&&!us
   if(gt.dataset.h!==html){gt.innerHTML=html;gt.dataset.h=html}}
 /* ---------- ⓘ explicações ---------- */
 function iiClose(){const b=document.getElementById('iib');if(b)b.remove();document.querySelectorAll('.ii.on').forEach(x=>x.classList.remove('on'))}
-document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('.ii');
+document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('.ii,.mems');
   if(!t){if(!(ev.target.closest&&ev.target.closest('#iib')))iiClose();return}
   ev.preventDefault();ev.stopPropagation();const was=t.classList.contains('on');iiClose();if(was)return;
   const b=document.createElement('div');b.id='iib';b.innerHTML=IIS[+t.dataset.ii]||'';document.body.appendChild(b);t.classList.add('on');
@@ -1130,7 +1172,7 @@ function resumoHTML(g,sc){if(catOpen)setTimeout(catDraw,0);const ds=g.despesas.f
   ds.forEach(d=>{const c=catOf(d);cat[c]=(cat[c]||0)+RD(g,d,d.total);for(const k in d.div)pp[k]=(pp[k]||0)+RD(g,d,d.div[k])});
   const tot=Object.values(cat).reduce((a,b)=>a+b,0)||1,mx=Math.max(1,...Object.values(pp));
   const F=v=>fmt(toCur(g,v,sc),sc);
-  return `<div class="card ppc"><h3 class="ppc-t" style="margin-bottom:8px">Por categoria</h3>${Object.entries(cat).sort((a,b)=>b[1]-a[1]).map(([n,v])=>`<button class="rb rbb" data-cat="${esc(n)}"><span>${esc(n)}</span><div class="rbt"><i style="width:${Math.round(v/tot*100)}%"></i></div><b>${F(v)} ›</b></button>`).join('')}</div><div class="card ppc"><h3 class="ppc-t" style="margin-bottom:8px">Quanto consumiu cada um</h3>${g.membros.map(p=>`<div class="rb"><span>${esc(pn(p))}</span><div class="rbt"><i style="width:${Math.round((pp[p.id]||0)/mx*100)}%"></i></div><b>${F(pp[p.id]||0)}</b></div>`).join('')}</div>`}
+  return `<div class="card ppc"><h3 class="ppc-t" style="margin-bottom:8px">Por categoria</h3>${Object.entries(cat).sort((a,b)=>b[1]-a[1]).map(([n,v])=>`<button class="rb rbb" data-cat="${esc(n)}"><span>${esc(n)}</span><div class="rbt"><i style="width:${Math.round(v/tot*100)}%"></i></div><b>${F(v)} ›</b></button>`).join('')}</div><div class="card ppc"><h3 class="ppc-t" style="margin-bottom:8px">Quanto consumiu cada um</h3>${g.membros.map(p=>`<div class="rb"><span>${avP(g,p,'xs')} ${esc(p.nome)}</span><div class="rbt"><i style="width:${Math.round((pp[p.id]||0)/mx*100)}%"></i></div><b>${F(pp[p.id]||0)}</b></div>`).join('')}</div>`}
 async function shareAcc(){const g=G(),b=saldos(g),tr=transf(g,b),sc=showCur&&g.taxas[showCur]?showCur:g.base;
   const txt=`💸 ${g.nome}: quem paga a quem\n\n`+tr.map(t=>{const key=t.de+'>'+t.para,m=rowCur[key]&&g.taxas[rowCur[key]]?rowCur[key]:sc;return `• ${nome(g,t.de)} → ${nome(g,t.para)}: ${fmt(toCur(g,t.v,m),m)}`}).join('\n')+`\n\nGasto total: ${fmt(toCur(g,gasto(g),sc),sc)}`;
   if(navigator.share){try{await navigator.share({text:txt});return}catch(e){if(e.name==='AbortError')return}}
