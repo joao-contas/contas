@@ -365,6 +365,7 @@ body:has(#modal:not([hidden])) .fab,body:has(#ppov:not([hidden])) .fab{display:n
 .privp{min-height:34px;padding:0 14px;border-radius:999px;font-size:13.5px;font-weight:600;background:var(--line)!important;color:var(--mut);box-shadow:none}.privp.on{background:var(--ink)!important;color:#fff}
 .scan2{display:block;margin:2px 0 6px;font-size:14px}.scan2[hidden]{display:none}
 .lockt{display:inline-flex;align-items:center;gap:4px;font-size:14px;color:var(--mut);font-weight:600}.lockt .ii{height:17px;width:17px;align-self:center}
+.card.lost{border:1.5px dashed #e0a43a}.lost .lrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid rgba(0,0,0,.06)}.lost .lrow img{width:44px;height:44px;object-fit:cover;border-radius:10px}.lost .lemo{width:44px;text-align:center;font-size:24px}.lost .lt{flex:1;min-width:0}.lost .lt b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lost .lt small{color:var(--mut,#777)}.lost .lx{background:none;border:0;font-size:16px;opacity:.5;padding:6px}
 </style>
 </head>
 <body>
@@ -380,7 +381,7 @@ body:has(#modal:not([hidden])) .fab,body:has(#ppov:not([hidden])) .fab{display:n
 <div class="note" id="note" role="status"></div>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getFirestore,initializeFirestore,persistentLocalCache,persistentMultipleTabManager,doc,setDoc,deleteDoc,onSnapshot,getDoc,runTransaction,getDocFromServer} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,initializeFirestore,persistentLocalCache,persistentMultipleTabManager,doc,setDoc,deleteDoc,onSnapshot,getDoc,runTransaction,getDocFromServer,collection,query,where,getDocs,documentId} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,onAuthStateChanged,signOut,deleteUser,reauthenticateWithPopup} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {firebaseConfig} from "./config.js";
 {
@@ -463,7 +464,9 @@ function keepUrl(){if(!IOS)return;const ids=mine.filter(id=>/^[a-z0-9]{12,40}$/.
   const l=document.querySelector('link[rel=manifest]');if(l)l.remove()}
 function profSave(now){if(!user||!prof||!fs)return;clearTimeout(profT);profT=setTimeout(()=>{const ids=mine.filter(id=>id.length>=12);prof.grupos=ids;prof.eus={...(prof.eus||{}),...meMap};prof.upd=Date.now();setDoc(doc(fs,'perfis',user.uid),clean(prof)).catch(e=>note('Não consegui guardar o perfil ('+(e.code||'erro')+').',6000))},now?0:800)}
 /* ---------- proteção: se uma despesa desaparecer sem ninguém a apagar (ex.: telemóvel com versão antiga), repõe-na ---------- */
-function guard(id,S){const k='ej-seen-'+id,prev=lsGet(k,null),now={};(S.despesas||[]).forEach(d=>now[d.id]=1);const back=[];
+function guard(id,S,onlyKeep){const k='ej-seen-'+id;let prev=lsGet(k,null);if(!prev){const c=(lsGet(LS,{})||{})[id];if(c&&Array.isArray(c.despesas))prev={d:Object.fromEntries(c.despesas.map(d=>[d.id,d]))}}
+  if(onlyKeep){const keep={...((prev&&prev.d)||{})};(S.despesas||[]).forEach(d=>keep[d.id]=d);lsSet(k,{d:keep});return []}
+  const now={};(S.despesas||[]).forEach(d=>now[d.id]=1);const back=[];
   if(prev&&prev.d){const del=S.del||{},dl=new Set();(S.log||[]).forEach(h=>{if(h.i&&/apagou|anulou/.test(h.a))dl.add(h.i)});(S.lixo||[]).forEach(x=>dl.add(x.id));
     for(const i in prev.d)if(!now[i]&&!del[i]&&!dl.has(i))back.push(prev.d[i])}
   const keep={};[...(S.despesas||[]),...back].forEach(d=>keep[d.id]=d);lsSet(k,{d:keep});return back}
@@ -471,13 +474,13 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-23a';
+const APPV='2026-11-23c';
 function checkV(){if(!navigator.onLine)return;fetch('index.html',{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/APPV='([^']+)'/);if(m&&m[1]!==APPV&&!edit&&!Object.keys(pend).length)location.reload()}).catch(()=>{})}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkV()});setInterval(checkV,10*60*1000);
 const busy={},subs={};
 function sub(id){if(!fs||subs[id])return;
   subs[id]=onSnapshot(doc(fs,'grupos',id),snap=>{
-    if(snap.exists()){const v=snap.data();if(v&&Array.isArray(v.membros)&&Array.isArray(v.despesas)){const S={...clean(v),id},B=srvC[id];const back=snap.metadata.fromCache?[]:guard(id,S);if(!snap.metadata.fromCache)srvC[id]=clean(S);groups[id]=pend[id]&&groups[id]?mergeG(S,groups[id],B):S;if(back.length)setTimeout(()=>restoreLost(id,back),0);if(pend[id]&&!snap.metadata.fromCache)setTimeout(()=>flush(id),0);if(!mine.includes(id))mine.push(id);if(pendingOpen===id)pendingOpen=null}}
+    if(snap.exists()){const v=snap.data();if(v&&Array.isArray(v.membros)&&Array.isArray(v.despesas)){const S={...clean(v),id},B=srvC[id];const back=guard(id,S,snap.metadata.fromCache);if(!snap.metadata.fromCache)srvC[id]=clean(S);groups[id]=pend[id]&&groups[id]?mergeG(S,groups[id],B):S;if(back.length)setTimeout(()=>restoreLost(id,back),0);if(pend[id]&&!snap.metadata.fromCache)setTimeout(()=>flush(id),0);if(!mine.includes(id))mine.push(id);if(pendingOpen===id)pendingOpen=null}}
     else if(!snap.metadata.fromCache&&!busy[id]){if(groups[id]||pendingOpen===id){delete groups[id];mine=mine.filter(x=>x!==id);if(pendingOpen===id){pendingOpen=null;cur=null}note('Este grupo não existe ou foi apagado.',5000)}}
     if(prof&&groups[id]&&!busy[id])setTimeout(()=>propagate(id),0);
     cache();if(!edit)render();else renderSoft()},
@@ -605,6 +608,23 @@ async function scanMany(fs){if(!edit)return;if(!(samp&&samp.gem)&&typeof gkey===
     const ri=rs.findIndex(r=>r&&!r.erro&&r.tipo!=='banco');await scan(fs[ri>=0?ri:0],m)}
   finally{sheet.querySelectorAll('.scan').forEach(l=>l.classList.remove('busy'))}}
 function freezeTx(g){g.despesas.forEach(d=>{if(d.moeda!==g.base&&!(d.tx&&d.tx.r>0&&d.tx.b===g.base&&g.taxas[d.tx.b])&&g.taxas[d.moeda]&&g.taxas[g.base]){const dr=typeof dayRate==='function'&&d.data?dayRate(g,d.moeda,d.data):null;d.tx={b:g.base,m:d.moeda,r:dr||g.taxas[d.moeda]/g.taxas[g.base]}}})}
+/* ---------- encontrar despesas que desapareceram (pelo registo de alterações e pelas fotos guardadas) ---------- */
+var lostL={},lostHide={};
+async function findLost(id){const g=groups[id];if(!g)return;const have=new Set(g.despesas.map(d=>d.id)),gone=new Set([...Object.keys(g.del||{}),...(g.lixo||[]).map(d=>d.id)]);
+  (g.log||[]).forEach(h=>{if(h.i&&/apagou|anulou/.test(h.a))gone.add(h.i)});const m=new Map();
+  (g.log||[]).slice().sort((a,b)=>a.t-b.t).forEach(h=>{if(h.i&&/^(criou|mudou)$/.test(h.a)&&!have.has(h.i)&&!gone.has(h.i))m.set(h.i,{id:h.i,ti:h.ti,v:h.v,mo:h.m,e:h.e,t:h.t,q:h.q})});
+  if(fs)try{const pre=id+'-f-',qs=await getDocs(query(collection(fs,'grupos'),where(documentId(),'>=',pre),where(documentId(),'<',pre+'')));
+    qs.forEach(sn=>{const did=sn.id.slice(pre.length),v=sn.data();if(!v||!v.img||have.has(did)||gone.has(did))return;fotoC[sn.id]=v.img;const o=m.get(did)||{id:did,t:0};o.foto=1;m.set(did,o)})}catch(e){}
+  lostL[id]=[...m.values()].sort((a,b)=>(b.t||0)-(a.t||0));if(cur===id&&!edit)render()}
+function lostHTML(g){const L=(lostL[g.id]||[]).filter(x=>!g.despesas.some(d=>d.id===x.id)&&!lostHide[x.id]);if(!L.length)return '';
+  return `<div class="card lost"><h3 class="ppc-t">🛟 Despesas que desapareceram · ${L.length}${ii('Encontrei-as no registo de alterações ou nas fotos guardadas. Carrega em Repor: abre a despesa preenchida (e lê a foto, se houver). Confirma quem pagou e a divisão e guarda.')}</h3>
+  ${L.map(x=>`<div class="lrow">${x.foto?`<img src="${fotoC[g.id+'-f-'+x.id]}" alt="">`:`<span class="lemo">${esc(x.e||'💸')}</span>`}<div class="lt"><b>${esc(x.ti||'Despesa com foto')}</b><small>${x.v!=null?fmt(x.v,x.mo):''}${x.q?' · '+esc(x.q):''}${x.t?' · '+new Date(x.t).toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}):''}</small></div><button type="button" class="pga" data-lost="${x.id}">Repor</button><button type="button" class="lx" data-lostx="${x.id}" aria-label="Ignorar">✕</button></div>`).join('')}</div>`}
+document.addEventListener('click',async ev=>{const t=ev.target.closest&&ev.target.closest('[data-lost],[data-lostx]');if(!t)return;const g=G();if(!g)return;
+  if(t.dataset.lostx){lostHide[t.dataset.lostx]=1;render();return}
+  const x=(lostL[g.id]||[]).find(y=>y.id===t.dataset.lost);if(!x)return;openEditor(null);edit.id=x.id;edit.titulo=x.ti||'';if(x.e){edit.emoji=x.e;edit.emoFix=true}if(x.v!=null){edit.total=x.v;edit.moeda=x.mo||g.base}if(x.t)edit.data=new Date(x.t-new Date(x.t).getTimezoneOffset()*6e4).toISOString().slice(0,10);
+  try{rebal('pag');rebal('div')}catch(e){}const img=x.foto&&fotoC[g.id+'-f-'+x.id];if(img)edit.fotoNew=img;drawEditor();
+  if(img){try{const b=await (await fetch(img)).blob();scan(new File([b],'recibo.jpg',{type:'image/jpeg'}))}catch(e){}}
+  note('Confirma quem pagou e a divisão e carrega em Guardar.',5000)});
 var autoTried={};
 async function autoRates(g){if(!g||g.taxasDia===today()||!meOf(g))return;const L=await fetchRates(true);if(!L||!L.rates)return;freezeTx(g);let n=0;for(const m in g.taxas){if(L.rates[m]){g.taxas[m]=L.rates[m];n++}}g.taxasUpd=L.upd||'';g.taxasDia=today();save(g)}
 var meAsk=false,pickC=null;
@@ -765,7 +785,7 @@ function enhanceCur(root){root.querySelectorAll('select:not([data-enh])').forEac
 new MutationObserver(()=>enhanceCur(document.body)).observe(document.body,{childList:true,subtree:true});
 const allOpts=sel=>`<optgroup label="Mais usadas">${TOPC.map(m=>`<option value="${m}" ${m===sel?'selected':''}>${esc(curLabel(m))}</option>`).join('')}</optgroup><optgroup label="Todas as moedas">${ALLC.filter(m=>!TOPC.includes(m)).sort(byName).map(m=>`<option value="${m}">${esc(curLabel(m))}</option>`).join('')}</optgroup>`;
 
-function render(){if(typeof cur!=='undefined'&&cur&&!autoTried[cur]&&groups[cur]){autoTried[cur]=1;setTimeout(()=>autoRates(groups[cur]),1500)}gateUpd();
+function render(){if(typeof cur!=='undefined'&&cur&&!autoTried[cur]&&groups[cur]){autoTried[cur]=1;setTimeout(()=>autoRates(groups[cur]),1500);setTimeout(()=>findLost(cur),2500)}gateUpd();
   if(cur&&!groups[cur]){if(pendingOpen===cur){$('#back').hidden=false;$('#title').textContent='A abrir o grupo…';$('#sub').textContent='';$('#hero').innerHTML='';app.innerHTML='<p class="empty">A carregar…</p>';return}cur=null}
   $('#back').hidden=!cur;{const av=$('#avatar');const sh=!cur&&!!user;av.hidden=!sh;if(sh){av.textContent=avL();av.style.background=(prof&&prof.cor)||''}}$('#more').hidden=!cur||(!!G()&&!meOf(G())&&G().membros.length>0);$('#more').classList.toggle('on',tab==='conf');if(tab==='conf')$('#more').hidden=true;$('#sync').hidden=$('#more').hidden;$('#back').textContent=cur&&tab==='conf'?'‹ Voltar ao grupo':'‹ Todos os grupos';
   if(cur)document.querySelector('.top').classList.remove('home');
@@ -1528,7 +1548,7 @@ function mineHTML(g){const me=meOf(g);if(!me||!g.despesas.length)return '';const
   return `<div class="seg mineseg">${b('1','Comigo · '+n)}${so?b('2','🔒 Só minhas · '+so):''}${b('0','Todas · '+t)}</div>`}
 document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('[data-pg]');if(!t||!edit)return;ev.preventDefault();edit.pg=edit.pg||{};const k=t.dataset.pg;if(edit.pg[k])delete edit.pg[k];else edit.pg[k]=1;const rd=document.getElementById('r-div');if(rd)rd.innerHTML=rowsHTML('div')});
 document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('[data-mine]');if(!t)return;mineOnly=t.dataset.mine;try{localStorage.setItem('ej-mine',mineOnly)}catch(e){}render()});
-function searchHTML(g){return mineHTML(g)+(g.despesas.length>5?`<div class="srch"><input id="q" type="search" placeholder="🔍 Procurar despesa ou pessoa…" value="${esc(qStr)}" autocomplete="off"></div>`:'')}
+function searchHTML(g){return lostHTML(g)+mineHTML(g)+(g.despesas.length>5?`<div class="srch"><input id="q" type="search" placeholder="🔍 Procurar despesa ou pessoa…" value="${esc(qStr)}" autocomplete="off"></div>`:'')}
 const nrm=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 function matchQ(g,d){if(!qStr.trim())return true;const q=nrm(qStr.trim());const who=[...Object.keys(d.pag),...Object.keys(d.div)].map(k=>nome(g,k)).join(' ');
   return nrm(d.titulo).includes(q)||nrm(who).includes(q)||nrm(d.data).includes(q)||nrm(d.moeda).includes(q)}
