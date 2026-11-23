@@ -307,6 +307,7 @@ html[data-theme=dark] .mrow input:disabled{opacity:.7}
 .prefs{margin-top:16px;display:grid;gap:10px}.prefs .pr{display:flex;align-items:center;justify-content:space-between;gap:10px}.prefs .pr>span{font-size:14px;color:var(--mut)}.prefs .seg{margin:0}.prefs .seg button{min-height:34px;padding:0 10px;font-size:13px}
 .delacc{margin-top:14px;width:100%;background:none!important;color:var(--peachd)!important;font-size:13px;min-height:34px;box-shadow:none}
 .payf{display:grid;gap:8px;margin:4px 0 2px}.payf .q{margin:0;font-size:14px;color:var(--mut)}.payf input{margin:0}.paycp{width:100%;margin-top:10px}
+.cpal button.taken{opacity:.35;color:#fff;font:600 11px/1 Outfit,sans-serif;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -480,7 +481,7 @@ var meAsk=false,pickC=null;
 app.addEventListener('click',ev=>{const t=ev.target.closest('#meswap');if(!t)return;const g=G();if(!g)return;if(!meAsk){meAsk=true;render();setTimeout(()=>{if(meAsk){meAsk=false;render()}},4000);return}meAsk=false;if(tab==='conf'){navPop('conf');tab=confPrev||'desp'}claim(g,null);setMe(g.id,null);skipMe[g.id]=false;noAuto[g.id]=true;bkOpen=false;render()});
 function meBox(g,b){{const m0=meOf(g);if(m0&&!(g.claims||{})[m0]&&typeof claim==='function')setTimeout(()=>{if(!(g.claims||{})[m0])claim(g,m0)},0)}let me=meOf(g);
   if(!me&&prof&&prof.nome&&!skipMe[g.id]&&!noAuto[g.id]){const p=g.membros.find(x=>norm(x.nome)===norm(prof.nome));if(p&&!takenBy(g,p.id)){setMe(g.id,p.id);me=p.id;setTimeout(render,0)}}
-  if(me&&prof){const p=g.membros.find(x=>x.id===me);if(p){if(prof.emoji&&p.emoji!==prof.emoji){p.emoji=prof.emoji;setTimeout(()=>save(g),0)}if(prof.cor&&p.cor!==prof.cor){p.cor=prof.cor;setTimeout(()=>save(g),0)}}}
+  if(me&&prof){const p=g.membros.find(x=>x.id===me);if(p){if(prof.emoji&&p.emoji!==prof.emoji){p.emoji=prof.emoji;setTimeout(()=>save(g),0)}if(prof.cor&&p.cor!==prof.cor&&!colTaken(g,prof.cor,p.id)){p.cor=prof.cor;setTimeout(()=>save(g),0)}}}
   if(me){const v=b[me],p=g.membros.find(x=>x.id===me);
     {const tr=transf(g,b),nm=a=>{const u=[...new Set(a)].map(k=>nome(g,k));return u.length>2?u.slice(0,2).join(', ')+' e mais '+(u.length-2):u.join(' e ')};
     const line=v<-0.5?'Pagas a '+nm(tr.filter(t=>t.de===me).map(t=>t.para)):v>0.5?'Recebes de '+nm(tr.filter(t=>t.para===me).map(t=>t.de)):'Não deves nada a ninguém';
@@ -489,7 +490,9 @@ function meBox(g,b){{const m0=meOf(g);if(m0&&!(g.claims||{})[m0]&&typeof claim==
   return `<div class="whoov" role="dialog" aria-modal="true"><div class="whobox"><div class="whoem">${esc(g.emoji||'✈️')}</div><h2>Bem-vindo a ${esc(g.nome)}</h2><p>Quem és tu neste grupo?${ii('Não estás na lista? Pede a quem criou o grupo para te adicionar.')}</p><div class="whol">${g.membros.map(p=>{const tk=takenBy(g,p.id);return `<button class="whob ${tk?'taken':''}" data-me="${esc(p.id)}">${avP(g,p)}${esc(p.nome)}${tk?' <small>🔒 já escolhido</small>':''}</button>`}).join('')}</div></div></div>`}
 var AVC=['#18788c','#1f4a85','#c0603a','#b8892a','#5f8fb4','#3f8a68','#7a5ea8','#b5506e','#4c5d73','#2a9d8f','#d1495b','#e07a1f','#8a9a2b','#0f9d8a','#3a6fd8','#9b59b6','#e05a9c','#6d4c41','#00838f','#558b2f','#c2185b','#5c6bc0','#ef6c00','#455a64'];
 function avcN(i){return i<AVC.length?AVC[i]:`hsl(${Math.round((i*137.508)%360)} 55% 42%)`}
-function colOf(p){if(!p)return AVC[0];if(p.cor)return p.cor;const g=G();const i=g?g.membros.findIndex(x=>x.id===p.id):-1;if(i>=0)return avcN(i);let h=0;for(const c of String(p.id||p.nome||''))h=(h*31+c.charCodeAt(0))>>>0;return AVC[h%AVC.length]}
+function colMap(g){const m={},used=new Set();g.membros.forEach(p=>{if(p.cor&&!used.has(p.cor)){m[p.id]=p.cor;used.add(p.cor)}});let i=0;g.membros.forEach(p=>{if(m[p.id])return;let c;do{c=avcN(i++)}while(used.has(c));m[p.id]=c;used.add(c)});return m}
+function colTaken(g,c,pid){const m=colMap(g);return g.membros.find(x=>x.id!==pid&&m[x.id]===c)||null}
+function colOf(p){if(!p)return AVC[0];const g=G();if(g&&g.membros.some(x=>x.id===p.id))return colMap(g)[p.id];if(p.cor)return p.cor;let h=0;for(const c of String(p.id||p.nome||''))h=(h*31+c.charCodeAt(0))>>>0;return AVC[h%AVC.length]}
 function iniMap(g){const ms=g.membros,out={},W=p=>(p.nome||'?').trim().split(/\s+/),F=p=>((W(p)[0]||'?')[0]||'?').toUpperCase(),cnt={};
   ms.forEach(p=>{const k=F(p);cnt[k]=(cnt[k]||0)+1});
   ms.forEach(p=>{const w=W(p),a=F(p);out[p.id]=cnt[a]===1?a:(w[1]?a+w[1][0].toUpperCase():a+((w[0]||'')[1]||'').toLowerCase())});
@@ -656,7 +659,7 @@ function render(){gateUpd();
   if(tab==='conf'){
     const usados=new Set();g.despesas.forEach(d=>{Object.keys(d.pag).forEach(k=>usados.add(k));Object.keys(d.div).forEach(k=>usados.add(k))});
     h+=`${(()=>{const mp=g.membros.find(x=>x.id===meOf(g));return mp?`<h2 class="sec" style="margin-top:4px">Tu</h2><div class="card mecard"><span class="mechip">${avP(g,mp)}${esc(mp.nome)}</span><button id="meswap" class="${meAsk?'danger':''}">${meAsk?'Confirmar troca':'⇄ Trocar de pessoa'}</button></div>`:''})()}<h2 class="sec">Grupo</h2><div class="card"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="g-emo" data-ein="grp" value="${esc(g.emoji||'💸')}" data-cur="${esc(g.emoji||'💸')}" aria-label="Emoji do grupo: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" id="g-emo-more" aria-label="Ver lista de emojis"></button></span><input id="g-nome" value="${esc(g.nome)}" aria-label="Nome do grupo" enterkeyhint="done"></div><div id="g-emos" hidden>${secPicker(g.emoji,'grp')}</div></div>
-    <h2 class="sec">Participantes${ii(isOwner(g)?'Toca na bola para mudar a cor ou no nome para o mudar.':'Podes mudar o teu nome e cor. 🔒 Só '+esc(nome(g,ownerOf(g)))+' (quem criou o grupo) junta ou tira pessoas.')}</h2><div class="card">${g.membros.map(p=>`<div class="mrow"><button type="button" class="avpick" data-cpick="${esc(p.id)}" ${canEdit(g,p.id)?'':'disabled'} aria-label="Cor de ${esc(p.nome)}">${avP(g,p,'lg')}</button><input data-ren="${esc(p.id)}" value="${esc(p.nome)}" aria-label="Nome" enterkeyhint="done" ${canEdit(g,p.id)?'':'disabled'}>${usados.has(p.id)||!isOwner(g)?'<span></span>':`<button class="x" data-rm="${esc(p.id)}" aria-label="Remover ${esc(p.nome)}">×</button>`}</div>${pickC===p.id?`<div class="cpal">${AVC.map(c=>`<button type="button" data-col="${c}" data-colp="${esc(p.id)}" style="background:${c}" class="${colOf(p)===c?'on':''}" aria-label="Cor"></button>`).join('')}</div>`:''}`).join('')}
+    <h2 class="sec">Participantes${ii(isOwner(g)?'Toca na bola para mudar a cor ou no nome para o mudar.':'Podes mudar o teu nome e cor. 🔒 Só '+esc(nome(g,ownerOf(g)))+' (quem criou o grupo) junta ou tira pessoas.')}</h2><div class="card">${g.membros.map(p=>`<div class="mrow"><button type="button" class="avpick" data-cpick="${esc(p.id)}" ${canEdit(g,p.id)?'':'disabled'} aria-label="Cor de ${esc(p.nome)}">${avP(g,p,'lg')}</button><input data-ren="${esc(p.id)}" value="${esc(p.nome)}" aria-label="Nome" enterkeyhint="done" ${canEdit(g,p.id)?'':'disabled'}>${usados.has(p.id)||!isOwner(g)?'<span></span>':`<button class="x" data-rm="${esc(p.id)}" aria-label="Remover ${esc(p.nome)}">×</button>`}</div>${pickC===p.id?`<div class="cpal">${AVC.map(c=>{const tk=colTaken(g,c,p.id);return `<button type="button" data-col="${c}" data-colp="${esc(p.id)}" style="background:${c}" class="${colOf(p)===c?'on':''} ${tk?'taken':''}" aria-label="${tk?'Cor de '+esc(tk.nome):'Cor'}">${tk?esc(iniMap(g)[tk.id]||''):''}</button>`}).join('')}</div>`:''}`).join('')}
     ${isOwner(g)?'<form id="addm" class="mrow" style="grid-template-columns:minmax(0,1fr) 48px"><input id="am" placeholder="Juntar pessoa…" enterkeyhint="enter" autocomplete="off"><button class="plus" aria-label="Adicionar">+</button></form>':''}</div>
     <h2 class="sec">Moedas e taxas${ii('Taxas de referência do mercado'+(g.taxasUpd?' (atualizadas: '+esc(new Date(g.taxasUpd).toLocaleDateString('pt-PT'))+')':'')+'. Fonte: <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">ExchangeRate-API</a>')}</h2>
     <button id="rates" style="margin-bottom:10px">↻ Atualizar taxas</button>
@@ -862,7 +865,7 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
   if(t.dataset.npx){newPeople.splice(+t.dataset.npx,1);$('#ng-chips').innerHTML=chipsHTML();return}
   if(t.dataset.npemo){const q=newPeople[+t.dataset.npemo];q.emoji=PEMO[(PEMO.indexOf(q.emoji)+1)%PEMO.length];t.textContent=q.emoji;return}
   if(t.dataset.cpick){pickC=pickC===t.dataset.cpick?null:t.dataset.cpick;render();return}
-  if(t.dataset.col&&t.dataset.colp){const g=G(),p=g.membros.find(x=>x.id===t.dataset.colp);if(p&&canEdit(g,p.id)){p.cor=t.dataset.col;pickC=null;if(p.id===meOf(g)&&typeof prof!=='undefined'&&prof){prof.cor=p.cor;try{profSave()}catch(e){}}save(g)}return}
+  if(t.dataset.col&&t.dataset.colp){const g=G(),p=g.membros.find(x=>x.id===t.dataset.colp);{const tk=p&&colTaken(g,t.dataset.col,p.id);if(tk){note('Essa cor já é de '+tk.nome+'.',2500);return}}if(p&&canEdit(g,p.id)){p.cor=t.dataset.col;pickC=null;if(p.id===meOf(g)&&typeof prof!=='undefined'&&prof){prof.cor=p.cor;try{profSave()}catch(e){}}save(g)}return}
   if(t.dataset.pickm){pickM=pickM===t.dataset.pickm?null:t.dataset.pickm;render();return}
   if(t.dataset.gmenu!=null){if(t.dataset.gmenu&&!gMenu)navPush('gm');else if(!t.dataset.gmenu&&gMenu)navPop('gm');gMenu=t.dataset.gmenu||null;gDelAsk=null;swOpenEl=null;render();return}
   if(t.dataset.gleave){const n=(groups[t.dataset.gleave]||{}).nome;navPop('gm');gMenu=null;forget(t.dataset.gleave);note('Saíste de “'+n+'”.',3000);return}
@@ -972,7 +975,7 @@ function pfBank(){const b=prof.banco||{},rv=b.tipo==='revolut',pl=b.plano||'stan
 function propagate(only,nameToo){const skipped=[];if(!prof)return skipped;(only?[only]:mine).forEach(id=>{const g=groups[id],mid=meMap[id];if(!g||!mid)return;const p=g.membros.find(x=>x.id===mid);if(!p)return;let ch=false;
   if(nameToo&&prof.nome&&p.nome!==prof.nome){if(dupName(g,prof.nome,p.id))skipped.push(g.nome);else{p.nome=prof.nome;ch=true}}
   if(prof.emoji&&p.emoji!==prof.emoji){p.emoji=prof.emoji;ch=true}
-  if(prof.cor&&p.cor!==prof.cor){p.cor=prof.cor;ch=true}
+  if(prof.cor&&p.cor!==prof.cor&&!colTaken(g,prof.cor,p.id)){p.cor=prof.cor;ch=true}
   if(ch)save(g)});return skipped}
 function profMerge(d){const saiu=new Set(d.saiu||[]);let add=0;
   (d.grupos||[]).forEach(id=>{if(!saiu.has(id)&&!mine.includes(id)){mine.push(id);sub(id);add++}});
