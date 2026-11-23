@@ -196,6 +196,14 @@ label .curbtn{margin-top:6px}
 .cpi.on{background:var(--lav)}.cpi:hover{background:#fff}
 .mebox{margin-top:14px;background:rgb(255 255 255/.7);border-radius:16px;padding:12px 14px}
 .mebox .chips{margin-top:8px}
+.whoov{position:fixed;inset:0;z-index:20;background:rgb(22 45 80/.35);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:18px}
+.whobox{background:var(--bg);border-radius:28px;padding:24px 20px 18px;width:100%;max-width:420px;max-height:88vh;overflow:auto;text-align:center;box-shadow:0 20px 50px rgb(22 45 80/.25)}
+@media(prefers-reduced-motion:no-preference){.whobox{animation:up .25s ease}}
+.whoem{font-size:44px;line-height:1}.whobox h2{font-size:24px;margin:8px 0 2px}.whobox>p{color:var(--mut);margin:0}
+.whol{display:grid;gap:8px;margin-top:16px}
+.whob{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 16px;border-radius:16px;background:#fff;color:var(--ink);font-size:17px;font-weight:600;text-align:left;box-shadow:var(--shadow)}
+.whob span{font-size:24px}.whob small{margin-left:auto;font-weight:400;color:var(--mut);font-size:13px}.whob.taken{opacity:.55}
+.whob:active{background:var(--lav)}.whobox .whon{font-size:13px;margin-top:14px}
 .mebox .pchip{background:#fff}
 .linkbtn{background:transparent;color:var(--lavd);padding:0 4px;min-height:32px;text-decoration:underline;font-weight:500}
 .sharebox{margin-top:14px;color:var(--ink)}.sharebox ol{padding-left:20px;margin:6px 0}
@@ -386,7 +394,7 @@ function meBox(g,b){{const m0=meOf(g);if(m0&&!(g.claims||{})[m0]&&typeof claim==
     return `<div class="mebox">Estás como <b>${esc(pn(p))}</b> · ${v>0.5?'recebes <b>'+fmt(toCur(g,v,g.base),g.base)+'</b>':v<-0.5?'deves <b>'+fmt(toCur(g,-v,g.base),g.base)+'</b>':'estás em dia ✓'} <button class="linkbtn" id="chgme">Não és tu?</button>
     </div>`}
 
-  return `<div class="mebox"><b>Quem és tu neste grupo?</b><div class="chips">${g.membros.map(p=>{const tk=takenBy(g,p.id);return `<button class="pchip ${tk?'taken':''}" data-me="${esc(p.id)}">${tk?'🔒 ':''}${esc(pn(p))}</button>`}).join('')}</div></div>`}
+  return `<div class="whoov" role="dialog" aria-modal="true"><div class="whobox"><div class="whoem">${esc(g.emoji||'✈️')}</div><h2>Bem-vindo a ${esc(g.nome)}</h2><p>Quem és tu neste grupo?</p><div class="whol">${g.membros.map(p=>{const tk=takenBy(g,p.id);return `<button class="whob ${tk?'taken':''}" data-me="${esc(p.id)}"><span>${esc(p.emoji||'🙂')}</span>${esc(p.nome)}${tk?' <small>🔒 já escolhido</small>':''}</button>`}).join('')}</div><p class="whon">Não estás na lista? Pede a quem criou o grupo para te adicionar.</p></div></div>`}
 const gasto=g=>g.despesas.filter(d=>d.tipo!=='reemb').reduce((s,d)=>s+RD(g,d,d.total),0);
 const ALLC='AED AFN ALL AMD AOA ARS AUD AWG AZN BAM BBD BDT BGN BHD BIF BMD BND BOB BRL BSD BTN BWP BYN BZD CAD CDF CHF CLP CNY COP CRC CUP CVE CZK DJF DKK DOP DZD EGP ERN ETB EUR FJD FKP GBP GEL GHS GIP GMD GNF GTQ GYD HKD HNL HTG HUF IDR ILS INR IQD IRR ISK JMD JOD JPY KES KGS KHR KMF KPW KRW KWD KYD KZT LAK LBP LKR LRD LSL LYD MAD MDL MGA MKD MMK MNT MOP MRU MUR MVR MWK MXN MYR MZN NAD NGN NIO NOK NPR NZD OMR PAB PEN PGK PHP PKR PLN PYG QAR RON RSD RUB RWF SAR SBD SCR SDG SEK SGD SHP SLE SOS SRD SSP STN SVC SYP SZL THB TJS TMT TND TOP TRY TTD TWD TZS UAH UGX USD UYU UZS VES VND VUV WST XAF XCD XCG XOF XPF YER ZAR ZMW ZWG'.split(' ');
 const TOPC=['EUR','USD','CRC','GBP','BRL','CHF','CAD','MXN','JPY'];
@@ -467,7 +475,7 @@ function render(){
   $('#title').textContent=(g.emoji?g.emoji+' ':'')+g.nome;
   $('#sub').textContent=g.membros.map(pn).join(' · ');
   $('#hero').innerHTML=`<div class="stats"><div class="stat"><b>${fmt(toCur(g,gasto(g),g.base),g.base)}</b><span>gasto total</span></div><div class="stat"><b>${transf(g,b).length}</b><span>transferências para acertar</span></div></div><button class="shr" id="share">Partilhar link</button>${meBox(g,b)}`;
-  if(!meOf(g)&&g.membros.length){app.innerHTML='<p class="empty" style="margin-top:24px">👆 Escolhe quem és para continuar.</p>';return}
+  if(!meOf(g)&&g.membros.length){app.innerHTML='';return}
   const tabs=[['desp','Despesas'],['sald','Saldos'],['conf','Definições']];
   let h=`<div class="tabs" role="tablist">${tabs.map(([k,t])=>`<button role="tab" data-tab="${k}" aria-selected="${tab===k}">${t}</button>`).join('')}</div>`;
   if(tab==='desp'){
