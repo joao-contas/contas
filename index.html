@@ -338,6 +338,7 @@ html[data-theme=dark] .mrow input:disabled{opacity:.7}
 .bulk #bqpick{width:100%}.bql{display:grid;gap:2px;margin-top:10px}.bqr{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line)}
 .bqi{width:24px;flex:none;text-align:center;font-size:17px;padding-top:2px}.bqi input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--lavd)}
 .bqt{flex:1;min-width:0;font-size:14px;font-weight:500;display:flex;flex-direction:column;gap:3px}.bqt small{font-weight:400;color:var(--mut);font-size:12.5px}.bqt small b{color:var(--ink)}.bqt select{margin-top:4px;font-size:13px;min-height:36px}
+.aif{margin-top:6px}.aik{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:14px}.aif>.linkbtn{justify-self:start;font-size:13px}.aih{margin:4px 0 0;padding-left:18px;font-size:13px;line-height:1.45;color:var(--ink)}.aih li{margin:4px 0}.aih a{color:var(--lavd)}
 </style>
 </head>
 <body>
@@ -594,7 +595,7 @@ function bulkHTML(g){const B=v=>fmt(toCur(g,v,g.base),g.base),dd=x=>{try{return 
 function bulkMatch(g,q){const amt=Math.round((parseFloat(q.r.total)||0)*100);if(!(amt>0))return null;const used=new Set(bulkQ.filter(x=>x!==q&&x.did).map(x=>x.did));
   let best=null,bs=1e9;g.despesas.forEach(d=>{if(d.tipo==='reemb'||d.moeda!==q.moeda||used.has(d.id))return;const df=Math.abs(d.total-amt)/amt;if(df>0.01)return;
     let dd=0;if(q.r.data&&d.data)dd=Math.abs(new Date(d.data)-new Date(q.r.data))/864e5;if(dd>3)return;const sc=df*100+dd;if(sc<bs){bs=sc;best=d.id}});return best}
-async function bulkGo(files){const g=G();if(!g)return;if(!(samp&&samp.gem)&&typeof gkey==='function'&&gkey()&&typeof mkSamp==='function')samp=mkSamp();if(!samp){note('A leitura de recibos não está ligada.',4000);return}
+async function bulkGo(files){const g=G();if(!g)return;if(!(samp&&samp.gem)&&typeof gkey==='function'&&(gkey()||aiKey())&&typeof mkSamp==='function')samp=mkSamp();if(!samp){note('A leitura de recibos não está ligada.',4000);return}
   bulkQ=[...bulkQ,...[...files].map(f=>({f,name:f.name||'print',st:'wait'}))];bulkRun=true;render();
   for(const q of bulkQ){if(q.st!=='wait')continue;q.st='read';render();
     try{let fi=q.f;try{if(typeof shrink==='function')fi=await shrink(q.f)}catch(e){}const r=await samp.json(scanPrompt(g),{images:[fi]});
@@ -615,7 +616,7 @@ document.addEventListener('change',ev=>{const t=ev.target;if(!t)return;if(t.id==
   else if(t.dataset&&t.dataset.bqsel!=null){const q=bulkQ[+t.dataset.bqsel];if(q){q.did=t.value||null;q.on=!!q.did;render()}}});
 function prefsHTML(){const sb=(attr,v,cur,t)=>`<button type="button" ${attr}="${v}" aria-pressed="${cur===v}">${t}</button>`;
   return `<div class="prefs"><div class="pr"><span>Tema${ii('Automático: escuro das 19h às 7h, pela hora do telemóvel (que segue o fuso horário de onde estás).')}</span><div class="seg">${sb('data-theme-set','auto',THEME,'Automático')}${sb('data-theme-set','light',THEME,'Claro')}${sb('data-theme-set','dark',THEME,'Escuro')}</div></div>
-  <div class="pr"><span>Idioma</span><div class="seg">${sb('data-lang-set','pt',LANG,'PT')}${sb('data-lang-set','en',LANG,'EN')}${sb('data-lang-set','es',LANG,'ES')}</div></div>${payHTML()}</div>`}
+  <div class="pr"><span>Idioma</span><div class="seg">${sb('data-lang-set','pt',LANG,'PT')}${sb('data-lang-set','en',LANG,'EN')}${sb('data-lang-set','es',LANG,'ES')}</div></div>${aiHTML()}${payHTML()}</div>`}
 document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('[data-theme-set],[data-lang-set]');if(!t)return;
   if(t.dataset.themeSet){THEME=t.dataset.themeSet;try{localStorage.setItem('ej-theme',THEME)}catch(e){}themeApply();render()}
   else if(t.dataset.langSet&&t.dataset.langSet!==LANG){try{localStorage.setItem('ej-lang',t.dataset.langSet)}catch(e){}location.reload()}});
@@ -820,7 +821,7 @@ function rateRow(){const g=G(),e=edit,m=e.moeda;if(m===g.base)return '';
   return h+`</div>`}
 function drawEditor(){const g=G(),e=edit,re=e.tipo==='reemb';
   sheet.innerHTML=`<h2>${e.id?(re?'Editar reembolso':'Editar despesa'):(re?'Novo reembolso':'Nova despesa')}</h2>
-  ${(canPhoto||!!gkey())&&!re?`<button type="button" class="scan" id="camb" style="width:100%;border:0">📷 Foto do recibo</button><input type="file" accept="image/*" data-foto="1" id="camfile" hidden><p class="hint" id="e-scan" role="status"></p>`:''}
+  ${(canPhoto||!!gkey()||!!aiKey())&&!re?`<button type="button" class="scan" id="camb" style="width:100%;border:0">📷 Foto do recibo</button><input type="file" accept="image/*" data-foto="1" id="camfile" hidden><p class="hint" id="e-scan" role="status"></p>`:''}
   <label for="e-t">Descrição</label><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="e-emo" data-ein="exp" value="${esc(e.emoji)}" data-cur="${esc(e.emoji)}" aria-label="Emoji da despesa: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" id="e-emo-more" aria-label="Ver lista de emojis"></button></span><input id="e-t" value="${esc(e.titulo)}" placeholder="Jantar, hotel, gasolina…"></div>
   <div id="e-emos" hidden>${picker([...EXP.map(x=>x[0]),'🤝'],e.emoji,'exp')}</div>
   <div class="row2"><label>Total<input id="e-tot" inputmode="decimal" value="${e.total?val(e.total):''}" placeholder="0,00"></label><label>Moeda<select id="e-cur">${curOpts(g,e.moeda)}<optgroup label="Outras moedas">${otherOpts(g,e.moeda)}</optgroup></select></label></div><div id="e-rate">${rateRow()}</div>
@@ -854,7 +855,7 @@ Regras:
 - "emoji": um único emoji que represente a despesa (comida, supermercado, hotel, transporte…).
 - Números com ponto decimal, sem símbolo de moeda.
 Se a imagem não for um recibo legível, responde {"erro": "motivo curto em português"}.`;
-async function scan(f){if(f&&edit&&gkey()&&!(samp&&samp.gem))samp=mkSamp();if(!f||!edit||!samp)return;const g=G(),lab=sheet.querySelector('.scan');
+async function scan(f){if(f&&edit&&(gkey()||aiKey())&&!(samp&&samp.gem))samp=mkSamp();if(!f||!edit||!samp)return;const g=G(),lab=sheet.querySelector('.scan');
   sheet.querySelectorAll('.scan').forEach(l=>l.classList.add('busy'));const t0=Date.now(),tick=setInterval(()=>{const st=$('#e-scan');if(st&&/^A ler/.test(st.textContent))st.textContent='A ler o recibo… '+Math.round((Date.now()-t0)/1000)+' s';else clearInterval(tick)},1000);$('#e-scan').textContent='A ler o recibo…';
   try{const r=await samp.json(scanPrompt(g),{images:[f]});if(!edit)return;
     if(!r||typeof r!=='object'||r.erro){$('#e-scan').textContent='Não consegui ler: '+String(r&&r.erro||'tenta outra foto.');return}if(edit)attSet(f);
@@ -874,7 +875,7 @@ async function scan(f){if(f&&edit&&gkey()&&!(samp&&samp.gem))samp=mkSamp();if(!f
     $('#e-scan').textContent=`${r.tipo==='banco'?'Pagamento lido':'Recibo lido'}${edit.itens.length?': '+edit.itens.length+' artigos':''}${edit.pm&&edit.pm!==edit.moeda?' · pago em '+edit.pm:''} (${Math.round((Date.now()-t0)/1000)} s${Date.now()-t0>12000&&typeof gLog!=='undefined'&&gLog.length?' · '+gLog.join(' → '):''}). Confirma o total${soma&&soma!==edit.total?' (a soma dos artigos dá '+fmt(soma,edit.moeda)+')':''}.`+msg}
   catch(e){const st=$('#e-scan');const c=e&&e.code;
     if(c==='not_granted'||c==='sampling_disabled'||c==='images_unavailable'||c==='not_declared'){canPhoto=false;if(st)st.textContent='A leitura de recibos não está disponível nesta conta.'}
-    else if(st)st.textContent=c==='gem_key'?'A chave do Gemini deixou de funcionar. Vê em Definições → Leitura de recibos.':c==='busy'?'A Google está sobrecarregada neste momento. Tenta outra vez daqui a um minuto.':c==='rate_limited'?'Chegaste ao limite gratuito de leituras da Google por hoje. Amanhã volta a funcionar; até lá, mete a despesa à mão (ou usa a foto na versão do Claude).':c==='image_rejected'?'Não consegui usar essa imagem. Tenta outra foto.':c==='cancelled'?'':'Não consegui ler o recibo. Tenta outra vez, com a foto mais nítida.'+(gErr?' ('+gErr+')':'')}
+    else if(st)st.textContent=c==='my_key'?'A tua chave de IA não foi aceite. Vê no perfil (bola no canto).':c==='my_limit'?'A tua chave de IA está sem saldo ou no limite. Vê no perfil.':c==='gem_key'?'A chave do Gemini deixou de funcionar. Vê em Definições → Leitura de recibos.':c==='busy'?'A Google está sobrecarregada neste momento. Tenta outra vez daqui a um minuto.':c==='rate_limited'?'Chegaste ao limite gratuito de leituras da Google por hoje. Amanhã volta a funcionar; até lá, mete a despesa à mão (ou usa a foto na versão do Claude).':c==='image_rejected'?'Não consegui usar essa imagem. Tenta outra foto.':c==='cancelled'?'':'Não consegui ler o recibo. Tenta outra vez, com a foto mais nítida.'+(gErr?' ('+gErr+')':'')}
   finally{sheet.querySelectorAll('.scan').forEach(l=>l.classList.remove('busy'))}}
 function closeEditor(fp){if(!fp&&!modal.hidden)navPop('ed');modal.hidden=true;edit=null;confirmDel=null}
 function saveEditor(){const g=G(),e=edit;if(e.pm&&e.pm!==e.moeda&&parse(e.pv||'')>0&&!e.lev){const rr=pvCalc();if(rr)e.rx=String(rr)}let tx=null;if(e.moeda!==g.base){const x=parseFloat(String(e.rx||'').replace(',','.'));if(x>0){tx={b:g.base,m:e.moeda,r:x};g.taxas[e.moeda]=x*g.taxas[g.base]}}const pick=(rows)=>{const o={};order(g,rows).forEach(k=>o[k]=rows[k].v);return o};
@@ -1107,7 +1108,35 @@ async function toJpeg(f){const img=await loadImg(f);const k=Math.min(1,1280/Math
 /* leitura de recibos grátis: Gemini da Google com chave guardada no telemóvel */
 const GK='contas-gemini';const CFG='app-config-leitura-ia';
 if(fs)try{onSnapshot(doc(fs,'grupos',CFG),sn=>{const d=sn.exists()?sn.data():null;appKey=(d&&d.iaKey)||'';if(cur&&tab==='conf')render()},()=>{})}catch(e){}
-function gkey(){let k='';try{k=localStorage.getItem('contas-gemini')||''}catch(e){}if(!k){const g=typeof G==='function'&&cur?G():null;k=(g&&g.iaKey)||''}return k||appKey}
+function aiKey(){try{return localStorage.getItem('ej-aikey')||''}catch(e){return ''}}
+function aiProv(k){k=String(k||'').trim();return /^AIza/.test(k)?'gemini':/^sk-ant-/.test(k)?'claude':/^sk-/.test(k)?'openai':null}
+const AIN={gemini:'Gemini (Google)',openai:'ChatGPT (OpenAI)',claude:'Claude (Anthropic)'};
+async function aiCall(k,prompt,b64){const p=aiProv(k);k=String(k).trim().replace(/[^A-Za-z0-9._\-]/g,'');const ac=new AbortController(),to=setTimeout(()=>ac.abort(),45000);let r;
+  try{if(p==='openai'){const c=[{type:'text',text:prompt}];if(b64)c.push({type:'image_url',image_url:{url:'data:image/jpeg;base64,'+b64}});
+      r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',signal:ac.signal,headers:{'content-type':'application/json','authorization':'Bearer '+k},body:JSON.stringify({model:'gpt-4o-mini',temperature:0,max_tokens:b64?2500:5,messages:[{role:'user',content:c}],...(b64?{response_format:{type:'json_object'}}:{})})});
+      if(r.ok){const j=await r.json();return ((j.choices||[])[0]||{}).message?.content||''}}
+    else{const c=[];if(b64)c.push({type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}});c.push({type:'text',text:prompt});
+      for(const m of ['claude-haiku-5-5','claude-haiku-4-5']){r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',signal:ac.signal,headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:m,max_tokens:b64?2500:5,messages:[{role:'user',content:c}]})});
+        if(r.ok){const j=await r.json();return (j.content||[]).map(x=>x.text||'').join('')}if(r.status!==404&&r.status!==400)break}}}
+  catch(e){throw {code:e&&e.name==='AbortError'?'busy':'upstream_error'}}finally{clearTimeout(to)}
+  throw {code:r.status===401||r.status===403?'my_key':r.status===429?'my_limit':r.status>=500||r.status===529?'busy':'upstream_error'}}
+var aiSt=null;
+async function aiTest(){const k=aiKey(),p=aiProv(k);if(!k){aiSt=null;render();return}if(!p){aiSt='bad';render();return}aiSt='test';render();
+  try{if(p==='gemini')aiSt=await gemTest(k,false)?'ok':'no';else{await aiCall(k,'Responde só: ok');aiSt='ok'}}catch(e){aiSt=e.code==='my_key'?'no':e.code==='my_limit'?'lim':'net'}
+  setupGem();render()}
+var aiHelp=false;
+function aiHTML(){const k=aiKey(),p=aiProv(k);
+  const st=!k?'':aiSt==='test'?'⏳ A testar…':aiSt==='ok'?`✅ ${AIN[p]} · a funcionar`:aiSt==='no'?'❌ Chave não aceite. Confirma se a copiaste toda.':aiSt==='lim'?'⚠️ Chave certa, mas sem saldo ou no limite.':aiSt==='net'?'⚠️ Sem rede para testar. Tenta outra vez.':aiSt==='bad'?'❌ Não reconheço esta chave.':p?`🔑 ${AIN[p]}`:'';
+  return `<div class="payf aif"><p class="q">🤖 A tua IA para ler recibos${ii('Opcional. Se puseres a tua chave, os teus recibos são lidos com ela em vez da do grupo: mais rápido e sem limite partilhado. Fica só neste telemóvel. Atenção: o ChatGPT Plus, Claude Pro ou Gemini Advanced não dão chave; a chave é criada nos sites indicados.')}</p>
+  ${k?`<div class="aik"><span>${esc(st)}</span><button type="button" class="linkbtn" id="ai-del">Apagar</button></div>`:`<input id="ai-key" type="password" autocomplete="off" placeholder="Cola aqui a chave">`}
+  <button type="button" class="linkbtn" id="ai-help">${aiHelp?'Fechar ajuda':'Como arranjo uma chave?'}</button>
+  ${aiHelp?`<ol class="aih"><li><b>Grátis · Gemini:</b> abre <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> → entra com o Google → <i>Create API key</i> → copia e cola aqui.</li>
+  <li><b>Pago · ChatGPT:</b> <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a> → <i>Create new secret key</i>. Precisa de saldo carregado.</li>
+  <li><b>Pago · Claude:</b> <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a> → <i>API keys</i> → <i>Create key</i>. Precisa de saldo carregado.</li></ol>`:''}</div>`}
+document.addEventListener('change',ev=>{if(ev.target&&ev.target.id==='ai-key'){const v=ev.target.value.trim();if(!v)return;try{localStorage.setItem('ej-aikey',v)}catch(e){}aiTest()}});
+document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('#ai-del,#ai-help');if(!t)return;
+  if(t.id==='ai-help'){aiHelp=!aiHelp;render()}else{try{localStorage.removeItem('ej-aikey')}catch(e){}aiSt=null;setupGem();render()}});
+function gkey(){let k='';const a=aiKey();if(aiProv(a)==='gemini')return a;try{k=localStorage.getItem('contas-gemini')||''}catch(e){}if(!k){const g=typeof G==='function'&&cur?G():null;k=(g&&g.iaKey)||''}return k||appKey}
 let gErr='';const GMODELS=['gemini-flash-lite-latest','gemini-2.5-flash-lite','gemini-flash-latest','gemini-2.5-flash','gemini-2.0-flash'];let gModel=lsGet('ej-gm',{})||{},noThink={};
 /* fb=true: usa o projeto Firebase (Firebase AI Logic, Gemini Developer API grátis); fb=false: chave pessoal do Gemini */
 /* lista de modelos atual da Google (os nomes mudam com o tempo) */
@@ -1144,6 +1173,7 @@ async function gemCall(key,parts,json,fb){let last='upstream_error';const tag=fb
 async function gemTest(k,fb){try{await gemCall(k,[{text:'Responde só: ok'}],false,fb);return true}catch(e){return e.code==='rate_limited'||e.code==='busy'}}
 let fbAI=false,fbChk='a verificar…';
 function mkSamp(){return {gem:true,json:async(prompt,o)=>{gLog=[];const tI=Date.now();let image,mt='image/jpeg';try{image=await toJpeg(o.images[0])}catch(e){try{image=await fileB64(o.images[0]);mt=o.images[0].type||'image/heic'}catch(e2){throw {code:'image_rejected'}}}
+    {const ak=aiKey(),ap=aiProv(ak);if(ap==='openai'||ap==='claude'){try{const t2=await aiCall(ak,prompt,image);const x=String(t2||'').replace(/^```(?:json)?\s*|\s*```$/g,''),a2=x.indexOf('{'),b2=x.lastIndexOf('}');try{return JSON.parse(a2>=0?x.slice(a2,b2+1):x)}catch(e){return {erro:'não percebi o recibo, tenta outra foto'}}}catch(e){if(!gkey()||e.code==='my_key')throw e}}}
     const parts=[{text:prompt},{inlineData:{mimeType:mt,data:image}}];gLog.push('foto '+Math.round(image.length*3/4/1024)+'KB '+((Date.now()-tI)/1000).toFixed(1)+'s');let t;
     try{t=fbAI?await gemCall(firebaseConfig.apiKey,parts,true,true):await gemCall(gkey(),parts,true,false)}
     catch(e){if(fbAI&&gkey()&&e.code!=='image_rejected'){try{t=await gemCall(gkey(),parts,true,false)}catch(e2){throw e2.code==='bad_key'?{code:'gem_key'}:e2}}
@@ -1151,7 +1181,7 @@ function mkSamp(){return {gem:true,json:async(prompt,o)=>{gLog=[];const tI=Date.
     t=String(t||'').replace(/^```(?:json)?\s*|\s*```$/g,'');const a=t.indexOf('{'),b=t.lastIndexOf('}');
     try{return JSON.parse(a>=0?t.slice(a,b+1):t)}catch(e){return {erro:'não percebi o recibo, tenta outra foto'}}}}}
 function setupGem(){
-  if(!fbAI&&!gkey()){if(samp&&samp.gem){samp=null;canPhoto=false}return}
+  if(!fbAI&&!gkey()&&!aiKey()){if(samp&&samp.gem){samp=null;canPhoto=false}return}
   samp=mkSamp();canPhoto=true;if(gkey())gemModels(gkey(),false).catch(()=>{});if(edit&&!modal.hidden)drawEditor()}
 /* ver se o projeto Firebase já tem a IA ligada (uma vez por arranque) */
 async function fbCheck(){fbChk='a verificar…';gErr='';try{if(await gemTest(firebaseConfig.apiKey,true)){fbAI=true;fbChk='';setupGem()}else fbChk=gErr||'sem resposta'}catch(e){fbChk=String(e&&e.message||e)}if(cur&&tab==='conf')render()}
