@@ -541,7 +541,9 @@ function pgFull(d){if(d.paga)return true;if(!d.pg)return false;const ks=Object.k
 function pgN(d){return d.pg?Object.keys(d.pg).filter(k=>d.pg[k]).length:0}
 function peRate(g,d){if(!d.pe||!(d.pe.v>0)||d.pe.m===d.moeda||!(d.total>0))return null;const rp=d.pe.m===g.base?1:(g.taxas[d.pe.m]&&g.taxas[g.base]?g.taxas[d.pe.m]/g.taxas[g.base]:null);return rp?d.total/(d.pe.v/rp):null}
 var peFixed={};
-function peFix(g){if(!g||peFixed[g.id])return;peFixed[g.id]=1;let n=0;g.despesas.forEach(d=>{if(d.moeda===g.base&&d.pe&&d.pe.m!==g.base)return;const r=peRate(g,d);if(!r||d.moeda===g.base)return;if(!d.tx||d.tx.b!==g.base||Math.abs(d.tx.r-r)/r>0.001){d.tx={b:g.base,m:d.moeda,r};n++}});if(n){save(g);setTimeout(()=>note('Acertei a taxa de '+n+' despesa'+(n>1?'s':'')+' com o valor pago no banco.',4000),300)}}
+function peFix(g){if(!g||peFixed[g.id])return;peFixed[g.id]=1;const ch=[];g.despesas.forEach(d=>{if(d.moeda===g.base&&d.pe&&d.pe.m!==g.base)return;const r=peRate(g,d);if(!r||d.moeda===g.base)return;if(!d.tx||d.tx.b!==g.base||Math.abs(d.tx.r-r)/r>0.001){const o=RD(g,d,d.total);d.tx={b:g.base,m:d.moeda,r};ch.push([d,o,RD(g,d,d.total)])}});
+  if(ch.length){const B=v=>fmt(toCur(g,v,g.base),g.base),now=Date.now();ch.forEach(([d,o,nv],i)=>{g.log=[{t:now+i,q:'🤖 App',a:'acertou o valor de',ti:d.titulo||'',e:dEmo(d),x:B(o)+' → '+B(nv)+' (valor pago no banco: '+fmt(d.pe.v,d.pe.m)+')',i:d.id},...(g.log||[])].slice(0,80)});
+    save(g);setTimeout(()=>note('Acertei '+ch.map(c=>'“'+(c[0].titulo||'?')+'”').join(' e ')+' com o valor pago no banco. Vê em Resumo → Alterações.',6000),300)}}
 function saldos(g){peFix(g);const b={};g.membros.forEach(p=>b[p.id]=0);
   g.despesas.forEach(d=>{if(d.paga)return;const A=adjPD(d);for(const k in A.pag)if(k in b)b[k]+=RD(g,d,A.pag[k]);for(const k in A.div)if(k in b)b[k]-=RD(g,d,A.div[k])});return b}
 function acertos(b){const cr=[],de=[];for(const k in b){if(b[k]>0.5)cr.push([k,b[k]]);else if(b[k]<-0.5)de.push([k,-b[k]])}
