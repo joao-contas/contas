@@ -382,7 +382,7 @@ body:has(#modal:not([hidden])) .fab,body:has(#ppov:not([hidden])) .fab{display:n
 <div class="note" id="note" role="status"></div>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getFirestore,initializeFirestore,persistentLocalCache,persistentMultipleTabManager,doc,setDoc,deleteDoc,onSnapshot,getDoc,runTransaction,getDocFromServer,collection,query,where,getDocs,documentId} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,initializeFirestore,persistentLocalCache,persistentMultipleTabManager,doc,setDoc,deleteDoc,onSnapshot,getDoc,runTransaction,getDocFromServer,collection,query,where,getDocs,documentId,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,onAuthStateChanged,signOut,deleteUser,reauthenticateWithPopup} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {firebaseConfig} from "./config.js";
 {
@@ -475,7 +475,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-23e';
+const APPV='2026-11-23g';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -499,7 +499,7 @@ var pend=lsGet('ej-pend',{})||{},flushing={};
 function pendSet(id,v){if(v)pend[id]=1;else delete pend[id];lsSet('ej-pend',pend)}
 async function flush(id){if(!fs||!groups[id]||!pend[id])return;if(flushing[id]){flushing[id]=2;return}flushing[id]=1;busy[id]=(busy[id]||0)+1;
   try{do{flushing[id]=1;const L=clean(groups[id]),B=srvC[id]?clean(srvC[id]):null;
-      const M=await runTransaction(fs,async tx=>{const ref=doc(fs,'grupos',id);const sn=await tx.get(ref);const S=sn.exists()?{...sn.data(),id}:null;const M=clean(mergeG(S,L,B));delete M.id;if(!(M.minV>APPV))M.minV=APPV;tx.set(ref,M);return M});
+      const M=await runTransaction(fs,async tx=>{const ref=doc(fs,'grupos',id);const sn=await tx.get(ref);const S=sn.exists()?{...sn.data(),id}:null;const M=clean(mergeG(S,L,B));delete M.id;if(!(M.minV>APPV))M.minV=APPV;delete M.wt;tx.set(ref,{...M,wt:serverTimestamp()});return M});
       const out={...M,id};srvC[id]=clean(out);const cur2=groups[id];groups[id]=cur2&&JSON.stringify(cur2)!==JSON.stringify(L)?mergeG(out,cur2,L):out}while(flushing[id]===2);
     pendSet(id,0);cache();if(!edit)render()}
   catch(e){const c=e&&e.code||'';if(!/unavailable|failed-precondition|deadline|network/.test(c)&&navigator.onLine)note('Não foi possível guardar ('+(c||'erro')+'). Fica guardado e tento outra vez.',6000)}
@@ -1027,7 +1027,7 @@ function saveEditor(){const g=G(),e=edit;
     pag:pick(e.pag),div:pick(e.div),fixP:order(g,e.pag).filter(k=>e.pag[k].fix),fixD:e.modo==='valor'?order(g,e.div).filter(k=>e.div[k].fix):[],
     partes:e.modo==='partes'?Object.fromEntries(order(g,e.div).map(k=>[k,+e.div[k].p||0])):{}};
   if(e.fotoNew||(e.hasFoto&&!e.fotoRm))d.foto=1;d.by=e.by||meOf(g);if(e.priv&&(e.itens||[]).length)d.priv=1;delete d.paga;{const pg={};for(const k in (e.pg||{}))if(e.pg[k]&&d.div[k]>0&&!(d.pag[k]>0))pg[k]=1;if(e.tipo!=='reemb'&&Object.keys(pg).length)d.pg=pg;else delete d.pg}const i=g.despesas.findIndex(x=>x.id===d.id);{const dx=i>=0?diffD(g,g.despesas[i],d):'';if(i<0||dx)logH(g,i>=0?'mudou':'criou',d,dx)}if(i>=0)g.despesas[i]=d;else g.despesas.push(d);
-  const fn=e.fotoNew,frm=e.hasFoto&&e.fotoRm&&!fn,fk=g.id+'-f-'+d.id;closeEditor();save(g);note('Guardado.',2000);
+  const fn=e.fotoNew,frm=e.hasFoto&&e.fotoRm&&!fn,fk=g.id+'-f-'+d.id;closeEditor();if(typeof mineOk==='function'&&!mineOk(g,d)){mineOnly='0';try{localStorage.setItem('ej-mine','0')}catch(x){}}if(typeof qStr!=='undefined'&&qStr)qStr='';save(g);note('Guardado.',2000);
   if(fn){fotoC[fk]=fn;fotoPut(fk,fn).catch(()=>note('A foto não foi guardada (sem ligação aos dados).',5000))}else if(frm){delete fotoC[fk];fotoDel(fk)}}
 
 sheet.addEventListener('input',ev=>{const t=ev.target;if(!edit)return;
