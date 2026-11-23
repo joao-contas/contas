@@ -272,6 +272,12 @@ h2.sec{font-size:21px;margin:30px 0 8px}
 .avpick{width:44px;height:44px;min-height:0;padding:0;border-radius:50%;background:none;box-shadow:none;display:flex;align-items:center;justify-content:center}.mrow{grid-template-columns:auto minmax(0,1fr) 44px!important}
 .cpal{display:flex;flex-wrap:wrap;gap:10px;padding:8px 2px 12px}.cpal button{width:32px;height:32px;min-height:0;padding:0;border-radius:50%;box-shadow:none;border:3px solid transparent}.cpal button.on{border-color:var(--ink)}
 .mecard .avp{margin-right:6px}
+.note .undo{min-height:30px;padding:0 12px;margin-left:10px;background:#fff!important;color:var(--ink)!important;font-size:13px;font-weight:600}.note{pointer-events:auto}.note:has(.undo){display:flex;align-items:center;white-space:nowrap;padding:6px 8px 6px 18px}
+.pgr{display:flex;align-items:center;gap:8px;padding:8px 0}.pgr+.pgr{border-top:1px solid var(--line)}
+.pgi{flex:1;display:flex;align-items:center;gap:6px;min-width:0;min-height:0;padding:4px 0;background:none!important;box-shadow:none;color:var(--ink);font-weight:400;text-align:left}
+.pgn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.pgv{display:flex;flex-direction:column;align-items:flex-end;font-weight:600;white-space:nowrap;font-size:14px}.pgv small{font-weight:400;color:var(--mut);font-size:11px}
+.pga{min-height:34px;padding:0 12px;font-size:13px}
+.gdone{color:#2f7a4f;font-weight:600}.gdev{color:var(--peachd);font-weight:500}.grec{color:#2f7a4f;font-weight:500}.gfin .ic{filter:grayscale(.6)}.gfin .amt{color:var(--mut)}
 </style>
 </head>
 <body>
@@ -344,6 +350,16 @@ const FB_OK=!!(firebaseConfig&&firebaseConfig.apiKey&&!String(firebaseConfig.api
 let fs=null,fbApp=null,auth=null;if(FB_OK){try{fbApp=initializeApp(firebaseConfig);try{fs=initializeFirestore(fbApp,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})})}catch(e){fs=getFirestore(fbApp)}auth=getAuth(fbApp)}catch(e){console.error(e)}}
 let user=null,prof=null,profT=null,authReady=false;setTimeout(()=>{if(!authReady){authReady=true;try{render()}catch(e){}}},6000);
 const LS='contas-cache-v1',MY='contas-meus-grupos';
+function undoNote(id){const n=$('#note');clearTimeout(noteT);n.innerHTML='✓ Pagamento registado <button class="undo" data-undo="'+esc(id)+'">Anular</button>';noteT=setTimeout(()=>{n.textContent=''},7000)}
+function anulaPag(id){const g=G();if(!g)return;const d=g.despesas.find(x=>x.id===id);if(!d)return;g.despesas=g.despesas.filter(x=>x.id!==id);g.lixo=[clean(d),...(g.lixo||[])].slice(0,20);
+  logH(g,'anulou pagamento',{titulo:Object.keys(d.pag).map(k=>nome(g,k)).join(', ')+' → '+Object.keys(d.div).map(k=>nome(g,k)).join(', '),total:d.total,moeda:d.moeda,emoji:'↩️'});anAsk=null;save(g);note('Pagamento anulado.',2500)}
+var anAsk=null;
+function pagosHTML(g){const rs=g.despesas.filter(d=>d.tipo==='reemb').sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b.cr||0)-(a.cr||0));if(!rs.length)return '';
+  const dd=d=>{try{return new Date(d+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'})}catch(e){return d||''}};
+  return `<h2 class="sec">Pagamentos feitos${ii('Toca num pagamento para corrigir o valor. “Anular” apaga-o (fica em Resumo → Apagadas, se precisares de recuperar).')}</h2><div class="card">${rs.map(d=>{const de=Object.keys(d.pag).filter(k=>d.pag[k]>0),pa=Object.keys(d.div).filter(k=>d.div[k]>0),P=k=>g.membros.find(x=>x.id===k);
+    return `<div class="pgr"><button class="pgi" data-edit="${esc(d.id)}">${de.map(k=>P(k)?avP(g,P(k),'xs'):'').join('')}<span class="pgn">${esc(de.map(k=>nome(g,k)).join(', '))} → ${esc(pa.map(k=>nome(g,k)).join(', '))}</span><span class="pgv">${fmt(d.total,d.moeda)}<small>${esc(dd(d.data))}</small></span></button><button class="pga ${anAsk===d.id?'danger':''}" data-anul="${esc(d.id)}">${anAsk===d.id?'Confirmar':'Anular'}</button></div>`}).join('')}</div>`}
+document.addEventListener('click',ev=>{const u=ev.target.closest&&ev.target.closest('[data-undo]');if(u){anulaPag(u.dataset.undo);return}
+  const a=ev.target.closest&&ev.target.closest('[data-anul]');if(a){if(anAsk!==a.dataset.anul){anAsk=a.dataset.anul;render();setTimeout(()=>{if(anAsk===a.dataset.anul){anAsk=null;render()}},4000);return}anulaPag(a.dataset.anul)}});
 function note(t,ms){$('#note').textContent=t||'';clearTimeout(noteT);if(t&&ms)noteT=setTimeout(()=>$('#note').textContent='',ms)}
 function lsGet(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
@@ -504,9 +520,9 @@ function render(){gateUpd();
     $('#title').innerHTML='<svg class="hlogo" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="33" fill="none" stroke="#162d50" stroke-width="5"/><rect x="44" y="12" width="12" height="14" fill="var(--lav)"/><rect x="44" y="74" width="12" height="14" fill="var(--lav)"/><rect x="41" y="17" width="5" height="21" rx="2.5" fill="#162d50"/><rect x="54" y="17" width="5" height="21" rx="2.5" fill="#162d50"/><rect x="41" y="62" width="5" height="21" rx="2.5" fill="#162d50"/><rect x="54" y="62" width="5" height="21" rx="2.5" fill="#162d50"/><rect x="35" y="41" width="30" height="5.6" rx="2.8" fill="#18788c"/><rect x="35" y="52.4" width="30" height="5.6" rx="2.8" fill="#18788c"/></svg><span>Even<span class="tj">John</span></span>';
     $('#sub').textContent='';
     $('#hero').innerHTML='';
-    const ids=mine.filter(id=>groups[id]).sort((a,b)=>(groups[b].upd||0)-(groups[a].upd||0));
+    const ids=mine.filter(id=>groups[id]).sort((a,b)=>(gStat(groups[a]).done-gStat(groups[b]).done)||(groups[b].upd||0)-(groups[a].upd||0));
     const showNew=!ids.length||newOpen||!!newName||newPeople.length>0;
-    app.innerHTML=`<div class="list">${ids.length?ids.map((id,ix)=>{const g=groups[id];return `<div class="sw" data-sw="${esc(id)}"><div class="sw-act"><button class="sw-del" data-gmenu="${esc(id)}">🗑️<span>Apagar</span></button><button class="sw-del" data-gmenu="${esc(id)}">🗑️<span>Apagar</span></button></div><button class="item card sw-fg" data-open="${esc(id)}"><span class="ic gtile${ix%4}">${esc(g.emoji||'💸')}</span><h3>${esc(g.nome)}</h3><small>${g.membros.length} pessoas · ${g.despesas.length} movimentos</small><span class="amt">${fmt(toCur(g,gasto(g),g.base),g.base)}</span></button></div>${gMenu===id?gMenuHTML(g):''}`}).join(''):'<p class="empty">Ainda não há grupos. Cria o primeiro abaixo.</p>'}</div>
+    app.innerHTML=`<div class="list">${ids.length?ids.map((id,ix)=>{const g=groups[id];return `<div class="sw" data-sw="${esc(id)}"><div class="sw-act"><button class="sw-del" data-gmenu="${esc(id)}">🗑️<span>Apagar</span></button><button class="sw-del" data-gmenu="${esc(id)}">🗑️<span>Apagar</span></button></div><button class="item card sw-fg ${gStat(g).done?'gfin':''}" data-open="${esc(id)}"><span class="ic gtile${ix%4}">${esc(g.emoji||'💸')}</span><h3>${esc(g.nome)}</h3>${(()=>{const st=gStat(g);return `<small>${st.done?'<span class="gdone">✓ Contas saldadas</span>':st.me==null?g.membros.length+' pessoas':st.me<-0.5?'<span class="gdev">deves '+fmt(toCur(g,-st.me,g.base),g.base)+'</span>':st.me>0.5?'<span class="grec">recebes '+fmt(toCur(g,st.me,g.base),g.base)+'</span>':'estás em dia'}</small>`})()}<span class="amt">${fmt(toCur(g,gasto(g),g.base),g.base)}</span></button></div>${gMenu===id?gMenuHTML(g):''}`}).join(''):'<p class="empty">Ainda não há grupos. Cria o primeiro abaixo.</p>'}</div>
     ${showNew?'<h2 class="sec">Novo grupo</h2>':''}
     ${showNew?'':'<button class="primary newbtn" id="opennew">＋ Novo grupo</button>'}
     <form id="newg" class="card" ${showNew?'':'hidden'}>
@@ -563,7 +579,7 @@ function render(){gateUpd();
     const others=me?tr.filter(t=>t.de!==me&&t.para!==me):tr;
     h+=`<h2 class="sec">${me?'Os outros pagamentos':'Pagamentos para ficar tudo acertado'}</h2>
     <div class="card">${others.length?others.map(t=>trRow(t,'')).join(''):`<p class="empty" style="margin:0">${tr.length?'Não há mais pagamentos.':'Está tudo acertado 🎉'}</p>`}</div>
-    ${tr.length?'<div class="actions" style="margin-top:10px"><button id="shareacc">📤 Partilhar acerto no WhatsApp</button></div>':''}`}
+    ${tr.length?'<div class="actions" style="margin-top:10px"><button id="shareacc">📤 Partilhar acerto no WhatsApp</button></div>':''}${pagosHTML(g)}`}
   if(tab==='conf'){
     const usados=new Set();g.despesas.forEach(d=>{Object.keys(d.pag).forEach(k=>usados.add(k));Object.keys(d.div).forEach(k=>usados.add(k))});
     h+=`${(()=>{const mp=g.membros.find(x=>x.id===meOf(g));return mp?`<h2 class="sec" style="margin-top:4px">Tu</h2><div class="card mecard"><span class="mechip">${avP(g,mp)}${esc(mp.nome)}</span><button id="meswap" class="${meAsk?'danger':''}">${meAsk?'Confirmar troca':'⇄ Trocar de pessoa'}</button></div>`:''})()}<h2 class="sec">Grupo</h2><div class="card"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="g-emo" data-ein="grp" value="${esc(g.emoji||'💸')}" data-cur="${esc(g.emoji||'💸')}" aria-label="Emoji do grupo: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" id="g-emo-more" aria-label="Ver lista de emojis"></button></span><input id="g-nome" value="${esc(g.nome)}" aria-label="Nome do grupo" enterkeyhint="done"></div><div id="g-emos" hidden>${secPicker(g.emoji,'grp')}</div></div>
@@ -792,9 +808,9 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
   else if(t.id==='add')openEditor(null);
   else if(t.id==='addr')openReemb();
   else if(t.dataset.edit)openEditor(g.despesas.find(d=>d.id===t.dataset.edit));
-  else if(t.dataset.pay){if(payAsk!==t.dataset.pay){payAsk=t.dataset.pay;render();return}payAsk=null;const [de,para]=t.dataset.pay.split('>'),amt=+t.dataset.amt;
-    g.despesas.push({id:uid(),tx:t.dataset.m!==g.base&&g.taxas[t.dataset.m]?{b:g.base,m:t.dataset.m,r:g.taxas[t.dataset.m]/g.taxas[g.base]}:null,titulo:'Reembolso',emoji:'🤝',tipo:'reemb',modo:'valor',moeda:t.dataset.m,total:amt,data:today(),cr:Date.now(),pag:{[de]:amt},div:{[para]:amt},fixP:[],fixD:[],partes:{}});
-    logH(g,'registou pagamento',{titulo:nome(g,de)+' → '+nome(g,para),total:amt,moeda:t.dataset.m,emoji:'🤝'});save(g);note('Pagamento registado.',2500)}
+  else if(t.dataset.pay){if(payAsk!==t.dataset.pay){payAsk=t.dataset.pay;render();return}payAsk=null;const [de,para]=t.dataset.pay.split('>'),amt=+t.dataset.amt,pid=uid();
+    g.despesas.push({id:pid,tx:t.dataset.m!==g.base&&g.taxas[t.dataset.m]?{b:g.base,m:t.dataset.m,r:g.taxas[t.dataset.m]/g.taxas[g.base]}:null,titulo:'Reembolso',emoji:'🤝',tipo:'reemb',modo:'valor',moeda:t.dataset.m,total:amt,data:today(),cr:Date.now(),pag:{[de]:amt},div:{[para]:amt},fixP:[],fixD:[],partes:{}});
+    logH(g,'registou pagamento',{titulo:nome(g,de)+' → '+nome(g,para),total:amt,moeda:t.dataset.m,emoji:'🤝'});save(g);undoNote(pid)}
   else if(t.dataset.rm){if(!isOwner(g))return;{const p=g.membros.find(p=>p.id===t.dataset.rm);if(p)logH(g,'removeu do grupo',{titulo:p.nome,emoji:p.emoji})}g.membros=g.membros.filter(p=>p.id!==t.dataset.rm);save(g)}
   else if(t.id==='gkey-ok'){const v=($('#gkey').value||'').replace(/[^A-Za-z0-9._\-]/g,'');if(!v){note('Cola primeiro a chave.');return}
     note('A testar a chave…');gemTest(v,false).then(ok=>{if(ok){appKey=v;setDoc(doc(fs,'grupos',CFG),{nome:'config',membros:[],despesas:[],iaKey:v}).catch(e=>note('Não consegui guardar: '+e.message,6000));samp=mkSamp();canPhoto=true;render();note('Leitura de recibos ativa para toda a gente ✅',4000)}else note('A chave não funcionou: '+(gErr||'confirma que a copiaste toda.'),7000)})}
@@ -1110,6 +1126,7 @@ const levIc=l=>l.tipo==='conta'?'🏦':'💵';
 const levName=l=>l.tipo==='conta'?'Conta '+l.m:'Levantamento';
 const levRate=l=>l.r;
 var wExp={};
+function gStat(g){try{const b=saldos(g),has=g.despesas.some(d=>d.tipo!=='reemb'),done=has&&transf(g,b).length===0,m=meOf(g);return {done,me:m&&m in b?b[m]:null}}catch(e){return {done:false,me:null}}}
 app.addEventListener('click',ev=>{if(ev.target.closest('button'))return;const x=ev.target.closest('.levx[data-wexp]');if(x){wExp[x.dataset.wexp]=false;render()}});
 function walletHTML(g,me){const ls=levsOf(g,me);
   let h=`<div class="card wal"><button class="wal-h" id="wopen"><span>💵 Levantamentos</span><small>${(()=>{const at=ls.filter(l=>l.v-levUsed(g,me,l)>0);return !ls.length?'Regista um levantamento':at.length?'sobram '+at.map(l=>fmt(l.v-levUsed(g,me,l),l.m)).join(' · '):'tudo gasto'})()}</small><span class="pf-go">${wOpen?'⌃':'›'}</span></button>`;
