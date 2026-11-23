@@ -363,7 +363,7 @@ html[data-theme=dark] .mrow input:disabled{opacity:.7}
 <div class="note" id="note" role="status"></div>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getFirestore,initializeFirestore,persistentLocalCache,persistentMultipleTabManager,doc,setDoc,deleteDoc,onSnapshot,getDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,initializeFirestore,persistentLocalCache,persistentMultipleTabManager,doc,setDoc,deleteDoc,onSnapshot,getDoc,runTransaction} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,onAuthStateChanged,signOut,deleteUser,reauthenticateWithPopup} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {firebaseConfig} from "./config.js";
 {
@@ -448,7 +448,7 @@ function profSave(now){if(!user||!prof||!fs)return;clearTimeout(profT);profT=set
 const busy={},subs={};
 function sub(id){if(!fs||subs[id])return;
   subs[id]=onSnapshot(doc(fs,'grupos',id),snap=>{
-    if(snap.exists()){const v=snap.data();if(v&&Array.isArray(v.membros)&&Array.isArray(v.despesas)){groups[id]={...clean(v),id};if(!mine.includes(id))mine.push(id);if(pendingOpen===id)pendingOpen=null}}
+    if(snap.exists()){const v=snap.data();if(v&&Array.isArray(v.membros)&&Array.isArray(v.despesas)){const S={...clean(v),id},B=srvC[id];if(!snap.metadata.fromCache)srvC[id]=clean(S);groups[id]=pend[id]&&groups[id]?mergeG(S,groups[id],B):S;if(pend[id]&&!snap.metadata.fromCache)setTimeout(()=>flush(id),0);if(!mine.includes(id))mine.push(id);if(pendingOpen===id)pendingOpen=null}}
     else if(!snap.metadata.fromCache&&!busy[id]){if(groups[id]||pendingOpen===id){delete groups[id];mine=mine.filter(x=>x!==id);if(pendingOpen===id){pendingOpen=null;cur=null}note('Este grupo não existe ou foi apagado.',5000)}}
     if(prof&&groups[id]&&!busy[id])setTimeout(()=>propagate(id),0);
     cache();if(!edit)render();else renderSoft()},
@@ -456,12 +456,33 @@ function sub(id){if(!fs||subs[id])return;
 function netNote(){const off=!navigator.onLine;if(off&&!document.body.classList.contains('offline'))note('Sem rede: podes continuar, tudo fica guardado e é enviado quando houver rede.',4000);document.body.classList.toggle('offline',off);const el=document.getElementById('offbar');if(el)el.hidden=!off}
 addEventListener('online',()=>{netNote();note('De volta à rede: as alterações feitas sem rede foram enviadas.',4000)});addEventListener('offline',netNote);
 function renderSoft(){const sy=scrollY;render();scrollTo(0,sy)}
-const pend={};
-async function save(g){g.upd=Date.now();groups[g.id]=g;if(!mine.includes(g.id))mine.push(g.id);cache();render();
-  if(!fs)return;const id=g.id;busy[id]=(busy[id]||0)+1;sub(id);
-  try{await setDoc(doc(fs,'grupos',id),clean(groups[id]))}
-  catch(e){note('Não foi possível guardar ('+(e.code||'erro')+').',6000)}
-  finally{busy[id]--;if(!busy[id])delete busy[id]}}
+async function save(g){g.upd=Date.now();stampG(g,srvC[g.id]);groups[g.id]=g;if(!mine.includes(g.id))mine.push(g.id);cache();render();
+  if(!fs)return;pendSet(g.id,1);sub(g.id);flush(g.id)}
+var pend=lsGet('ej-pend',{})||{},flushing={};
+function pendSet(id,v){if(v)pend[id]=1;else delete pend[id];lsSet('ej-pend',pend)}
+async function flush(id){if(!fs||!groups[id]||!pend[id])return;if(flushing[id]){flushing[id]=2;return}flushing[id]=1;busy[id]=(busy[id]||0)+1;
+  try{do{flushing[id]=1;const L=clean(groups[id]),B=srvC[id]?clean(srvC[id]):null;
+      const M=await runTransaction(fs,async tx=>{const ref=doc(fs,'grupos',id);const sn=await tx.get(ref);const S=sn.exists()?{...sn.data(),id}:null;const M=clean(mergeG(S,L,B));delete M.id;tx.set(ref,M);return M});
+      const out={...M,id};srvC[id]=clean(out);const cur2=groups[id];groups[id]=cur2&&JSON.stringify(cur2)!==JSON.stringify(L)?mergeG(out,cur2,L):out}while(flushing[id]===2);
+    pendSet(id,0);cache();if(!edit)render()}
+  catch(e){const c=e&&e.code||'';if(!/unavailable|failed-precondition|deadline|network/.test(c)&&navigator.onLine)note('Não foi possível guardar ('+(c||'erro')+'). Fica guardado e tento outra vez.',6000)}
+  finally{flushing[id]=0;busy[id]--;if(!busy[id])delete busy[id]}}
+addEventListener('online',()=>Object.keys(pend).forEach(flush));setInterval(()=>{if(navigator.onLine)Object.keys(pend).forEach(flush)},30000);
+/* ---------- juntar alterações de vários telemóveis sem apagar as dos outros ---------- */
+var srvC={};
+function stampG(g,B){if(!B)return;const now=Date.now(),J=x=>JSON.stringify(x);
+  const st=(arr,barr,dk)=>{const bm={};(barr||[]).forEach(x=>bm[x.id]=J(x));const ids=new Set();(arr||[]).forEach(x=>{ids.add(x.id);if(bm[x.id]!==J(x))x.u=now});
+    (barr||[]).forEach(x=>{if(!ids.has(x.id)){g[dk]={...(g[dk]||{}),[x.id]:now}}})};
+  st(g.despesas,B.despesas,'del');st(g.membros,B.membros,'mdel')}
+function mergeG(S,L,B){if(!S)return L;if(!L)return S;const J=x=>JSON.stringify(x),M={...S};
+  for(const k of ['nome','emoji','base','taxas','taxasUpd','cart','claims','criador','ownerMid','iaKey'])if(J(L[k])!==J(B?B[k]:undefined)){if(L[k]===undefined)delete M[k];else M[k]=L[k]}
+  const mx=(a,b)=>{const o={...(a||{})};for(const k in (b||{}))o[k]=Math.max(o[k]||0,b[k]);const e=Object.entries(o).sort((x,y)=>y[1]-x[1]).slice(0,300);return Object.fromEntries(e)};
+  const mg=(sa,la,del)=>{const m=new Map();(sa||[]).forEach(x=>m.set(x.id,x));(la||[]).forEach(x=>{const s=m.get(x.id);if(!s||(x.u||0)>(s.u||0))m.set(x.id,x)});return [...m.values()].filter(x=>!del[x.id]||(x.u||0)>del[x.id])};
+  M.del=mx(S.del,L.del);M.mdel=mx(S.mdel,L.mdel);M.despesas=mg(S.despesas,L.despesas,M.del);M.membros=mg(S.membros,L.membros,M.mdel);
+  const lm=new Map();[...(S.log||[]),...(L.log||[])].forEach(h=>lm.set(h.t+'|'+h.a+'|'+h.ti,h));M.log=[...lm.values()].sort((a,b)=>b.t-a.t).slice(0,80);
+  const live=new Set(M.despesas.map(d=>d.id)),xm=new Map();[...(L.lixo||[]),...(S.lixo||[])].forEach(d=>{if(!xm.has(d.id))xm.set(d.id,d)});M.lixo=[...xm.values()].filter(d=>!live.has(d.id)).slice(0,20);
+  M.upd=Math.max(S.upd||0,L.upd||0);M.id=L.id||S.id;return M}
+
 function forget(id){if(prof){prof.saiu=[...new Set([...(prof.saiu||[]),id])].slice(-200)}if(subs[id]){subs[id]();delete subs[id]}delete groups[id];mine=mine.filter(x=>x!==id);if(cur===id)cur=null;cache();render()}
 async function removeGroup(id){forget(id);if(!fs)return;try{await deleteDoc(doc(fs,'grupos',id))}catch(e){note('Não foi possível apagar.',5000)}}
 function fromHash(){const qs=new URLSearchParams(location.search).get('gs');const ml=location.hash.match(/^#gs=([a-z0-9,]{12,})$/)||(qs&&/^[a-z0-9,]{12,}$/.test(qs)?[0,qs]:null);
