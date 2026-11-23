@@ -462,10 +462,22 @@ function keepUrl(){if(!IOS)return;const ids=mine.filter(id=>/^[a-z0-9]{12,40}$/.
   if(location.search!==q&&!/^#g=/.test(location.hash))history.replaceState(history.state,'',location.pathname+q);
   const l=document.querySelector('link[rel=manifest]');if(l)l.remove()}
 function profSave(now){if(!user||!prof||!fs)return;clearTimeout(profT);profT=setTimeout(()=>{const ids=mine.filter(id=>id.length>=12);prof.grupos=ids;prof.eus={...(prof.eus||{}),...meMap};prof.upd=Date.now();setDoc(doc(fs,'perfis',user.uid),clean(prof)).catch(e=>note('Não consegui guardar o perfil ('+(e.code||'erro')+').',6000))},now?0:800)}
+/* ---------- proteção: se uma despesa desaparecer sem ninguém a apagar (ex.: telemóvel com versão antiga), repõe-na ---------- */
+function guard(id,S){const k='ej-seen-'+id,prev=lsGet(k,null),now={};(S.despesas||[]).forEach(d=>now[d.id]=1);const back=[];
+  if(prev&&prev.d){const del=S.del||{},dl=new Set();(S.log||[]).forEach(h=>{if(h.i&&/apagou|anulou/.test(h.a))dl.add(h.i)});(S.lixo||[]).forEach(x=>dl.add(x.id));
+    for(const i in prev.d)if(!now[i]&&!del[i]&&!dl.has(i))back.push(prev.d[i])}
+  const keep={};[...(S.despesas||[]),...back].forEach(d=>keep[d.id]=d);lsSet(k,{d:keep});return back}
+function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set(g.despesas.map(d=>d.id)),add=back.filter(d=>!have.has(d.id));if(!add.length)return;const t=Date.now();
+  add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
+  save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
+/* ---------- atualiza sozinha quando há versão nova ---------- */
+const APPV='2026-11-23a';
+function checkV(){if(!navigator.onLine)return;fetch('index.html',{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/APPV='([^']+)'/);if(m&&m[1]!==APPV&&!edit&&!Object.keys(pend).length)location.reload()}).catch(()=>{})}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkV()});setInterval(checkV,10*60*1000);
 const busy={},subs={};
 function sub(id){if(!fs||subs[id])return;
   subs[id]=onSnapshot(doc(fs,'grupos',id),snap=>{
-    if(snap.exists()){const v=snap.data();if(v&&Array.isArray(v.membros)&&Array.isArray(v.despesas)){const S={...clean(v),id},B=srvC[id];if(!snap.metadata.fromCache)srvC[id]=clean(S);groups[id]=pend[id]&&groups[id]?mergeG(S,groups[id],B):S;if(pend[id]&&!snap.metadata.fromCache)setTimeout(()=>flush(id),0);if(!mine.includes(id))mine.push(id);if(pendingOpen===id)pendingOpen=null}}
+    if(snap.exists()){const v=snap.data();if(v&&Array.isArray(v.membros)&&Array.isArray(v.despesas)){const S={...clean(v),id},B=srvC[id];const back=snap.metadata.fromCache?[]:guard(id,S);if(!snap.metadata.fromCache)srvC[id]=clean(S);groups[id]=pend[id]&&groups[id]?mergeG(S,groups[id],B):S;if(back.length)setTimeout(()=>restoreLost(id,back),0);if(pend[id]&&!snap.metadata.fromCache)setTimeout(()=>flush(id),0);if(!mine.includes(id))mine.push(id);if(pendingOpen===id)pendingOpen=null}}
     else if(!snap.metadata.fromCache&&!busy[id]){if(groups[id]||pendingOpen===id){delete groups[id];mine=mine.filter(x=>x!==id);if(pendingOpen===id){pendingOpen=null;cur=null}note('Este grupo não existe ou foi apagado.',5000)}}
     if(prof&&groups[id]&&!busy[id])setTimeout(()=>propagate(id),0);
     cache();if(!edit)render();else renderSoft()},
