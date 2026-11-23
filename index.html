@@ -278,6 +278,15 @@ h2.sec{font-size:21px;margin:30px 0 8px}
 .pgn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.pgv{display:flex;flex-direction:column;align-items:flex-end;font-weight:600;white-space:nowrap;font-size:14px}.pgv small{font-weight:400;color:var(--mut);font-size:11px}
 .pga{min-height:34px;padding:0 12px;font-size:13px}
 .gdone{color:#2f7a4f;font-weight:600}.gdev{color:var(--peachd);font-weight:500}.grec{color:#2f7a4f;font-weight:500}.gfin .ic{filter:grayscale(.6)}.gfin .amt{color:var(--mut)}
+.att{display:flex;align-items:center;gap:10px;margin:12px 0 0}.att:empty{display:none}.att-b{width:100%;min-height:46px}
+.att-th{flex:1;display:flex;align-items:center;gap:10px;min-height:0;padding:6px;border-radius:14px;background:#fff!important;box-shadow:var(--shadow);color:var(--ink);font-weight:500;text-align:left}
+.att-th img{width:52px;height:52px;object-fit:cover;border-radius:10px;background:var(--line)}
+.clip{font-size:13px;opacity:.7}
+#fotov{position:fixed;inset:0;z-index:60;background:rgb(10 20 35/.92);display:flex;align-items:center;justify-content:center;padding:16px}
+#fotov img{max-width:100%;max-height:100%;border-radius:10px}#fotov button{position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;width:44px;height:44px;min-height:0;padding:0;border-radius:50%;background:rgb(255 255 255/.15);color:#fff;font-size:18px}
+.top.home #title{justify-content:flex-start!important;text-align:left!important;font-size:30px!important;gap:9px!important;min-height:44px;padding-right:56px}
+.top.home .hlogo{width:36px!important}
+.top.home .avbtn{top:0!important;right:0!important}
 </style>
 </head>
 <body>
@@ -293,7 +302,7 @@ h2.sec{font-size:21px;margin:30px 0 8px}
 <div class="note" id="note" role="status"></div>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getFirestore,initializeFirestore,persistentLocalCache,persistentMultipleTabManager,doc,setDoc,deleteDoc,onSnapshot} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,initializeFirestore,persistentLocalCache,persistentMultipleTabManager,doc,setDoc,deleteDoc,onSnapshot,getDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {firebaseConfig} from "./config.js";
 {
@@ -466,6 +475,22 @@ function iniMap(g){const ms=g.membros,out={},W=p=>(p.nome||'?').trim().split(/\s
   ms.forEach(p=>{const w=W(p),a=F(p);out[p.id]=cnt[a]===1?a:(w[1]?a+w[1][0].toUpperCase():a+((w[0]||'')[1]||'').toLowerCase())});
   const seen={};ms.forEach((p,j)=>{let c=out[p.id];if(seen[c]){const w=W(p),a=F(p),cs=[];w.slice(1).forEach(x=>x&&cs.push(a+x[0].toUpperCase()));const fl=(w[0]||'');for(let i=1;i<fl.length;i++)cs.push(a+fl[i].toLowerCase());c=cs.find(x=>!seen[x])||c+(j+1)}seen[c]=1;out[p.id]=c});return out}
 function avP(g,p,cls){return `<span class="avp ${cls||''}" style="background:${colOf(p)}">${esc(iniMap(g)[p.id]||((p.nome||'?')[0]||'?').toUpperCase())}</span>`}
+var fotoC={};const fkey=(g,d)=>g.id+'-f-'+d.id;
+async function fotoPut(k,u){if(!fs)throw 0;await setDoc(doc(fs,'grupos',k),{nome:'📎',membros:[],despesas:[],img:u,foto:true})}
+async function fotoGet(k){if(fotoC[k])return fotoC[k];if(!fs)return null;try{const sn=await getDoc(doc(fs,'grupos',k));const v=sn.exists()?sn.data().img:null;if(v)fotoC[k]=v;return v}catch(e){return null}}
+async function fotoDel(k){if(!fs)return;try{await deleteDoc(doc(fs,'grupos',k))}catch(e){}}
+async function fotoShrink(f){const img=await loadImg(f);const k=Math.min(1,1100/Math.max(img.width,img.height));const cv=document.createElement('canvas');cv.width=Math.round(img.width*k);cv.height=Math.round(img.height*k);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);let q=.62,u=cv.toDataURL('image/jpeg',q);while(u.length>700000&&q>.3){q-=.08;u=cv.toDataURL('image/jpeg',q)}return u}
+function attHTML(){const e=edit;if(!e||e.tipo==='reemb')return '';const has=e.fotoNew||(e.hasFoto&&!e.fotoRm);if(!has)return '<div class="att"></div>';
+  return `<div class="att"><input type="file" accept="image/*" id="e-attf" hidden>${has?`<button type="button" class="att-th" id="e-attv" aria-label="Ver anexo"><img id="e-atti" alt="" ${e.fotoNew?`src="${e.fotoNew}"`:''}><span>📎 Anexo</span></button><button type="button" class="pga" id="e-attx">Remover</button>`:''}</div>`}
+function attLoad(){const e=edit,g=G();if(!e||!g||e.fotoNew||!e.hasFoto||e.fotoRm)return;const im=document.getElementById('e-atti');if(!im)return;fotoGet(g.id+'-f-'+e.id).then(u=>{const x=document.getElementById('e-atti');if(x&&u)x.src=u;else if(x&&!u)x.parentNode.querySelector('span').textContent='📎 Anexo (sem rede)'})}
+function fotoView(u){if(!u)return;navPush('fv');const o=document.createElement('div');o.id='fotov';o.innerHTML=`<img src="${u}" alt="Anexo"><button aria-label="Fechar">✕</button>`;o.addEventListener('click',()=>{navPop('fv');o.remove()});document.body.appendChild(o)}
+async function attSet(f){if(!f||!edit)return;try{edit.fotoNew=await fotoShrink(f);edit.fotoRm=false;const a=sheet.querySelector('.att');if(a)a.outerHTML=attHTML()}catch(e){note('Não consegui usar essa foto.',3000)}}
+sheet.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t||!edit)return;
+  if(t.id==='e-attb'){const i=document.getElementById('e-attf');if(i)i.click()}
+  else if(t.id==='e-attx'){edit.fotoNew=null;edit.fotoRm=true;const a=sheet.querySelector('.att');if(a)a.outerHTML=attHTML()}
+  else if(t.id==='e-attv'){const g=G();if(edit.fotoNew)fotoView(edit.fotoNew);else fotoGet(g.id+'-f-'+edit.id).then(u=>u?fotoView(u):note('Sem rede: não consegui abrir a foto.',3000))}});
+sheet.addEventListener('change',ev=>{if(ev.target.id==='e-attf'){const f=ev.target.files&&ev.target.files[0];attSet(f);ev.target.value=''}});
+new MutationObserver(()=>{const im=document.getElementById('e-atti');if(im&&!im.getAttribute('src')&&!im.dataset.ld){im.dataset.ld='1';attLoad()}}).observe(sheet,{childList:true,subtree:true});
 var IIS=[];function iiK(t){let k=IIS.indexOf(t);if(k<0){IIS.push(t);k=IIS.length-1}return k}function ii(t){let k=IIS.indexOf(t);if(k<0){IIS.push(t);k=IIS.length-1}return `<button type="button" class="ii" data-ii="${k}" aria-label="Explicação">i</button>`}
 const gasto=g=>g.despesas.filter(d=>d.tipo!=='reemb').reduce((s,d)=>s+RD(g,d,d.total),0);
 const ALLC='AED AFN ALL AMD AOA ARS AUD AWG AZN BAM BBD BDT BGN BHD BIF BMD BND BOB BRL BSD BTN BWP BYN BZD CAD CDF CHF CLP CNY COP CRC CUP CVE CZK DJF DKK DOP DZD EGP ERN ETB EUR FJD FKP GBP GEL GHS GIP GMD GNF GTQ GYD HKD HNL HTG HUF IDR ILS INR IQD IRR ISK JMD JOD JPY KES KGS KHR KMF KPW KRW KWD KYD KZT LAK LBP LKR LRD LSL LYD MAD MDL MGA MKD MMK MNT MOP MRU MUR MVR MWK MXN MYR MZN NAD NGN NIO NOK NPR NZD OMR PAB PEN PGK PHP PKR PLN PYG QAR RON RSD RUB RWF SAR SBD SCR SDG SEK SGD SHP SLE SOS SRD SSP STN SVC SYP SZL THB TJS TMT TND TOP TRY TTD TWD TZS UAH UGX USD UYU UZS VES VND VUV WST XAF XCD XCG XOF XPF YER ZAR ZMW ZWG'.split(' ');
@@ -556,7 +581,7 @@ function render(){gateUpd();
     {const me=meOf(g);if(me)h+=walletHTML(g,me)}
     h+=`<div class="addrow"><button class="primary" id="add">+ Nova despesa</button></div>${searchHTML(g)}<div class="list">${ds.length?ds.filter(d=>matchQ(g,d)).map(d=>{
       const pags=Object.keys(d.pag).filter(k=>d.pag[k]>0).map(k=>nome(g,k));
-      return `<button class="item card" data-edit="${esc(d.id)}"><span class="ic">${esc(dEmo(d))}</span><h3>${esc(d.titulo||'Sem título')}</h3><small>${d.tipo==='reemb'?'Reembolso: '+esc(pags.join(', '))+' → '+esc(Object.keys(d.div).map(k=>nome(g,k)).join(', ')):'Pago por '+esc(pags.join(', '))} · ${esc(d.data||'')}</small><span class="amt">${fmt(d.total,d.moeda)}${d.moeda!==g.base?`<br><small style="font:400 13px Inter,sans-serif;color:var(--mut)">${fmt(toCur(g,RD(g,d,d.total),g.base),g.base)}</small>`:''}</span></button>`}).join(''):'<p class="empty">Sem despesas. Toca em “Nova despesa” para começar.</p>'}</div>`}
+      return `<button class="item card" data-edit="${esc(d.id)}"><span class="ic">${esc(dEmo(d))}</span><h3>${esc(d.titulo||'Sem título')}${d.foto?' <span class="clip">📎</span>':''}</h3><small>${d.tipo==='reemb'?'Reembolso: '+esc(pags.join(', '))+' → '+esc(Object.keys(d.div).map(k=>nome(g,k)).join(', ')):'Pago por '+esc(pags.join(', '))} · ${esc(d.data||'')}</small><span class="amt">${fmt(d.total,d.moeda)}${d.moeda!==g.base?`<br><small style="font:400 13px Inter,sans-serif;color:var(--mut)">${fmt(toCur(g,RD(g,d,d.total),g.base),g.base)}</small>`:''}</span></button>`}).join(''):'<p class="empty">Sem despesas. Toca em “Nova despesa” para começar.</p>'}</div>`}
   if(tab==='res'){const nd=g.despesas.filter(d=>d.tipo!=='reemb'),dias=new Set(nd.map(d=>d.data).filter(Boolean)).size,tt=gasto(g),B=v=>fmt(toCur(g,v,g.base),g.base);
     h+=nd.length?`<div class="rsst"><div class="stat"><b>${nd.length}</b><span>despesas</span></div><div class="stat"><b>${B(tt/Math.max(1,g.membros.length))}</b><span>por pessoa</span></div><div class="stat"><b>${B(tt/Math.max(1,dias))}</b><span>por dia (${dias} dia${dias===1?'':'s'})</span></div></div>${ppHTML(g)}${resumoHTML(g,g.base)}`:'<p class="empty">Ainda não há despesas para resumir.</p>';h+=histHTML(g)}
   if(tab==='sald'){
@@ -620,7 +645,7 @@ function openEditor(d){if(modal.hidden)navPush('ed');const g=G();confirmDel=null
   edit=d?{lev:d.lev||'',lvs:d.lv?val(d.lv):'',pm:d.pe?d.pe.m:'',pv:d.pe?val(d.pe.v):'',tx:d.tx||null,itens:clean(d.itens||[]),id:d.id,emoji:dEmo(d),emoFix:!!d.emoji,titulo:d.titulo,moeda:d.moeda,total:d.total,data:d.data,tipo:d.tipo||'desp',modo:d.modo||'valor',cr:d.cr,pag:mk(d.pag,d.fixP,true),div:mk(d.div,d.fixD,false)}
         :{itens:[],id:null,emoji:'💸',emoFix:false,titulo:'',moeda:g.base,total:0,data:today(),tipo:'desp',modo:'valor',pag:mk(null,null,true),div:mk(null,null,false)};
   if(!d){rebal('pag');rebal('div')}
-  drawEditor();modal.hidden=false;setTimeout(()=>{const t=$('#e-t');if(t&&!d)t.focus()},50)}
+  edit.hasFoto=!!(d&&d.foto);edit.fotoNew=null;edit.fotoRm=false;drawEditor();modal.hidden=false;setTimeout(()=>{const t=$('#e-t');if(t&&!d)t.focus()},50)}
 function rowsHTML(side){const g=G(),rows=edit[side],partes=side==='div'&&edit.modo==='partes',art=side==='div'&&edit.modo==='artigos';
   if(art)return g.membros.map(p=>{const r=rows[p.id];return `<div class="prow"><label class="chk"><input type="checkbox" data-side="div" data-k="${esc(p.id)}" ${r.on?'checked':''}><span>${avP(g,p,'sm')} ${esc(p.nome)}</span></label><span class="calc" data-calc="${esc(p.id)}">${r.on?val(r.v):''}</span><span></span></div>`}).join('');
   return g.membros.map(p=>{const r=rows[p.id];return `<div class="prow"><label class="chk"><input type="checkbox" data-side="${side}" data-k="${esc(p.id)}" ${r.on?'checked':''}><span>${avP(g,p,'sm')} ${esc(p.nome)}</span></label>
@@ -671,7 +696,7 @@ function drawEditor(){const g=G(),e=edit,re=e.tipo==='reemb';
   <label for="e-t">Descrição</label><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="e-emo" data-ein="exp" value="${esc(e.emoji)}" data-cur="${esc(e.emoji)}" aria-label="Emoji da despesa: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" id="e-emo-more" aria-label="Ver lista de emojis"></button></span><input id="e-t" value="${esc(e.titulo)}" placeholder="Jantar, hotel, gasolina…"></div>
   <div id="e-emos" hidden>${picker([...EXP.map(x=>x[0]),'🤝'],e.emoji,'exp')}</div>
   <div class="row2"><label>Total<input id="e-tot" inputmode="decimal" value="${e.total?val(e.total):''}" placeholder="0,00"></label><label>Moeda<select id="e-cur">${curOpts(g,e.moeda)}<optgroup label="Outras moedas">${otherOpts(g,e.moeda)}</optgroup></select></label></div><div id="e-rate">${rateRow()}</div>
-  <label>Data<input type="date" id="e-dat" value="${esc(e.data)}"></label>
+  ${attHTML()}<label>Data<input type="date" id="e-dat" value="${esc(e.data)}"></label>
   <section><div class="h3row"><h3>${re?'Quem deu o dinheiro':'Pago por'+ii('Marca quem pagou. O resto acerta-se sozinho.')}</h3></div><div id="r-pag">${rowsHTML('pag')}</div><p class="sum" id="s-pag"></p></section>
   <section><div class="h3row"><h3>${re?'Quem recebeu':'Dividido por'+ii(e.modo==='partes'?'Partes por pessoa (ex.: casal = 2).':e.modo==='artigos'?'Cada um paga os artigos que consumiu.':'Muda só quem gastou diferente.')}</h3><button type="button" class="auto" style="padding:0 12px" data-all="div">Todos</button></div><div class="seg"><button data-modo="valor" aria-pressed="${e.modo==='valor'}">Valores</button><button data-modo="partes" aria-pressed="${e.modo==='partes'}">Partes</button>${e.itens&&e.itens.length?`<button data-modo="artigos" aria-pressed="${e.modo==='artigos'}">Artigos</button>`:''}</div>
   <div id="r-div">${rowsHTML('div')}</div><div id="e-items">${itemsHTML()}</div><p class="sum" id="s-div"></p></section>
@@ -703,7 +728,7 @@ Se a imagem não for um recibo legível, responde {"erro": "motivo curto em port
 async function scan(f){if(f&&edit&&gkey()&&!(samp&&samp.gem))samp=mkSamp();if(!f||!edit||!samp)return;const g=G(),lab=sheet.querySelector('.scan');
   sheet.querySelectorAll('.scan').forEach(l=>l.classList.add('busy'));const t0=Date.now(),tick=setInterval(()=>{const st=$('#e-scan');if(st&&/^A ler/.test(st.textContent))st.textContent='A ler o recibo… '+Math.round((Date.now()-t0)/1000)+' s';else clearInterval(tick)},1000);$('#e-scan').textContent='A ler o recibo…';
   try{const r=await samp.json(scanPrompt(g),{images:[f]});if(!edit)return;
-    if(!r||typeof r!=='object'||r.erro){$('#e-scan').textContent='Não consegui ler: '+String(r&&r.erro||'tenta outra foto.');return}
+    if(!r||typeof r!=='object'||r.erro){$('#e-scan').textContent='Não consegui ler: '+String(r&&r.erro||'tenta outra foto.');return}if(edit)attSet(f);
     const total=Math.round((parseFloat(r.total)||0)*100),m=String(r.moeda||'').toUpperCase().trim();let msg='';
     if(r.descricao)edit.titulo=String(r.descricao).slice(0,80);
     if(total>0)edit.total=total;
@@ -726,8 +751,9 @@ function saveEditor(){const g=G(),e=edit;let tx=null;if(e.moeda!==g.base){const 
   const d={id:e.id||uid(),tx,pe,lev:e.lev||null,lv:e.lev&&parse(e.lvs||'')>0?parse(e.lvs):null,emoji:e.emoji,itens:e.itens||[],titulo:e.titulo.trim()||(e.tipo==='reemb'?'Reembolso':'Despesa'),moeda:e.moeda,total:e.total,data:e.data||today(),tipo:e.tipo,modo:e.modo,cr:e.cr||Date.now(),
     pag:pick(e.pag),div:pick(e.div),fixP:order(g,e.pag).filter(k=>e.pag[k].fix),fixD:e.modo==='valor'?order(g,e.div).filter(k=>e.div[k].fix):[],
     partes:e.modo==='partes'?Object.fromEntries(order(g,e.div).map(k=>[k,+e.div[k].p||0])):{}};
-  const i=g.despesas.findIndex(x=>x.id===d.id);{const dx=i>=0?diffD(g,g.despesas[i],d):'';if(i<0||dx)logH(g,i>=0?'mudou':'criou',d,dx)}if(i>=0)g.despesas[i]=d;else g.despesas.push(d);
-  closeEditor();save(g);note('Guardado.',2000)}
+  if(e.fotoNew||(e.hasFoto&&!e.fotoRm))d.foto=1;const i=g.despesas.findIndex(x=>x.id===d.id);{const dx=i>=0?diffD(g,g.despesas[i],d):'';if(i<0||dx)logH(g,i>=0?'mudou':'criou',d,dx)}if(i>=0)g.despesas[i]=d;else g.despesas.push(d);
+  const fn=e.fotoNew,frm=e.hasFoto&&e.fotoRm&&!fn,fk=g.id+'-f-'+d.id;closeEditor();save(g);note('Guardado.',2000);
+  if(fn){fotoC[fk]=fn;fotoPut(fk,fn).catch(()=>note('A foto não foi guardada (sem ligação aos dados).',5000))}else if(frm){delete fotoC[fk];fotoDel(fk)}}
 
 sheet.addEventListener('input',ev=>{const t=ev.target;if(!edit)return;
   if(t.id==='e-t'){edit.titulo=t.value;if(!edit.emoFix){edit.emoji=guess(t.value);setEin('#e-emo',edit.emoji);sheet.querySelectorAll('[data-emo=exp]').forEach(b=>b.classList.toggle('on',b.dataset.e===edit.emoji))}}
@@ -1095,7 +1121,7 @@ addEventListener('scroll',iiClose,true);
 let navIgnore=0;
 function navPush(k){try{history.pushState({k},'',location.href)}catch(e){}}
 function navPop(k){try{if(history.state&&history.state.k===k){navIgnore++;history.back()}}catch(e){}}
-addEventListener('popstate',()=>{if(navIgnore){navIgnore--;return}
+addEventListener('popstate',()=>{if(navIgnore){navIgnore--;return}{const fv=document.getElementById('fotov');if(fv){fv.remove();return}}
   if(document.getElementById('camov')){camClose(true);return}
   if(cpk){closeCur(true);return}
   if(!modal.hidden){closeEditor(true);return}
@@ -1208,6 +1234,7 @@ function diffD(g,o,n){const r=[],nm=k=>{const p=g.membros.find(p=>p.id===k);retu
   if(!ad.length&&!rm.length&&o.total===n.total&&JSON.stringify(o.div)!==JSON.stringify(n.div))r.push('como se divide');
   if((o.data||'')!==(n.data||''))r.push('data '+(o.data||'?')+' → '+(n.data||'?'));
   if((o.lev||'')!==(n.lev||''))r.push(n.lev?'pago com um levantamento':'já não usa levantamento');
+  if(!!o.foto!==!!n.foto)r.push(n.foto?'anexou foto':'tirou a foto');
   if((o.emoji||'')!==(n.emoji||'')&&!r.length)r.push('ícone');
   return r.join(' · ')}
 var histAll=false;
