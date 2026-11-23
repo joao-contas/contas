@@ -491,7 +491,7 @@ function stampG(g,B){if(!B)return;const now=Date.now(),J=x=>JSON.stringify(x);
     };
   st(g.despesas,B.despesas,'del');st(g.membros,B.membros,'mdel')}
 function mergeG(S,L,B){if(!S)return L;if(!L)return S;const J=x=>JSON.stringify(x),M={...S};
-  for(const k of ['nome','emoji','base','taxas','taxasUpd','taxasDia','cart','claims','criador','ownerMid','iaKey'])if(J(L[k])!==J(B?B[k]:undefined)){if(L[k]===undefined)delete M[k];else M[k]=L[k]}
+  for(const k of ['nome','emoji','base','taxas','taxasUpd','taxasDia','peRev','cart','claims','criador','ownerMid','iaKey'])if(J(L[k])!==J(B?B[k]:undefined)){if(L[k]===undefined)delete M[k];else M[k]=L[k]}
   const mx=(a,b)=>{const o={...(a||{})};for(const k in (b||{}))o[k]=Math.max(o[k]||0,b[k]);const e=Object.entries(o).sort((x,y)=>y[1]-x[1]).slice(0,300);return Object.fromEntries(e)};
   const mg=(sa,la,del)=>{const m=new Map();(sa||[]).forEach(x=>m.set(x.id,x));(la||[]).forEach(x=>{const s=m.get(x.id);if(!s||(x.u||0)>(s.u||0))m.set(x.id,x)});return [...m.values()].filter(x=>!del[x.id]||(x.u||0)>del[x.id])};
   M.del=mx(S.del,L.del);{const ok=new Set([...(S.lixo||[]),...(L.lixo||[])].map(d=>d.id));[...(S.log||[]),...(L.log||[])].forEach(h=>{if(h.i&&/apagou|anulou/.test(h.a))ok.add(h.i)});for(const k in M.del)if(!ok.has(k))delete M.del[k]}M.mdel=mx(S.mdel,L.mdel);M.despesas=mg(S.despesas,L.despesas,M.del);M.membros=mg(S.membros,L.membros,M.mdel);
@@ -527,7 +527,7 @@ function dayRates(date){if(!date)return null;if(dayCache[date])return dayCache[d
 const dayRate=(g,m,date)=>{const d=dayRates(date);return d&&d[m]&&d[g.base]?d[m]/d[g.base]:null};
 const liveRate=(g,m)=>live&&live.rates[m]&&live.rates[g.base]?live.rates[m]/live.rates[g.base]:null;
 async function updateRates(g){const L=await fetchRates(true);if(!L){note('Sem ligação para atualizar as taxas.',4000);return}
-  let n=0;for(const m in g.taxas){if(L.rates[m]){g.taxas[m]=L.rates[m];n++}}
+  freezeTx(g);let n=0;for(const m in g.taxas){if(L.rates[m]){g.taxas[m]=L.rates[m];n++}}
   g.taxasUpd=L.upd||'';save(g);note(n+' taxas atualizadas.',3000)}
 const G=()=>groups[cur];
 const pn=p=>p.nome;
@@ -541,7 +541,14 @@ function pgFull(d){if(d.paga)return true;if(!d.pg)return false;const ks=Object.k
 function pgN(d){return d.pg?Object.keys(d.pg).filter(k=>d.pg[k]).length:0}
 function peRate(g,d){if(!d.pe||!(d.pe.v>0)||d.pe.m===d.moeda||!(d.total>0))return null;const rp=d.pe.m===g.base?1:(g.taxas[d.pe.m]&&g.taxas[g.base]?g.taxas[d.pe.m]/g.taxas[g.base]:null);return rp?d.total/(d.pe.v/rp):null}
 var peFixed={};
-function peFix(g){if(!g||peFixed[g.id])return;peFixed[g.id]=1;const ch=[];g.despesas.forEach(d=>{if(d.moeda===g.base&&d.pe&&d.pe.m!==g.base)return;const r=peRate(g,d);if(!r||d.moeda===g.base)return;if(!d.tx||d.tx.b!==g.base||Math.abs(d.tx.r-r)/r>0.001){const o=RD(g,d,d.total);d.tx={b:g.base,m:d.moeda,r};ch.push([d,o,RD(g,d,d.total)])}});
+function peUndo(g){if(g.peRev)return false;let n=0;const rv=[];const pc=t=>{const m=String(t||'').match(/^([\d\s.\u00a0\u202f]+,\d{2})/);return m?Math.round(parseFloat(m[1].replace(/[\s.\u00a0\u202f]/g,'').replace(',','.'))*100):0};
+  (g.log||[]).forEach(h=>{if(h.q!=='🤖 App'||h.a!=='acertou o valor de'||!h.i||!h.x)return;const d=g.despesas.find(x=>x.id===h.i);if(!d||!d.pe||d.pe.m===g.base||d.moeda===g.base)return;const o=pc(h.x);if(!(o>0))return;
+    const nw=RD(g,d,d.total);d.tx={b:g.base,m:d.moeda,r:d.total/(o/(g.taxas[g.base]||1))/(g.taxas[g.base]||1)};n++;
+    rv.push({t:Date.now()+n,q:'🤖 App',a:'repôs o valor de',ti:d.titulo||'',e:dEmo(d),x:fmt(toCur(g,nw,g.base),g.base)+' → '+fmt(o,g.base)+' (taxa do dia da despesa)',i:d.id})});
+  if(rv.length)g.log=[...rv,...(g.log||[])].slice(0,80);
+  g.peRev=1;return n>0}
+function peFix(g){if(!g||peFixed[g.id])return;peFixed[g.id]=1;const undone=peUndo(g);if(undone)save(g);return;const ch=[];g.despesas.forEach(d=>{if(d.moeda===g.base&&d.pe&&d.pe.m!==g.base)return;if(d.pe&&d.pe.m!==g.base)return;const r=peRate(g,d);if(!r||d.moeda===g.base)return;if(!d.tx||d.tx.b!==g.base||Math.abs(d.tx.r-r)/r>0.001){const o=RD(g,d,d.total);d.tx={b:g.base,m:d.moeda,r};ch.push([d,o,RD(g,d,d.total)])}});
+  if(undone&&!ch.length)save(g);
   if(ch.length){const B=v=>fmt(toCur(g,v,g.base),g.base),now=Date.now();ch.forEach(([d,o,nv],i)=>{g.log=[{t:now+i,q:'🤖 App',a:'acertou o valor de',ti:d.titulo||'',e:dEmo(d),x:B(o)+' → '+B(nv)+' (valor pago no banco: '+fmt(d.pe.v,d.pe.m)+')',i:d.id},...(g.log||[])].slice(0,80)});
     save(g);setTimeout(()=>note('Acertei '+ch.map(c=>'“'+(c[0].titulo||'?')+'”').join(' e ')+' com o valor pago no banco. Vê em Resumo → Alterações.',6000),300)}}
 function saldos(g){peFix(g);const b={};g.membros.forEach(p=>b[p.id]=0);
@@ -584,7 +591,7 @@ async function scanMany(fs){if(!edit)return;if(!(samp&&samp.gem)&&typeof gkey===
     let m=ok[0];for(const r of ok.slice(1))m=mergeR(m,r);if(edit.mergeNext&&edit.lastR)m=mergeR(edit.lastR,m);edit.mergeNext=false;
     const ri=rs.findIndex(r=>r&&!r.erro&&r.tipo!=='banco');await scan(fs[ri>=0?ri:0],m)}
   finally{sheet.querySelectorAll('.scan').forEach(l=>l.classList.remove('busy'))}}
-function freezeTx(g){g.despesas.forEach(d=>{if(d.moeda!==g.base&&!(d.tx&&d.tx.r>0&&d.tx.b===g.base&&g.taxas[d.tx.b])&&g.taxas[d.moeda]&&g.taxas[g.base])d.tx={b:g.base,m:d.moeda,r:g.taxas[d.moeda]/g.taxas[g.base]}})}
+function freezeTx(g){g.despesas.forEach(d=>{if(d.moeda!==g.base&&!(d.tx&&d.tx.r>0&&d.tx.b===g.base&&g.taxas[d.tx.b])&&g.taxas[d.moeda]&&g.taxas[g.base]){const dr=typeof dayRate==='function'&&d.data?dayRate(g,d.moeda,d.data):null;d.tx={b:g.base,m:d.moeda,r:dr||g.taxas[d.moeda]/g.taxas[g.base]}}})}
 var autoTried={};
 async function autoRates(g){if(!g||g.taxasDia===today()||!meOf(g))return;const L=await fetchRates(true);if(!L||!L.rates)return;freezeTx(g);let n=0;for(const m in g.taxas){if(L.rates[m]){g.taxas[m]=L.rates[m];n++}}g.taxasUpd=L.upd||'';g.taxasDia=today();save(g)}
 var meAsk=false,pickC=null;
