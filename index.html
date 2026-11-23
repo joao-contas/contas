@@ -203,7 +203,11 @@ label .curbtn{margin-top:6px}
 .whol{display:grid;gap:8px;margin-top:16px}
 .whob{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 16px;border-radius:16px;background:#fff;color:var(--ink);font-size:17px;font-weight:600;text-align:left;box-shadow:var(--shadow)}
 .whob span{font-size:24px}.whob small{margin-left:auto;font-weight:400;color:var(--mut);font-size:13px}.whob.taken{opacity:.55}
-.whob:active{background:var(--lav)}
+.whob:active{background:var(--lav)}.rbb{width:100%;min-height:0;background:none;box-shadow:none;color:var(--ink);text-align:left;padding:7px 4px;border-radius:10px;font-weight:400}.rbb:active{background:var(--lav)}.rbb b{white-space:nowrap}.simprow{display:flex;align-items:center;gap:6px;margin:0 0 14px}.dots{width:38px;height:38px;min-height:0;padding:0;border-radius:50%;background:var(--line);color:var(--ink);font-size:20px;line-height:1;flex:none;box-shadow:none}.dots.on{background:var(--ink);color:#fff}.sopt{margin:-6px 0 14px;padding:12px 16px}.sopt label{margin:0}.simprow .seg{flex:1;margin:0}.simprow .seg button{flex:1;white-space:nowrap;font-size:13.5px;padding:0 6px;min-height:38px}
+.avbtn{position:absolute;right:-6px;top:-4px;width:44px;height:44px;min-height:0;padding:0;border-radius:50%;background:var(--lavd);color:#fff;font:600 19px/1 Outfit,sans-serif;box-shadow:var(--shadow);z-index:2}
+.pfov{align-items:flex-start;padding-top:calc(70px + env(safe-area-inset-top))}.pfbox{text-align:left}
+.pfhd{display:flex;align-items:center;gap:12px;margin-bottom:16px}.pfhd b{display:block;font-size:19px}.pfbox .actions{margin-top:16px!important}.pfhd small{color:var(--mut);font-size:13px}
+.avbig{width:52px;height:52px;border-radius:50%;background:var(--lavd);color:#fff;display:flex;align-items:center;justify-content:center;font:600 24px/1 Outfit,sans-serif;flex:none}
 #gate{position:fixed;inset:0;z-index:40;background:linear-gradient(180deg,var(--lav),var(--bg) 70%);display:flex;align-items:center;justify-content:center;padding:24px}
 body.gated{overflow:hidden}
 .gbox{width:100%;max-width:360px;text-align:center}.glogo{width:96px;height:96px}
@@ -246,7 +250,7 @@ h2.sec{font-size:21px;margin:30px 0 8px}
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <button id="back" class="ghost" hidden>‹ Todos os grupos</button><button id="more" class="ghost morebtn" hidden aria-label="Definições do grupo" title="Definições do grupo">⋮</button>
+  <button id="back" class="ghost" hidden>‹ Todos os grupos</button><button id="more" class="ghost morebtn" hidden aria-label="Definições do grupo" title="Definições do grupo">⋮</button><button id="avatar" class="avbtn" hidden aria-label="O teu perfil"></button>
   <h1 id="title">EvenJohn</h1>
   <p id="sub">Divide despesas, mesmo quando várias pessoas pagam a mesma conta.</p>
   <div id="hero"></div>
@@ -388,7 +392,7 @@ function acertos(b){const cr=[],de=[];for(const k in b){if(b[k]>0.5)cr.push([k,b
   cr.sort((a,c)=>c[1]-a[1]);de.sort((a,c)=>c[1]-a[1]);const out=[];let i=0,j=0;
   while(i<de.length&&j<cr.length){const x=Math.min(de[i][1],cr[j][1]);out.push({de:de[i][0],para:cr[j][0],v:x});de[i][1]-=x;cr[j][1]-=x;if(de[i][1]<0.5)i++;if(cr[j][1]<0.5)j++}
   return out}
-let simp=true;
+let simp=true,sOpts=false;
 function detalhado(g){const M={},ok=new Set(g.membros.map(p=>p.id)),add=(a,b,v)=>{const k=a+'>'+b;M[k]=(M[k]||0)+v};
   g.despesas.forEach(d=>{const cr=[],de=[];
     new Set([...Object.keys(d.pag),...Object.keys(d.div)]).forEach(k=>{if(!ok.has(k))return;const n=RD(g,d,(d.pag[k]||0)-(d.div[k]||0));if(n>1e-4)cr.push([k,n]);else if(n<-1e-4)de.push([k,-n])});
@@ -456,7 +460,7 @@ const allOpts=sel=>`<optgroup label="Mais usadas">${TOPC.map(m=>`<option value="
 
 function render(){gateUpd();
   if(cur&&!groups[cur]){if(pendingOpen===cur){$('#back').hidden=false;$('#title').textContent='A abrir o grupo…';$('#sub').textContent='';$('#hero').innerHTML='';app.innerHTML='<p class="empty">A carregar…</p>';return}cur=null}
-  $('#back').hidden=!cur;$('#more').hidden=!cur||(!!G()&&!meOf(G())&&G().membros.length>0);$('#more').classList.toggle('on',tab==='conf');
+  $('#back').hidden=!cur;{const av=$('#avatar');const sh=!cur&&!!user;av.hidden=!sh;if(sh)av.textContent=avL()}$('#more').hidden=!cur||(!!G()&&!meOf(G())&&G().membros.length>0);$('#more').classList.toggle('on',tab==='conf');
   if(cur)document.querySelector('.top').classList.remove('home');
   if(!cur){
     document.querySelector('.top').classList.add('home');
@@ -508,6 +512,7 @@ function render(){gateUpd();
       const quem=mine==='de'?`Pagas a <b>${esc(nome(g,t.para))}</b>`:mine==='para'?`<b>${esc(nome(g,t.de))}</b> paga-te`:`<b>${esc(nome(g,t.de))}</b> → <b>${esc(nome(g,t.para))}</b>`;
       return `<div class="pay"><div class="pay-top"><span class="pay-who">${quem}</span><span class="pay-amt">${fmt(amt,m)}</span></div>${bl?`<div class="bkn">${esc(bl)}</div>`:''}
       <div class="pay-ctl"><select aria-label="Pagar em que moeda" data-rc="${esc(key)}">${curOpts(g,m,true)}</select><button data-pay="${esc(key)}" data-amt="${amt}" data-m="${esc(m)}" class="${payAsk===key?'primary':''}">${payAsk===key?'Confirmar: já foi pago':'✓ Já foi pago'}</button></div></div>`};
+    h+=`<div class="simprow"><div class="seg simpseg" role="group" aria-label="Tipo de acerto"><button data-simp="1" aria-pressed="${simp}">Simplificado</button><button data-simp="0" aria-pressed="${!simp}">Despesa a despesa</button></div>${ii('<b>Simplificado</b>: o mínimo de transferências (recomendado). <b>Despesa a despesa</b>: cada um paga a quem pagou por si.')}<button class="dots ${sOpts?'on':''}" id="sopts" aria-label="Opções">⋯</button></div>${sOpts?`<div class="card sopt"><label>Mostrar valores em<select id="showcur">${curOpts(g,sc)}</select></label></div>`:''}`;
     // 1. a tua situação
     if(me){const v=b[me],out=tr.filter(t=>t.de===me),inn=tr.filter(t=>t.para===me);
       h+=`<div class="card you ${v>0.5?'rec':v<-0.5?'dev':'ok'}"><p class="you-l">A tua situação</p><p class="you-big">${v>0.5?'Vais receber '+F(v):v<-0.5?'Tens de pagar '+F(v):'Estás em dia ✓'}</p>
@@ -521,12 +526,7 @@ function render(){gateUpd();
     const others=me?tr.filter(t=>t.de!==me&&t.para!==me):tr;
     h+=`<h2 class="sec">${me?'Os outros pagamentos':'Pagamentos para ficar tudo acertado'}</h2>
     <div class="card">${others.length?others.map(t=>trRow(t,'')).join(''):`<p class="empty" style="margin:0">${tr.length?'Não há mais pagamentos.':'Está tudo acertado 🎉'}</p>`}</div>
-    ${tr.length?'<div class="actions" style="margin-top:10px"><button id="shareacc">📤 Partilhar acerto no WhatsApp</button></div>':''}
-    <details class="opts"><summary>⚙️ Opções</summary>
-      <label>Mostrar valores em<select id="showcur">${curOpts(g,sc)}</select></label>
-      <p class="small" style="margin:12px 0 4px">Como calcular os pagamentos${ii('<b>Menos pagamentos</b>: o mínimo de transferências (recomendado). <b>Despesa a despesa</b>: cada um paga a quem pagou por si.')}</p>
-      <div class="seg" role="group" aria-label="Tipo de acerto"><button data-simp="1" aria-pressed="${simp}">Menos pagamentos</button><button data-simp="0" aria-pressed="${!simp}">Despesa a despesa</button></div>
-    </details>`}
+    ${tr.length?'<div class="actions" style="margin-top:10px"><button id="shareacc">📤 Partilhar acerto no WhatsApp</button></div>':''}`}
   if(tab==='conf'){
     const usados=new Set();g.despesas.forEach(d=>{Object.keys(d.pag).forEach(k=>usados.add(k));Object.keys(d.div).forEach(k=>usados.add(k))});
     h+=`<h2 class="sec" style="margin-top:4px">Grupo</h2><div class="card"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="g-emo" data-ein="grp" value="${esc(g.emoji||'💸')}" data-cur="${esc(g.emoji||'💸')}" aria-label="Emoji do grupo: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" id="g-emo-more" aria-label="Ver lista de emojis"></button></span><input id="g-nome" value="${esc(g.nome)}" aria-label="Nome do grupo" enterkeyhint="done"></div><div id="g-emos" hidden>${secPicker(g.emoji,'grp')}</div></div>
@@ -722,6 +722,7 @@ $('#hero').addEventListener('click',async ev=>{const t=ev.target.closest('button
     else p.banco.limite=!!t.dataset.bklim;
     save(g);if(prof){prof.banco=p.banco?{...p.banco}:null;profSave();propagate()}}});
 $('#hero').addEventListener('change',ev=>{const t=ev.target,g=G();if(!g||!t.dataset.bkm)return;const p=g.membros.find(x=>x.id===meOf(g));if(p&&p.banco){p.banco.moeda=t.value;save(g);if(prof){prof.banco={...p.banco};profSave();propagate()}}});
+$('#avatar').addEventListener('click',()=>{if(!profOpen){navPush('pf');profOpen=true;render()}});
 $('#more').addEventListener('click',()=>{tab=tab==='conf'?'desp':'conf';confirmDel=null;render();const t=document.querySelector('.tabs');if(t)t.scrollIntoView({behavior:'smooth',block:'start'})});
 $('#back').addEventListener('click',()=>{navPop('g');cur=null;shareOpen=false;bkOpen=false;confirmDel=null;render();scrollTo(0,0)});
 app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)return;const g=G();
@@ -743,6 +744,7 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
   if(t.dataset.wdel){const g=G(),me=meOf(g);if(wDelAsk!==t.dataset.wdel){wDelAsk=t.dataset.wdel;render();return}wDelAsk=null;g.cart[me]=levsOf(g,me).filter(l=>l.id!==t.dataset.wdel);save(g);return}
   if(t.dataset.open){navPush('g');cur=t.dataset.open;tab='desp';showCur=null;rowCur={};render();scrollTo(0,0)}
   else if(t.dataset.simp){simp=t.dataset.simp==='1';render()}
+  else if(t.id==='sopts'){sOpts=!sOpts;render()}
   else if(t.dataset.tab){tab=t.dataset.tab;confirmDel=null;render()}
   else if(t.id==='add')openEditor(null);
   else if(t.id==='addr')openReemb();
@@ -818,11 +820,11 @@ function profCard(){if(!auth)return '';
   if(!user)return `<div class="card pf"><span class="pf-t">👤 Entra para teres os teus grupos em qualquer telemóvel</span><button class="primary" id="login">Entrar com Google</button></div>`;
   if(!prof)return `<div class="card pf"><span class="pf-t">👤 A carregar o perfil…</span></div>`;
   const bk='';
-  if(!profOpen)return `<button class="card pf pf-row" id="pfopen"><span class="pf-e">${esc(prof.emoji||'🙂')}</span><span class="pf-t"><b>${esc(prof.nome||'Sem nome')}</b><small>${esc(user.email||'')}${bk}</small></span><span class="pf-go">›</span></button>`;
-  return `<div class="card" style="margin-top:18px"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="pf-emo" data-ein="prof" value="${esc(prof.emoji||'🙂')}" data-cur="${esc(prof.emoji||'🙂')}" aria-label="O teu emoji: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"></span><input id="pf-nome" value="${esc(prof.nome||'')}" placeholder="O teu nome nos grupos" aria-label="O teu nome" enterkeyhint="done"></div>
-  <p class="small">${esc(user.email||'')} · O nome e o emoji mudam em todos os teus grupos.</p>
+  if(!profOpen)return '';
+  return `<div class="whoov pfov"><div class="whobox pfbox"><div class="pfhd"><span class="avbig">${esc(avL())}</span><div><b>${esc(prof.nome||'Sem nome')}${ii('O nome e o emoji mudam em todos os teus grupos.')}</b><small>${esc(user.email||'')}</small></div></div><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="pf-emo" data-ein="prof" value="${esc(prof.emoji||'🙂')}" data-cur="${esc(prof.emoji||'🙂')}" aria-label="O teu emoji: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"></span><input id="pf-nome" value="${esc(prof.nome||'')}" placeholder="O teu nome nos grupos" aria-label="O teu nome" enterkeyhint="done"></div>
 
-  <div class="actions" style="margin-top:6px"><button id="logout">Sair da conta</button><button class="primary" id="pfclose">Feito</button></div></div>`}
+  <div class="actions" style="margin-top:6px"><button id="logout">Sair da conta</button><button class="primary" id="pfclose">Feito</button></div></div></div>`}
+function avL(){const n=(prof&&prof.nome)||(user&&(user.displayName||user.email))||'?';return (n.trim()[0]||'?').toUpperCase()}
 function pfBank(){const b=prof.banco||{},rv=b.tipo==='revolut',pl=b.plano||'standard';
   const chip=(attr,val,on,txt)=>`<button type="button" class="pchip ${on?'on':''}" ${attr}="${val}">${txt}</button>`;
   return `<div class="bkp" style="margin-top:6px"><p class="q">🏦 Pagas com Revolut?</p><div class="chips">${chip('data-pfbk','revolut',rv,'Sim')}${chip('data-pfbk','',!rv,'Não')}</div>
@@ -852,7 +854,7 @@ async function doLogin(){const pr=new GoogleAuthProvider();pr.setCustomParameter
     else if(c==='auth/unauthorized-domain')note('Falta autorizar este endereço no Firebase (Authentication → Definições → Domínios autorizados).',9000);
     else if(c==='auth/operation-not-allowed'||c==='auth/configuration-not-found')note('Falta ativar o Google em Firebase → Authentication → Método de início de sessão.',9000);
     else if(c!=='auth/popup-closed-by-user'&&c!=='auth/cancelled-popup-request')note('Não consegui entrar ('+(c||'erro')+').',7000)}}
-app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)return;
+app.addEventListener('click',ev=>{if(ev.target.classList&&ev.target.classList.contains('pfov')){navPop('pf');profOpen=false;render();return}const t=ev.target.closest('button');if(!t)return;
   if(t.id==='login')doLogin();
   else if(t.id==='pfopen'){navPush('pf');profOpen=true;render()}
   else if(t.id==='pfclose'){navPop('pf');profOpen=false;render()}
@@ -994,10 +996,21 @@ function ppDraw(){const g=G(),ov=document.getElementById('ppov');if(!g||!ppOpen|
   <div class="ppx"><h3>O que pagou</h3>${ds.length?ds.map(d=>{const v=d.pag[p.id],sh=Object.keys(d.pag).filter(k=>d.pag[k]>0).length>1;return it(d,v,(d.data||'')+(sh?' · parte de '+fmt(d.total,d.moeda):''))}).join(''):'<p class="small">Ainda não pagou nenhuma despesa.</p>'}
   ${rs.length?`<h3>Reembolsos</h3>${rs.map(d=>{const deu=d.pag[p.id]>0;return it(d,deu?d.pag[p.id]:d.div[p.id],(deu?'Deu a ':'Recebeu de ')+Object.keys(deu?d.div:d.pag).map(k=>nome(g,k)).join(', '))}).join('')}`:''}</div>`;
   ov.hidden=false}
-function ppShow(id){if(!ppOpen)navPush('pp');ppOpen=id;ppDraw();render()}
-function ppClose(fp){if(!ppOpen)return;if(!fp)navPop('pp');ppOpen=null;const ov=document.getElementById('ppov');if(ov)ov.hidden=true;render()}
+function ppShow(id){if(!ppOpen&&!catOpen)navPush('pp');catOpen=null;ppOpen=id;ppDraw();render()}
+function ppClose(fp){if(!ppOpen&&!catOpen)return;if(!fp)navPop('pp');ppOpen=null;catOpen=null;const ov=document.getElementById('ppov');if(ov)ov.hidden=true;render()}
 app.addEventListener('click',ev=>{const tg=ev.target.closest('[data-pptog]');if(tg){ppHide=!ppHide;try{localStorage.setItem('ej-pphide',ppHide?'1':'0')}catch(e){}render();return}
+  const c=ev.target.closest('[data-cat]');if(c){catShow(c.dataset.cat);return}
   const t=ev.target.closest('[data-pp]');if(t)ppShow(t.dataset.pp)});
+var catOpen=null;
+function catShow(c){if(!ppOpen&&!catOpen)navPush('pp');ppOpen=null;catOpen=c;catDraw()}
+function catDraw(){const g=G(),ov=document.getElementById('ppov');if(!g||!catOpen||!ov)return;
+  const B=v=>fmt(toCur(g,v,g.base),g.base),all=g.despesas.filter(d=>d.tipo!=='reemb'),ds=all.filter(d=>catOf(d)===catOpen).sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b.cr||0)-(a.cr||0));
+  const tot=ds.reduce((a,d)=>a+RD(g,d,d.total),0),tt=all.reduce((a,d)=>a+RD(g,d,d.total),0)||1;
+  const m=catOpen.match(/^(\S+)\s+(.*)$/),ic=m?m[1]:'🏷️',nm=m?m[2]:catOpen;
+  ov.querySelector('.whobox').innerHTML=`<div class="pph"><span class="e">${esc(ic)}</span><div><h2>${esc(nm)}</h2><p>${ds.length} despesa${ds.length===1?'':'s'} · ${Math.round(tot/tt*100)}% do total</p></div><button class="x" data-ppx="1" aria-label="Fechar">✕</button></div>
+  <div class="ppbig" style="grid-template-columns:1fr 1fr"><div><b>${B(tot)}</b><span>total</span></div><div><b>${B(tot/Math.max(1,g.membros.length))}</b><span>por pessoa</span></div></div>
+  <div class="ppx">${ds.map(d=>`<button class="ppi" data-ppe="${esc(d.id)}"><span class="ic">${esc(dEmo(d))}</span><span class="t"><b>${esc(d.titulo||'Sem título')}</b><small>${esc(d.data||'')} · ${esc(Object.keys(d.pag).filter(k=>d.pag[k]>0).map(k=>nome(g,k)).join(', '))}</small></span><span class="a">${fmt(d.total,d.moeda)}${d.moeda!==g.base?`<small>${B(RD(g,d,d.total))}</small>`:''}</span></button>`).join('')}</div>`;
+  ov.hidden=false}
 {const ov=document.createElement('div');ov.id='ppov';ov.className='whoov';ov.hidden=true;ov.innerHTML='<div class="whobox" role="dialog" aria-modal="true"></div>';document.body.appendChild(ov);
   ov.addEventListener('click',ev=>{if(ev.target===ov||ev.target.closest('[data-ppx]')){ppClose();return}const e=ev.target.closest('[data-ppe]');if(e){const d=G().despesas.find(x=>x.id===e.dataset.ppe);if(d)openEditor(d)}})}
 
@@ -1025,7 +1038,7 @@ addEventListener('popstate',()=>{if(navIgnore){navIgnore--;return}
   if(document.getElementById('camov')){camClose(true);return}
   if(cpk){closeCur(true);return}
   if(!modal.hidden){closeEditor(true);return}
-  if(ppOpen){ppClose(true);return}
+  if(ppOpen||catOpen){ppClose(true);return}
   if(typeof gMenu!=='undefined'&&gMenu){gMenu=null;render();return}
   if(typeof profOpen!=='undefined'&&profOpen){profOpen=false;render();return}
   if(newOpen){newOpen=false;render();return}
@@ -1104,12 +1117,12 @@ function matchQ(g,d){if(!qStr.trim())return true;const q=nrm(qStr.trim());const 
 document.addEventListener('input',ev=>{const t=ev.target;if(t&&t.id==='q'){qStr=t.value;const pos=t.selectionStart;render();const n=$('#q');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}}});
 const CATS=[['🍽️ Comida e bebida',/🍽|🍕|🍔|🌮|🍣|🍜|🍰|☕|🍺|🍷|🍹|🍸|🥤|🍫|🍦|🥗|🍳|🥐|🍝|🍤|🥩|🍞/u],['🚕 Transporte',/🚕|🚗|🚌|🚆|✈|⛽|🚖|🚙|🛵|🚲|⛴|🚤|🅿/u],['🏨 Alojamento',/🏨|🏠|🛏|🏡|⛺/u],['🎟️ Atividades',/🎟|🌿|🏄|🎢|🎭|🏛|🐒|🦥|🌋|🏊|🎫|🤿|🚣|🧗/u],['🛒 Compras',/🛒|🛍|🎁|🧴|💊/u]];
 function catOf(d){const e=dEmo(d)||'';for(const [n,re] of CATS)if(re.test(e))return n;return '💸 Outros'}
-function resumoHTML(g,sc){const ds=g.despesas.filter(d=>d.tipo!=='reemb');if(!ds.length)return '';
+function resumoHTML(g,sc){if(catOpen)setTimeout(catDraw,0);const ds=g.despesas.filter(d=>d.tipo!=='reemb');if(!ds.length)return '';
   const cat={},pp={};g.membros.forEach(p=>pp[p.id]=0);
   ds.forEach(d=>{const c=catOf(d);cat[c]=(cat[c]||0)+RD(g,d,d.total);for(const k in d.div)pp[k]=(pp[k]||0)+RD(g,d,d.div[k])});
   const tot=Object.values(cat).reduce((a,b)=>a+b,0)||1,mx=Math.max(1,...Object.values(pp));
   const F=v=>fmt(toCur(g,v,sc),sc);
-  return `<div class="card ppc"><h3 class="ppc-t" style="margin-bottom:8px">Por categoria</h3>${Object.entries(cat).sort((a,b)=>b[1]-a[1]).map(([n,v])=>`<div class="rb"><span>${esc(n)}</span><div class="rbt"><i style="width:${Math.round(v/tot*100)}%"></i></div><b>${F(v)}</b></div>`).join('')}</div><div class="card ppc"><h3 class="ppc-t" style="margin-bottom:8px">Quanto consumiu cada um</h3>${g.membros.map(p=>`<div class="rb"><span>${esc(pn(p))}</span><div class="rbt"><i style="width:${Math.round((pp[p.id]||0)/mx*100)}%"></i></div><b>${F(pp[p.id]||0)}</b></div>`).join('')}</div>`}
+  return `<div class="card ppc"><h3 class="ppc-t" style="margin-bottom:8px">Por categoria</h3>${Object.entries(cat).sort((a,b)=>b[1]-a[1]).map(([n,v])=>`<button class="rb rbb" data-cat="${esc(n)}"><span>${esc(n)}</span><div class="rbt"><i style="width:${Math.round(v/tot*100)}%"></i></div><b>${F(v)} ›</b></button>`).join('')}</div><div class="card ppc"><h3 class="ppc-t" style="margin-bottom:8px">Quanto consumiu cada um</h3>${g.membros.map(p=>`<div class="rb"><span>${esc(pn(p))}</span><div class="rbt"><i style="width:${Math.round((pp[p.id]||0)/mx*100)}%"></i></div><b>${F(pp[p.id]||0)}</b></div>`).join('')}</div>`}
 async function shareAcc(){const g=G(),b=saldos(g),tr=transf(g,b),sc=showCur&&g.taxas[showCur]?showCur:g.base;
   const txt=`💸 ${g.nome}: quem paga a quem\n\n`+tr.map(t=>{const key=t.de+'>'+t.para,m=rowCur[key]&&g.taxas[rowCur[key]]?rowCur[key]:sc;return `• ${nome(g,t.de)} → ${nome(g,t.para)}: ${fmt(toCur(g,t.v,m),m)}`}).join('\n')+`\n\nGasto total: ${fmt(toCur(g,gasto(g),sc),sc)}`;
   if(navigator.share){try{await navigator.share({text:txt});return}catch(e){if(e.name==='AbortError')return}}
