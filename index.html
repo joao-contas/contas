@@ -10,6 +10,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="EvenJohn">
+<link rel="preconnect" href="https://generativelanguage.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1025,8 +1026,8 @@ async function loadImg(f){try{return await createImageBitmap(f)}catch(e){}
   return await new Promise((ok,no)=>{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{ok(im);setTimeout(()=>URL.revokeObjectURL(u),1000)};im.onerror=()=>{URL.revokeObjectURL(u);no(new Error('img'))};im.src=u})}
 const fileB64=f=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.onerror=no;r.readAsDataURL(f)});
 async function toJpeg(f){const img=await loadImg(f);const k=Math.min(1,1280/Math.max(img.width,img.height));
-  const cv=document.createElement('canvas');cv.width=Math.round(img.width*k);cv.height=Math.round(img.height*k);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
-  return cv.toDataURL('image/jpeg',0.75).split(',')[1]}
+  const cv=document.createElement('canvas');cv.width=Math.round(img.width*k);cv.height=Math.round(img.height*k);const cx=cv.getContext('2d');try{cx.filter='grayscale(1) contrast(1.15)'}catch(e){}cx.drawImage(img,0,0,cv.width,cv.height);
+  return cv.toDataURL('image/jpeg',0.7).split(',')[1]}
 (async()=>{try{if(gkey())return;const r=await fetch(RECIBO);if(!r.ok)return;const j=await r.json();if(!j.enabled)return;
   samp={json:async(_p,o)=>{let image;try{image=await toJpeg(o.images[0])}catch(e){throw {code:'image_rejected'}}
     const g=G();let r2;try{r2=await fetch(RECIBO,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({image,moedas:g?Object.keys(g.taxas):[]})})}catch(e){throw {code:'upstream_error'}}
@@ -1036,7 +1037,7 @@ async function toJpeg(f){const img=await loadImg(f);const k=Math.min(1,1280/Math
 const GK='contas-gemini';const CFG='app-config-leitura-ia';
 if(fs)try{onSnapshot(doc(fs,'grupos',CFG),sn=>{const d=sn.exists()?sn.data():null;appKey=(d&&d.iaKey)||'';if(cur&&tab==='conf')render()},()=>{})}catch(e){}
 function gkey(){let k='';try{k=localStorage.getItem('contas-gemini')||''}catch(e){}if(!k){const g=typeof G==='function'&&cur?G():null;k=(g&&g.iaKey)||''}return k||appKey}
-let gErr='';const GMODELS=['gemini-flash-lite-latest','gemini-2.5-flash-lite','gemini-flash-latest','gemini-2.5-flash','gemini-2.0-flash'];let gModel={},noThink={};
+let gErr='';const GMODELS=['gemini-flash-lite-latest','gemini-2.5-flash-lite','gemini-flash-latest','gemini-2.5-flash','gemini-2.0-flash'];let gModel=lsGet('ej-gm',{})||{},noThink={};
 /* fb=true: usa o projeto Firebase (Firebase AI Logic, Gemini Developer API grátis); fb=false: chave pessoal do Gemini */
 /* lista de modelos atual da Google (os nomes mudam com o tempo) */
 let gList=lsGet('contas-gmodels',null),gListT=0;
@@ -1044,7 +1045,7 @@ async function gemModels(key,fb){if(fb)return GMODELS;if(gList&&gList.t>Date.now
   try{const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{headers:{'x-goog-api-key':String(key||'').replace(/[^A-Za-z0-9._\-]/g,'')}});if(r.ok){const j=await r.json();
     const v=n=>{const m=n.match(/(\d+(?:\.\d+)?)/);return m?parseFloat(m[1]):0};
     const ms=(j.models||[]).filter(x=>(x.supportedGenerationMethods||[]).includes('generateContent')).map(x=>x.name.replace(/^models\//,'')).filter(n=>/flash/.test(n)&&!/image|tts|audio|live|embed|thinking|exp/.test(n));
-    ms.sort((a,b)=>(/preview/.test(a)-/preview/.test(b))||(v(b)-v(a))||(/lite/.test(b)-/lite/.test(a)));
+    ms.sort((a,b)=>(/preview/.test(a)-/preview/.test(b))||(/lite/.test(b)-/lite/.test(a))||(v(b)-v(a)));
     if(ms.length){gList={t:Date.now(),m:ms.slice(0,6)};lsSet('contas-gmodels',gList)}}}catch(e){}
   return [...new Set([...(gList?gList.m:[]),...GMODELS])]}
 async function gemCall(key,parts,json,fb){let last='upstream_error';const tag=fb?'fb':'k';const all=await gemModels(key,fb);const order=gModel[tag]?[gModel[tag],...all.filter(x=>x!==gModel[tag])]:[...all];const extra=order;
@@ -1053,8 +1054,8 @@ async function gemCall(key,parts,json,fb){let last='upstream_error';const tag=fb
                :'https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent';
     const h={'content-type':'application/json','x-goog-api-key':String(key||'').replace(/[^A-Za-z0-9._\-]/g,'')};if(fb)h['x-firebase-appid']=firebaseConfig.appId;
     const gc=json?{responseMimeType:'application/json',temperature:0}:{temperature:0};if(!noThink[m])gc.thinkingConfig={thinkingBudget:0};
-    try{r=await fetch(url,{method:'POST',headers:h,body:JSON.stringify({contents:[{role:'user',parts}],generationConfig:gc})})}catch(e){gErr='rede/CORS: '+(e&&e.message||e);throw {code:'upstream_error'}}
-    if(r.ok){gModel[tag]=m;const j=await r.json();return ((j.candidates||[])[0]?.content?.parts||[]).map(x=>x.text||'').join('')}
+    const ac=new AbortController(),to=setTimeout(()=>ac.abort(),20000);try{r=await fetch(url,{method:'POST',headers:h,body:JSON.stringify({contents:[{role:'user',parts}],generationConfig:gc}),signal:ac.signal})}catch(e){clearTimeout(to);if(e&&e.name==='AbortError'){gErr='demorou mais de 20 s: '+m;if(last!=='rate_limited')last='busy';if(gModel[tag]===m){delete gModel[tag];lsSet('ej-gm',gModel)}continue}gErr='rede/CORS: '+(e&&e.message||e);throw {code:'upstream_error'}}clearTimeout(to);
+    if(r.ok){if(gModel[tag]!==m){gModel[tag]=m;lsSet('ej-gm',gModel)}const j=await r.json();return ((j.candidates||[])[0]?.content?.parts||[]).map(x=>x.text||'').join('')}
     const j=await r.json().catch(()=>({}));const msg=JSON.stringify(j);gErr=r.status+' '+m+': '+((j.error&&j.error.message)||msg).slice(0,160);
     if(r.status===400&&!/API_KEY|API key/i.test(msg)&&!noThink[m]){noThink[m]=1;return gemCall(key,parts,json,fb)}
     if(r.status===400&&!/API_KEY|API key/i.test(msg)){last='upstream_error';continue}
@@ -1079,7 +1080,7 @@ function mkSamp(){return {gem:true,json:async(prompt,o)=>{let image,mt='image/jp
     try{return JSON.parse(a>=0?t.slice(a,b+1):t)}catch(e){return {erro:'não percebi o recibo, tenta outra foto'}}}}}
 function setupGem(){
   if(!fbAI&&!gkey()){if(samp&&samp.gem){samp=null;canPhoto=false}return}
-  samp=mkSamp();canPhoto=true;if(edit&&!modal.hidden)drawEditor()}
+  samp=mkSamp();canPhoto=true;if(gkey())gemModels(gkey(),false).catch(()=>{});if(edit&&!modal.hidden)drawEditor()}
 /* ver se o projeto Firebase já tem a IA ligada (uma vez por arranque) */
 async function fbCheck(){fbChk='a verificar…';gErr='';try{if(await gemTest(firebaseConfig.apiKey,true)){fbAI=true;fbChk='';setupGem()}else fbChk=gErr||'sem resposta'}catch(e){fbChk=String(e&&e.message||e)}if(cur&&tab==='conf')render()}
 /* Firebase AI Logic fica desligado: o App Check do projeto bloqueia pedidos sem reCAPTCHA */
