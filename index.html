@@ -422,7 +422,7 @@ let fs=null,fbApp=null,auth=null;if(FB_OK){try{fbApp=initializeApp(firebaseConfi
 let user=null,prof=null,profT=null,authReady=false;setTimeout(()=>{if(!authReady){authReady=true;try{render()}catch(e){}}},6000);
 const LS='contas-cache-v1',MY='contas-meus-grupos';
 function undoNote(id){const n=$('#note');clearTimeout(noteT);n.innerHTML='✓ Pagamento registado <button class="undo" data-undo="'+esc(id)+'">Anular</button>';noteT=setTimeout(()=>{n.textContent=''},7000)}
-function anulaPag(id){const g=G();if(!g)return;const d=g.despesas.find(x=>x.id===id);if(!d)return;g.despesas=g.despesas.filter(x=>x.id!==id);g.lixo=[clean(d),...(g.lixo||[])].slice(0,20);
+function anulaPag(id){const g=G();if(!g)return;const d=g.despesas.find(x=>x.id===id);if(!d)return;g.del={...(g.del||{}),[id]:Date.now()};g.despesas=g.despesas.filter(x=>x.id!==id);g.lixo=[clean(d),...(g.lixo||[])].slice(0,20);
   logH(g,'anulou pagamento',{titulo:Object.keys(d.pag).map(k=>nome(g,k)).join(', ')+' → '+Object.keys(d.div).map(k=>nome(g,k)).join(', '),total:d.total,moeda:d.moeda,emoji:'↩️'});anAsk=null;save(g);note('Pagamento anulado.',2500)}
 var anAsk=null;
 function pagosHTML(g){const rs=g.despesas.filter(d=>d.tipo==='reemb').sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b.cr||0)-(a.cr||0));if(!rs.length)return '';
@@ -473,13 +473,13 @@ addEventListener('online',()=>Object.keys(pend).forEach(flush));setInterval(()=>
 var srvC={};
 function stampG(g,B){if(!B)return;const now=Date.now(),J=x=>JSON.stringify(x);
   const st=(arr,barr,dk)=>{const bm={};(barr||[]).forEach(x=>bm[x.id]=J(x));const ids=new Set();(arr||[]).forEach(x=>{ids.add(x.id);if(bm[x.id]!==J(x))x.u=now});
-    (barr||[]).forEach(x=>{if(!ids.has(x.id)){g[dk]={...(g[dk]||{}),[x.id]:now}}})};
+    };
   st(g.despesas,B.despesas,'del');st(g.membros,B.membros,'mdel')}
 function mergeG(S,L,B){if(!S)return L;if(!L)return S;const J=x=>JSON.stringify(x),M={...S};
   for(const k of ['nome','emoji','base','taxas','taxasUpd','cart','claims','criador','ownerMid','iaKey'])if(J(L[k])!==J(B?B[k]:undefined)){if(L[k]===undefined)delete M[k];else M[k]=L[k]}
   const mx=(a,b)=>{const o={...(a||{})};for(const k in (b||{}))o[k]=Math.max(o[k]||0,b[k]);const e=Object.entries(o).sort((x,y)=>y[1]-x[1]).slice(0,300);return Object.fromEntries(e)};
   const mg=(sa,la,del)=>{const m=new Map();(sa||[]).forEach(x=>m.set(x.id,x));(la||[]).forEach(x=>{const s=m.get(x.id);if(!s||(x.u||0)>(s.u||0))m.set(x.id,x)});return [...m.values()].filter(x=>!del[x.id]||(x.u||0)>del[x.id])};
-  M.del=mx(S.del,L.del);M.mdel=mx(S.mdel,L.mdel);M.despesas=mg(S.despesas,L.despesas,M.del);M.membros=mg(S.membros,L.membros,M.mdel);
+  M.del=mx(S.del,L.del);{const ok=new Set([...(S.lixo||[]),...(L.lixo||[])].map(d=>d.id));[...(S.log||[]),...(L.log||[])].forEach(h=>{if(h.i&&/apagou|anulou/.test(h.a))ok.add(h.i)});for(const k in M.del)if(!ok.has(k))delete M.del[k]}M.mdel=mx(S.mdel,L.mdel);M.despesas=mg(S.despesas,L.despesas,M.del);M.membros=mg(S.membros,L.membros,M.mdel);
   const lm=new Map();[...(S.log||[]),...(L.log||[])].forEach(h=>lm.set(h.t+'|'+h.a+'|'+h.ti,h));M.log=[...lm.values()].sort((a,b)=>b.t-a.t).slice(0,80);
   const live=new Set(M.despesas.map(d=>d.id)),xm=new Map();[...(L.lixo||[]),...(S.lixo||[])].forEach(d=>{if(!xm.has(d.id))xm.set(d.id,d)});M.lixo=[...xm.values()].filter(d=>!live.has(d.id)).slice(0,20);
   M.upd=Math.max(S.upd||0,L.upd||0);M.id=L.id||S.id;return M}
@@ -957,7 +957,7 @@ sheet.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t||!
   else if(t.dataset.modo){edit.modo=t.dataset.modo;rebal('div');drawEditor()}
   else if(t.id==='e-x')closeEditor();
   else if(t.id==='e-ok')saveEditor();
-  else if(t.id==='e-del'){if(confirmDel===edit.id){const g=G();const dd=g.despesas.find(x=>x.id===edit.id);if(dd){logH(g,'apagou',dd);g.lixo=[clean(dd),...(g.lixo||[])].slice(0,20)}g.despesas=g.despesas.filter(x=>x.id!==edit.id);closeEditor();save(g);note('Apagado.',2000)}else{confirmDel=edit.id;drawEditor()}}});
+  else if(t.id==='e-del'){if(confirmDel===edit.id){const g=G();const dd=g.despesas.find(x=>x.id===edit.id);if(dd){logH(g,'apagou',dd);g.lixo=[clean(dd),...(g.lixo||[])].slice(0,20)}g.del={...(g.del||{}),[edit.id]:Date.now()};g.despesas=g.despesas.filter(x=>x.id!==edit.id);closeEditor();save(g);note('Apagado.',2000)}else{confirmDel=edit.id;drawEditor()}}});
 modal.addEventListener('click',ev=>{if(ev.target===modal)closeEditor()});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&!modal.hidden)closeEditor()});
 
@@ -1009,7 +1009,7 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
   else if(t.dataset.pay){if(payAsk!==t.dataset.pay){payAsk=t.dataset.pay;render();return}payAsk=null;const [de,para]=t.dataset.pay.split('>'),amt=+t.dataset.amt,pid=uid();
     g.despesas.push({id:pid,tx:t.dataset.m!==g.base&&g.taxas[t.dataset.m]?{b:g.base,m:t.dataset.m,r:g.taxas[t.dataset.m]/g.taxas[g.base]}:null,titulo:'Reembolso',emoji:'🤝',tipo:'reemb',modo:'valor',moeda:t.dataset.m,total:amt,data:today(),cr:Date.now(),pag:{[de]:amt},div:{[para]:amt},fixP:[],fixD:[],partes:{}});
     logH(g,'registou pagamento',{titulo:nome(g,de)+' → '+nome(g,para),total:amt,moeda:t.dataset.m,emoji:'🤝'});save(g);undoNote(pid)}
-  else if(t.dataset.rm){if(!isOwner(g))return;{const p=g.membros.find(p=>p.id===t.dataset.rm);if(p)logH(g,'removeu do grupo',{titulo:p.nome,emoji:p.emoji})}g.membros=g.membros.filter(p=>p.id!==t.dataset.rm);save(g)}
+  else if(t.dataset.rm){if(!isOwner(g))return;{const p=g.membros.find(p=>p.id===t.dataset.rm);if(p)logH(g,'removeu do grupo',{titulo:p.nome,emoji:p.emoji})}g.mdel={...(g.mdel||{}),[t.dataset.rm]:Date.now()};g.membros=g.membros.filter(p=>p.id!==t.dataset.rm);save(g)}
   else if(t.id==='gkey-ok'){const v=($('#gkey').value||'').replace(/[^A-Za-z0-9._\-]/g,'');if(!v){note('Cola primeiro a chave.');return}
     note('A testar a chave…');gemTest(v,false).then(ok=>{if(ok){appKey=v;setDoc(doc(fs,'grupos',CFG),{nome:'config',membros:[],despesas:[],iaKey:v}).catch(e=>note('Não consegui guardar: '+e.message,6000));samp=mkSamp();canPhoto=true;render();note('Leitura de recibos ativa para toda a gente ✅',4000)}else note('A chave não funcionou: '+(gErr||'confirma que a copiaste toda.'),7000)})}
   else if(t.id==='gkey-rm'){appKey='';deleteDoc(doc(fs,'grupos',CFG)).catch(()=>{});if(g.iaKey){delete g.iaKey;save(g)}else render();try{localStorage.removeItem('contas-gemini')}catch(e){}samp=null;canPhoto=false}
