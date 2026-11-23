@@ -366,6 +366,7 @@ body:has(#modal:not([hidden])) .fab,body:has(#ppov:not([hidden])) .fab{display:n
 .scan2{display:block;margin:2px 0 6px;font-size:14px}.scan2[hidden]{display:none}
 .lockt{display:inline-flex;align-items:center;gap:4px;font-size:14px;color:var(--mut);font-weight:600}.lockt .ii{height:17px;width:17px;align-self:center}
 .card.lost{border:1.5px dashed #e0a43a}.lost .lrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid rgba(0,0,0,.06)}.lost .lrow img{width:44px;height:44px;object-fit:cover;border-radius:10px}.lost .lemo{width:44px;text-align:center;font-size:24px}.lost .lt{flex:1;min-width:0}.lost .lt b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lost .lt small{color:var(--mut,#777)}.lost .lx{background:none;border:0;font-size:16px;opacity:.5;padding:6px}
+#updblk{position:fixed;inset:0;z-index:9999;background:rgba(20,30,50,.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px}#updblk .ub{background:var(--card,#fffdf6);border-radius:24px;padding:28px 22px;text-align:center;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.25)}#updblk .ub-i{font-size:44px}#updblk h2{margin:8px 0 6px}#updblk p{margin:0 0 18px;opacity:.8;line-height:1.4}#updblk .primary{width:100%}#updblk small{display:block;margin-top:10px;opacity:.6}
 </style>
 </head>
 <body>
@@ -474,13 +475,17 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-23c';
-function checkV(){if(!navigator.onLine)return;fetch('index.html',{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/APPV='([^']+)'/);if(m&&m[1]!==APPV&&!edit&&!Object.keys(pend).length)location.reload()}).catch(()=>{})}
+const APPV='2026-11-23d';
+var updBlk=false;
+function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
+  o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
+function checkV(){if(!navigator.onLine)return;fetch('index.html',{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/APPV='([^']+)'/);if(m&&m[1]>APPV)showUpd()}).catch(()=>{})}
+checkV();
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkV()});setInterval(checkV,10*60*1000);
 const busy={},subs={};
 function sub(id){if(!fs||subs[id])return;
   subs[id]=onSnapshot(doc(fs,'grupos',id),snap=>{
-    if(snap.exists()){const v=snap.data();if(v&&Array.isArray(v.membros)&&Array.isArray(v.despesas)){const S={...clean(v),id},B=srvC[id];const back=guard(id,S,snap.metadata.fromCache);if(!snap.metadata.fromCache)srvC[id]=clean(S);groups[id]=pend[id]&&groups[id]?mergeG(S,groups[id],B):S;if(back.length)setTimeout(()=>restoreLost(id,back),0);if(pend[id]&&!snap.metadata.fromCache)setTimeout(()=>flush(id),0);if(!mine.includes(id))mine.push(id);if(pendingOpen===id)pendingOpen=null}}
+    if(snap.exists()){const v=snap.data();if(v&&v.minV&&v.minV>APPV)showUpd();if(v&&Array.isArray(v.membros)&&Array.isArray(v.despesas)){const S={...clean(v),id},B=srvC[id];const back=guard(id,S,snap.metadata.fromCache);if(!snap.metadata.fromCache)srvC[id]=clean(S);groups[id]=pend[id]&&groups[id]?mergeG(S,groups[id],B):S;if(back.length)setTimeout(()=>restoreLost(id,back),0);if(pend[id]&&!snap.metadata.fromCache)setTimeout(()=>flush(id),0);if(!mine.includes(id))mine.push(id);if(pendingOpen===id)pendingOpen=null}}
     else if(!snap.metadata.fromCache&&!busy[id]){if(groups[id]||pendingOpen===id){delete groups[id];mine=mine.filter(x=>x!==id);if(pendingOpen===id){pendingOpen=null;cur=null}note('Este grupo não existe ou foi apagado.',5000)}}
     if(prof&&groups[id]&&!busy[id])setTimeout(()=>propagate(id),0);
     cache();if(!edit)render();else renderSoft()},
@@ -488,13 +493,13 @@ function sub(id){if(!fs||subs[id])return;
 function netNote(){const off=!navigator.onLine;if(off&&!document.body.classList.contains('offline'))note('Sem rede: podes continuar, tudo fica guardado e é enviado quando houver rede.',4000);document.body.classList.toggle('offline',off);const el=document.getElementById('offbar');if(el)el.hidden=!off}
 addEventListener('online',()=>{netNote();note('De volta à rede: as alterações feitas sem rede foram enviadas.',4000)});addEventListener('offline',netNote);
 function renderSoft(){const sy=scrollY;render();scrollTo(0,sy)}
-async function save(g){g.upd=Date.now();stampG(g,srvC[g.id]);groups[g.id]=g;if(!mine.includes(g.id))mine.push(g.id);cache();render();
+async function save(g){if(updBlk){showUpd();return}g.upd=Date.now();stampG(g,srvC[g.id]);groups[g.id]=g;if(!mine.includes(g.id))mine.push(g.id);cache();render();
   if(!fs)return;pendSet(g.id,1);sub(g.id);flush(g.id)}
 var pend=lsGet('ej-pend',{})||{},flushing={};
 function pendSet(id,v){if(v)pend[id]=1;else delete pend[id];lsSet('ej-pend',pend)}
 async function flush(id){if(!fs||!groups[id]||!pend[id])return;if(flushing[id]){flushing[id]=2;return}flushing[id]=1;busy[id]=(busy[id]||0)+1;
   try{do{flushing[id]=1;const L=clean(groups[id]),B=srvC[id]?clean(srvC[id]):null;
-      const M=await runTransaction(fs,async tx=>{const ref=doc(fs,'grupos',id);const sn=await tx.get(ref);const S=sn.exists()?{...sn.data(),id}:null;const M=clean(mergeG(S,L,B));delete M.id;tx.set(ref,M);return M});
+      const M=await runTransaction(fs,async tx=>{const ref=doc(fs,'grupos',id);const sn=await tx.get(ref);const S=sn.exists()?{...sn.data(),id}:null;const M=clean(mergeG(S,L,B));delete M.id;if(!(M.minV>APPV))M.minV=APPV;tx.set(ref,M);return M});
       const out={...M,id};srvC[id]=clean(out);const cur2=groups[id];groups[id]=cur2&&JSON.stringify(cur2)!==JSON.stringify(L)?mergeG(out,cur2,L):out}while(flushing[id]===2);
     pendSet(id,0);cache();if(!edit)render()}
   catch(e){const c=e&&e.code||'';if(!/unavailable|failed-precondition|deadline|network/.test(c)&&navigator.onLine)note('Não foi possível guardar ('+(c||'erro')+'). Fica guardado e tento outra vez.',6000)}
