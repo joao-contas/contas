@@ -203,7 +203,7 @@ label .curbtn{margin-top:6px}
 .whol{display:grid;gap:8px;margin-top:16px}
 .whob{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 16px;border-radius:16px;background:#fff;color:var(--ink);font-size:17px;font-weight:600;text-align:left;box-shadow:var(--shadow)}
 .whob span{font-size:24px}.whob small{margin-left:auto;font-weight:400;color:var(--mut);font-size:13px}.whob.taken{opacity:.55}
-.whob:active{background:var(--lav)}.whobox .whon{font-size:13px;margin-top:14px}
+.whob:active{background:var(--lav)}.ppc{padding:14px 16px}.ppc-h{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;padding:0;min-height:0;font-weight:600;font-size:16px;color:var(--ink);box-shadow:none}.ppc-h small{color:var(--mut);font-weight:400;font-size:13px}.ppw{display:flex;flex-direction:column;gap:12px;align-items:center;margin-top:10px}.ppd{width:170px;height:170px;position:relative}.ppd svg{width:100%;height:100%;transform:rotate(-90deg)}.ppd circle{fill:none;stroke-width:6.2;cursor:pointer;pointer-events:stroke;transition:stroke-width .15s}.ppd circle:active,.ppd circle.on{stroke-width:7.6}.ppd .ppt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;text-align:center}.ppd .ppt b{font-size:18px}.ppd .ppt span{font-size:11px;color:var(--mut)}.ppl{width:100%;display:grid;gap:2px}.ppr{display:flex;align-items:center;gap:7px;min-height:30px;padding:2px 6px;border-radius:10px;background:none;box-shadow:none;font-size:14px;color:var(--ink);text-align:left;width:100%}.ppr:active{background:var(--lav)}.ppr i{width:10px;height:10px;border-radius:50%;flex:0 0 10px}.ppr .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ppr .v{font-weight:600;white-space:nowrap}.ppr .p{color:var(--mut);font-size:12px;width:34px;text-align:right}.ppc-tip{font-size:12px;color:var(--mut);margin:8px 0 0;text-align:center}#ppov[hidden]{display:none}#ppov{z-index:8;align-items:flex-end;padding:0}#ppov .whobox{text-align:left;max-width:600px;border-radius:28px 28px 0 0;max-height:86vh;padding:20px 18px 22px}@media(min-width:700px){#ppov{align-items:center}#ppov .whobox{border-radius:28px}}.pph{display:flex;align-items:center;gap:12px}.pph .e{font-size:40px}.pph h2{margin:0;font-size:24px}.pph p{margin:0;color:var(--mut);font-size:14px}.pph .x{margin-left:auto;width:40px;height:40px;min-height:0;border-radius:50%;padding:0;background:#fff;font-size:18px}.ppbig{margin-top:14px;background:#fff;border-radius:18px;padding:14px;box-shadow:var(--shadow);display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center}.ppbig b{display:block;font-size:17px}.ppbig span{font-size:12px;color:var(--mut)}.ppbig .rec b{color:#2f7a4f}.ppbig .dev b{color:var(--peachd)}.ppx{margin-top:14px;display:grid;gap:6px}.ppx h3{font-size:15px;margin:4px 2px 0;color:var(--mut);font-weight:600}.ppi{display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:10px 12px;min-height:0;text-align:left;width:100%;box-shadow:none;color:var(--ink)}.ppi .ic{font-size:22px}.ppi .t{flex:1;min-width:0}.ppi .t b{display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ppi .t small{color:var(--mut);font-size:12px}.ppi .a{text-align:right;font-weight:600;font-size:15px;white-space:nowrap}.ppi .a small{display:block;font-weight:400;color:var(--mut);font-size:12px}.whobox .whon{font-size:13px;margin-top:14px}
 .mebox .pchip{background:#fff}
 .linkbtn{background:transparent;color:var(--lavd);padding:0 4px;min-height:32px;text-decoration:underline;font-weight:500}
 .sharebox{margin-top:14px;color:var(--ink)}.sharebox ol{padding-left:20px;margin:6px 0}
@@ -481,6 +481,7 @@ function render(){
   if(tab==='desp'){
     const ds=[...g.despesas].sort((a,c)=>(c.data||'').localeCompare(a.data||'')||(c.cr||0)-(a.cr||0));
     {const me=meOf(g);if(me)h+=walletHTML(g,me)}
+    h+=ppHTML(g);
     h+=`<div class="addrow"><button class="primary" id="add">+ Nova despesa</button><button id="addr" title="Alguém deu dinheiro a outra pessoa">🤝 Reembolso</button></div>${searchHTML(g)}<div class="list">${ds.length?ds.filter(d=>matchQ(g,d)).map(d=>{
       const pags=Object.keys(d.pag).filter(k=>d.pag[k]>0).map(k=>nome(g,k));
       return `<button class="item card" data-edit="${esc(d.id)}"><span class="ic">${esc(dEmo(d))}</span><h3>${esc(d.titulo||'Sem título')}</h3><small>${d.tipo==='reemb'?'Reembolso: '+esc(pags.join(', '))+' → '+esc(Object.keys(d.div).map(k=>nome(g,k)).join(', ')):'Pago por '+esc(pags.join(', '))} · ${esc(d.data||'')}</small><span class="amt">${fmt(d.total,d.moeda)}${d.moeda!==g.base?`<br><small style="font:400 13px Inter,sans-serif;color:var(--mut)">${fmt(toCur(g,RD(g,d,d.total),g.base),g.base)}</small>`:''}</span></button>`}).join(''):'<p class="empty">Sem despesas. Toca em “Nova despesa” para começar.</p>'}</div>`}
@@ -956,6 +957,39 @@ app.addEventListener('pointerup',swEnd);app.addEventListener('pointercancel',swE
 app.addEventListener('click',ev=>{if(swMoved){const f=ev.target.closest('.sw-fg');if(f){ev.stopImmediatePropagation();ev.preventDefault();swMoved=false}}else if(swOpenEl&&ev.target.closest('.sw-fg')===swOpenEl){ev.stopImmediatePropagation();swClose()}},true);
 
 
+
+/* ---------- quem pagou o quê (círculo) ---------- */
+var PPC=['#18788c','#1f4a85','#e08a5c','#d9a93c','#7aa9c9','#b4572f','#5f9e83','#8a6fb0','#c4677f','#4c5d73'];
+var ppOpen=null,ppHide=false;try{ppHide=localStorage.getItem('ej-pphide')==='1'}catch(e){}
+function ppData(g){const t={},c={},n={};g.membros.forEach(p=>{t[p.id]=0;c[p.id]=0;n[p.id]=0});
+  g.despesas.forEach(d=>{if(d.tipo==='reemb')return;for(const k in d.pag)if(k in t&&d.pag[k]>0){t[k]+=RD(g,d,d.pag[k]);n[k]++}for(const k in d.div)if(k in c)c[k]+=RD(g,d,d.div[k])});
+  const tot=Object.values(t).reduce((a,b)=>a+b,0);return {t,c,n,tot}}
+function ppHTML(g){if(!g.membros.length||!g.despesas.some(d=>d.tipo!=='reemb'))return '';const {t,tot}=ppData(g),B=v=>fmt(toCur(g,v,g.base),g.base);
+  const ord=g.membros.map((p,i)=>({p,i,v:t[p.id]})).sort((a,b)=>b.v-a.v);
+  if(ppOpen)setTimeout(ppDraw,0);
+  if(ppHide)return `<div class="card ppc"><button class="ppc-h" data-pptog="1"><span>📊 Quem pagou o quê</span><small>mostrar ›</small></button></div>`;
+  let off=25,arcs='';ord.forEach(o=>{if(o.v<=0||tot<=0)return;const pc=o.v/tot*100;arcs+=`<circle r="15.915" cx="21" cy="21" stroke="${PPC[o.i%PPC.length]}" stroke-dasharray="${Math.max(pc-0.6,0.4)} ${100-Math.max(pc-0.6,0.4)}" stroke-dashoffset="${off}" data-pp="${esc(o.p.id)}" class="${ppOpen===o.p.id?'on':''}"><title>${esc(o.p.nome)}</title></circle>`;off-=pc});
+  return `<div class="card ppc"><button class="ppc-h" data-pptog="1"><span>📊 Quem pagou o quê</span><small>esconder ⌃</small></button>
+  <div class="ppw"><div class="ppd"><svg viewBox="0 0 42 42">${arcs}</svg><div class="ppt"><b>${B(tot)}</b><span>pago no total</span></div></div>
+  <div class="ppl">${ord.map(o=>`<button class="ppr" data-pp="${esc(o.p.id)}"><i style="background:${PPC[o.i%PPC.length]}"></i><span class="n">${esc(pn(o.p))}</span><span class="v">${B(o.v)}</span><span class="p">${tot>0?Math.round(o.v/tot*100):0}%</span></button>`).join('')}</div></div>
+  <p class="ppc-tip">Toca numa pessoa para ver o que pagou</p></div>`}
+function ppDraw(){const g=G(),ov=document.getElementById('ppov');if(!g||!ppOpen||!ov)return;const p=g.membros.find(x=>x.id===ppOpen);if(!p){ppClose();return}
+  const {t,c,n,tot}=ppData(g),B=v=>fmt(toCur(g,v,g.base),g.base),bal=saldos(g)[p.id]||0;
+  const ds=g.despesas.filter(d=>d.tipo!=='reemb'&&d.pag[p.id]>0).sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b.cr||0)-(a.cr||0));
+  const rs=g.despesas.filter(d=>d.tipo==='reemb'&&(d.pag[p.id]>0||d.div[p.id]>0));
+  const it=(d,v,sub)=>`<button class="ppi" data-ppe="${esc(d.id)}"><span class="ic">${esc(dEmo(d))}</span><span class="t"><b>${esc(d.titulo||'Sem título')}</b><small>${esc(sub)}</small></span><span class="a">${fmt(v,d.moeda)}${d.moeda!==g.base?`<small>${B(RD(g,d,v))}</small>`:''}</span></button>`;
+  ov.querySelector('.whobox').innerHTML=`<div class="pph"><span class="e">${esc(p.emoji||'🙂')}</span><div><h2>${esc(p.nome)}</h2><p>${n[p.id]} despesa${n[p.id]===1?'':'s'} paga${n[p.id]===1?'':'s'} · ${tot>0?Math.round(t[p.id]/tot*100):0}% do total</p></div><button class="x" data-ppx="1" aria-label="Fechar">✕</button></div>
+  <div class="ppbig"><div><b>${B(t[p.id])}</b><span>pagou</span></div><div><b>${B(c[p.id])}</b><span>a parte dele</span></div><div class="${bal>0.5?'rec':bal<-0.5?'dev':''}"><b>${bal>0.5?'+':bal<-0.5?'−':''}${B(Math.abs(bal))}</b><span>${bal>0.5?'recebe':bal<-0.5?'deve':'em dia'}</span></div></div>
+  <div class="ppx"><h3>O que pagou</h3>${ds.length?ds.map(d=>{const v=d.pag[p.id],sh=Object.keys(d.pag).filter(k=>d.pag[k]>0).length>1;return it(d,v,(d.data||'')+(sh?' · parte de '+fmt(d.total,d.moeda):''))}).join(''):'<p class="small">Ainda não pagou nenhuma despesa.</p>'}
+  ${rs.length?`<h3>Reembolsos</h3>${rs.map(d=>{const deu=d.pag[p.id]>0;return it(d,deu?d.pag[p.id]:d.div[p.id],(deu?'Deu a ':'Recebeu de ')+Object.keys(deu?d.div:d.pag).map(k=>nome(g,k)).join(', '))}).join('')}`:''}</div>`;
+  ov.hidden=false}
+function ppShow(id){if(!ppOpen)navPush('pp');ppOpen=id;ppDraw();render()}
+function ppClose(fp){if(!ppOpen)return;if(!fp)navPop('pp');ppOpen=null;const ov=document.getElementById('ppov');if(ov)ov.hidden=true;render()}
+app.addEventListener('click',ev=>{const tg=ev.target.closest('[data-pptog]');if(tg){ppHide=!ppHide;try{localStorage.setItem('ej-pphide',ppHide?'1':'0')}catch(e){}render();return}
+  const t=ev.target.closest('[data-pp]');if(t)ppShow(t.dataset.pp)});
+{const ov=document.createElement('div');ov.id='ppov';ov.className='whoov';ov.hidden=true;ov.innerHTML='<div class="whobox" role="dialog" aria-modal="true"></div>';document.body.appendChild(ov);
+  ov.addEventListener('click',ev=>{if(ev.target===ov||ev.target.closest('[data-ppx]')){ppClose();return}const e=ev.target.closest('[data-ppe]');if(e){const d=G().despesas.find(x=>x.id===e.dataset.ppe);if(d)openEditor(d)}})}
+
 /* ---------- voltar atrás (botão/gesto do telemóvel) passo a passo ---------- */
 let navIgnore=0;
 function navPush(k){try{history.pushState({k},'',location.href)}catch(e){}}
@@ -964,6 +998,7 @@ addEventListener('popstate',()=>{if(navIgnore){navIgnore--;return}
   if(document.getElementById('camov')){camClose(true);return}
   if(cpk){closeCur(true);return}
   if(!modal.hidden){closeEditor(true);return}
+  if(ppOpen){ppClose(true);return}
   if(typeof gMenu!=='undefined'&&gMenu){gMenu=null;render();return}
   if(typeof profOpen!=='undefined'&&profOpen){profOpen=false;render();return}
   if(newOpen){newOpen=false;render();return}
