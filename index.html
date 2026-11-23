@@ -491,7 +491,7 @@ function stampG(g,B){if(!B)return;const now=Date.now(),J=x=>JSON.stringify(x);
     };
   st(g.despesas,B.despesas,'del');st(g.membros,B.membros,'mdel')}
 function mergeG(S,L,B){if(!S)return L;if(!L)return S;const J=x=>JSON.stringify(x),M={...S};
-  for(const k of ['nome','emoji','base','taxas','taxasUpd','cart','claims','criador','ownerMid','iaKey'])if(J(L[k])!==J(B?B[k]:undefined)){if(L[k]===undefined)delete M[k];else M[k]=L[k]}
+  for(const k of ['nome','emoji','base','taxas','taxasUpd','taxasDia','cart','claims','criador','ownerMid','iaKey'])if(J(L[k])!==J(B?B[k]:undefined)){if(L[k]===undefined)delete M[k];else M[k]=L[k]}
   const mx=(a,b)=>{const o={...(a||{})};for(const k in (b||{}))o[k]=Math.max(o[k]||0,b[k]);const e=Object.entries(o).sort((x,y)=>y[1]-x[1]).slice(0,300);return Object.fromEntries(e)};
   const mg=(sa,la,del)=>{const m=new Map();(sa||[]).forEach(x=>m.set(x.id,x));(la||[]).forEach(x=>{const s=m.get(x.id);if(!s||(x.u||0)>(s.u||0))m.set(x.id,x)});return [...m.values()].filter(x=>!del[x.id]||(x.u||0)>del[x.id])};
   M.del=mx(S.del,L.del);{const ok=new Set([...(S.lixo||[]),...(L.lixo||[])].map(d=>d.id));[...(S.log||[]),...(L.log||[])].forEach(h=>{if(h.i&&/apagou|anulou/.test(h.a))ok.add(h.i)});for(const k in M.del)if(!ok.has(k))delete M.del[k]}M.mdel=mx(S.mdel,L.mdel);M.despesas=mg(S.despesas,L.despesas,M.del);M.membros=mg(S.membros,L.membros,M.mdel);
@@ -582,6 +582,9 @@ async function scanMany(fs){if(!edit)return;if(!(samp&&samp.gem)&&typeof gkey===
     let m=ok[0];for(const r of ok.slice(1))m=mergeR(m,r);if(edit.mergeNext&&edit.lastR)m=mergeR(edit.lastR,m);edit.mergeNext=false;
     const ri=rs.findIndex(r=>r&&!r.erro&&r.tipo!=='banco');await scan(fs[ri>=0?ri:0],m)}
   finally{sheet.querySelectorAll('.scan').forEach(l=>l.classList.remove('busy'))}}
+function freezeTx(g){g.despesas.forEach(d=>{if(d.moeda!==g.base&&!(d.tx&&d.tx.r>0&&d.tx.b===g.base&&g.taxas[d.tx.b])&&g.taxas[d.moeda]&&g.taxas[g.base])d.tx={b:g.base,m:d.moeda,r:g.taxas[d.moeda]/g.taxas[g.base]}})}
+var autoTried={};
+async function autoRates(g){if(!g||g.taxasDia===today()||!meOf(g))return;const L=await fetchRates(true);if(!L||!L.rates)return;freezeTx(g);let n=0;for(const m in g.taxas){if(L.rates[m]){g.taxas[m]=L.rates[m];n++}}g.taxasUpd=L.upd||'';g.taxasDia=today();save(g)}
 var meAsk=false,pickC=null;
 document.addEventListener('click',ev=>{const b=ev.target.closest&&ev.target.closest('#e-privb');if(!b||!edit)return;edit.priv=!edit.priv;b.classList.toggle('on',edit.priv);b.setAttribute('aria-pressed',edit.priv);b.textContent=edit.priv?'🔒 Privado':'🔓 Visível a todos'});
 app.addEventListener('click',ev=>{const t=ev.target.closest('#meswap');if(!t)return;const g=G();if(!g)return;if(!meAsk){meAsk=true;render();setTimeout(()=>{if(meAsk){meAsk=false;render()}},4000);return}meAsk=false;if(tab==='conf'){navPop('conf');tab=confPrev||'desp'}claim(g,null);setMe(g.id,null);skipMe[g.id]=false;noAuto[g.id]=true;bkOpen=false;render()});
@@ -740,7 +743,7 @@ function enhanceCur(root){root.querySelectorAll('select:not([data-enh])').forEac
 new MutationObserver(()=>enhanceCur(document.body)).observe(document.body,{childList:true,subtree:true});
 const allOpts=sel=>`<optgroup label="Mais usadas">${TOPC.map(m=>`<option value="${m}" ${m===sel?'selected':''}>${esc(curLabel(m))}</option>`).join('')}</optgroup><optgroup label="Todas as moedas">${ALLC.filter(m=>!TOPC.includes(m)).sort(byName).map(m=>`<option value="${m}">${esc(curLabel(m))}</option>`).join('')}</optgroup>`;
 
-function render(){gateUpd();
+function render(){if(typeof cur!=='undefined'&&cur&&!autoTried[cur]&&groups[cur]){autoTried[cur]=1;setTimeout(()=>autoRates(groups[cur]),1500)}gateUpd();
   if(cur&&!groups[cur]){if(pendingOpen===cur){$('#back').hidden=false;$('#title').textContent='A abrir o grupo…';$('#sub').textContent='';$('#hero').innerHTML='';app.innerHTML='<p class="empty">A carregar…</p>';return}cur=null}
   $('#back').hidden=!cur;{const av=$('#avatar');const sh=!cur&&!!user;av.hidden=!sh;if(sh){av.textContent=avL();av.style.background=(prof&&prof.cor)||''}}$('#more').hidden=!cur||(!!G()&&!meOf(G())&&G().membros.length>0);$('#more').classList.toggle('on',tab==='conf');if(tab==='conf')$('#more').hidden=true;$('#sync').hidden=$('#more').hidden;$('#back').textContent=cur&&tab==='conf'?'‹ Voltar ao grupo':'‹ Todos os grupos';
   if(cur)document.querySelector('.top').classList.remove('home');
