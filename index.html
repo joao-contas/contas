@@ -369,6 +369,7 @@ body:has(#modal:not([hidden])) .fab,body:has(#ppov:not([hidden])) .fab{display:n
 #updblk{position:fixed;inset:0;z-index:9999;background:rgba(20,30,50,.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px}#updblk .ub{background:var(--card,#fffdf6);border-radius:24px;padding:28px 22px;text-align:center;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.25)}#updblk .ub-i{font-size:44px}#updblk h2{margin:8px 0 6px}#updblk p{margin:0 0 18px;opacity:.8;line-height:1.4}#updblk .primary{width:100%}#updblk small{display:block;margin-top:10px;opacity:.6}
 .lost .lall{display:block;margin:10px auto 0;background:none;border:0;color:var(--mut,#777);font-size:14px;text-decoration:underline;padding:8px}
 #modal .askc{margin:14px 0 4px;padding:10px 14px;border-radius:14px;background:rgba(224,164,58,.16);color:inherit;font-weight:600;text-align:center}
+.bkrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid rgba(0,0,0,.06)}.bkrow:first-child{border-top:0}.bkrow>div{flex:1;min-width:0}.bkrow b{display:block}.bkrow small{opacity:.7}.bkm{color:#c0603a;font-weight:600}.bkrow .primary{min-height:40px;padding:0 16px}
 </style>
 </head>
 <body>
@@ -477,7 +478,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-24e';
+const APPV='2026-11-24f';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -485,6 +486,36 @@ function checkV(){if(!navigator.onLine)return;fetch('index.html',{cache:'no-stor
 checkV();
 var hidAt=0;document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){hidAt=Date.now();Object.keys(pend).forEach(flush);return}
   if(hidAt&&Date.now()-hidAt>=60000&&!edit&&!updBlk){try{sessionStorage.setItem('ej-back',JSON.stringify({cur,tab}))}catch(e){}location.reload();return}hidAt=0;checkV()});setInterval(checkV,10*60*1000);
+/* ---------- 1. confirmar que ficou mesmo gravado ---------- */
+var vTry={};
+async function verify(id,L,B){if(!fs||!L)return;try{const sn=await getDocFromServer(doc(fs,'grupos',id));if(!sn.exists())return;const S=sn.data(),bad=[];
+    const bm=new Map(((B&&B.despesas)||[]).map(d=>[d.id,d]));
+    (L.despesas||[]).forEach(d=>{const o=bm.get(d.id);if(o&&(o.u||0)>=(d.u||0))return;const sd=(S.despesas||[]).find(x=>x.id===d.id);
+      if(!sd){if(!(S.del&&S.del[d.id]))bad.push(d)}else if((sd.u||0)<(d.u||0))bad.push(d);else if(d.pgT){for(const k in d.pgT){const st=(sd.pgT||{})[k]||0;if(st<d.pgT[k])bad.push(d)}}});
+    if(!bad.length){vTry[id]=0;return}
+    vTry[id]=(vTry[id]||0)+1;const g=groups[id];if(!g)return;
+    bad.forEach(d=>{const i=g.despesas.findIndex(x=>x.id===d.id);const nd={...d,u:Date.now()};if(i>=0){if((g.despesas[i].u||0)<=(d.u||0))g.despesas[i]=nd}else g.despesas.push(nd)});
+    if(vTry[id]<=3){note('⚠️ Uma alteração não ficou gravada. A gravar outra vez…',3500);srvC[id]=clean({...S,id});save(g)}
+    else note('⚠️ Não consegui confirmar a gravação de “'+(bad[0].titulo||'despesa')+'”. Verifica a rede e abre a app outra vez.',9000)}catch(e){}}
+/* ---------- 2. cópia de segurança diária (guarda 7 dias) ---------- */
+async function backupDay(id){if(!fs)return;const g=groups[id];if(!g||!g.despesas.length)return;const d=today(),k='ej-bk-'+id;if(lsGet(k,'')===d)return;
+  try{const ref=doc(fs,'grupos',id+'-bk-'+d),sn=await getDoc(ref);if(!sn.exists()){const c=clean(g);delete c.id;await setDoc(ref,{...c,bk:d,wt:serverTimestamp()})}lsSet(k,d);
+    const pre=id+'-bk-',qs=await getDocs(query(collection(fs,'grupos'),where(documentId(),'>=',pre),where(documentId(),'<',pre+'')));const ds=[];qs.forEach(x=>ds.push(x.id));ds.sort();
+    ds.slice(0,Math.max(0,ds.length-7)).forEach(x=>deleteDoc(doc(fs,'grupos',x)).catch(()=>{}))}catch(e){}}
+var bkList=null,cpOpen=false;
+async function bkLoad(id){bkList=[];try{const pre=id+'-bk-',qs=await getDocs(query(collection(fs,'grupos'),where(documentId(),'>=',pre),where(documentId(),'<',pre+'')));qs.forEach(x=>bkList.push({dia:x.id.slice(pre.length),v:x.data()}));bkList.sort((a,b)=>b.dia.localeCompare(a.dia))}catch(e){bkList=[]}render()}
+function bkHTML(g){if(!fs)return '';let h=`<h2 class="sec">🗄️ Cópias de segurança${ii('Todos os dias a app guarda uma cópia do grupo (os últimos 7 dias). Se faltar alguma despesa, repõe-na a partir de uma cópia. Nada é apagado ao repor.')}</h2><div class="card">`;
+  if(!cpOpen)return h+`<button type="button" id="bk-open" style="width:100%">Ver cópias</button></div>`;
+  if(bkList===null)return h+'<p class="small" style="margin:0">A carregar…</p></div>';
+  if(!bkList.length)return h+'<p class="small" style="margin:0">Ainda não há cópias. A primeira é feita hoje.</p></div>';
+  const have=new Set(g.despesas.map(d=>d.id));
+  return h+bkList.map(b=>{const miss=(b.v.despesas||[]).filter(d=>!have.has(d.id)&&!(g.del&&g.del[d.id]));const n=(b.v.despesas||[]).length;
+    return `<div class="bkrow"><div><b>${esc(exDay(b.dia,1))}</b><small>${n} despesa${n===1?'':'s'}${miss.length?` · <span class="bkm">faltam ${miss.length} agora</span>`:' · nada em falta'}</small></div>${miss.length?`<button type="button" class="primary" data-bk="${esc(b.dia)}">Repor ${miss.length}</button>`:''}</div>`}).join('')+'</div>'}
+document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('#bk-open,[data-bk]');if(!t)return;const g=G();if(!g)return;
+  if(t.id==='bk-open'){cpOpen=true;bkList=null;render();bkLoad(g.id);return}
+  const b=(bkList||[]).find(x=>x.dia===t.dataset.bk);if(!b)return;const have=new Set(g.despesas.map(d=>d.id)),now=Date.now();
+  const miss=(b.v.despesas||[]).filter(d=>!have.has(d.id)&&!(g.del&&g.del[d.id]));miss.forEach((d,i)=>{g.despesas.push({...d,u:now});g.log=[{t:now+i,q:nome(g,meOf(g))||'Alguém',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'da cópia de '+exDay(b.dia),i:d.id},...(g.log||[])].slice(0,80)});
+  save(g);note('Repus '+miss.length+(miss.length===1?' despesa.':' despesas.'),3000)});
 const busy={},subs={};
 function sub(id){if(!fs||subs[id])return;
   subs[id]=onSnapshot(doc(fs,'grupos',id),snap=>{
@@ -501,10 +532,10 @@ async function save(g){if(updBlk){showUpd();return}g.upd=Date.now();stampG(g,srv
 var pend=lsGet('ej-pend',{})||{},flushing={};
 function pendSet(id,v){if(v)pend[id]=1;else delete pend[id];lsSet('ej-pend',pend)}
 async function flush(id){if(!fs||!groups[id]||!pend[id])return;if(flushing[id]){flushing[id]=2;return}flushing[id]=1;busy[id]=(busy[id]||0)+1;
-  try{do{flushing[id]=1;const L=clean(groups[id]),B=srvC[id]?clean(srvC[id]):null;
+  let vL=null,vB=null;try{do{flushing[id]=1;const L=clean(groups[id]),B=srvC[id]?clean(srvC[id]):null;vL=L;vB=B;
       const M=await runTransaction(fs,async tx=>{const ref=doc(fs,'grupos',id);const sn=await tx.get(ref);const S=sn.exists()?{...sn.data(),id}:null;const M=clean(mergeG(S,L,B));delete M.id;if(!(M.minV>APPV))M.minV=APPV;delete M.wt;tx.set(ref,{...M,wt:serverTimestamp()});return M});
       const out={...M,id};srvC[id]=clean(out);const cur2=groups[id];groups[id]=cur2&&JSON.stringify(cur2)!==JSON.stringify(L)?mergeG(out,cur2,L):out}while(flushing[id]===2);
-    pendSet(id,0);cache();if(!edit)render()}
+    pendSet(id,0);cache();if(!edit)render();setTimeout(()=>verify(id,vL,vB),1500)}
   catch(e){const c=e&&e.code||'';if(!/unavailable|failed-precondition|deadline|network/.test(c)&&navigator.onLine)note('Não foi possível guardar ('+(c||'erro')+'). Fica guardado e tento outra vez.',6000)}
   finally{flushing[id]=0;busy[id]--;if(!busy[id])delete busy[id]}}
 addEventListener('online',()=>Object.keys(pend).forEach(flush));setInterval(()=>{if(navigator.onLine)Object.keys(pend).forEach(flush)},30000);
@@ -796,7 +827,7 @@ function enhanceCur(root){root.querySelectorAll('select:not([data-enh])').forEac
 new MutationObserver(()=>enhanceCur(document.body)).observe(document.body,{childList:true,subtree:true});
 const allOpts=sel=>`<optgroup label="Mais usadas">${TOPC.map(m=>`<option value="${m}" ${m===sel?'selected':''}>${esc(curLabel(m))}</option>`).join('')}</optgroup><optgroup label="Todas as moedas">${ALLC.filter(m=>!TOPC.includes(m)).sort(byName).map(m=>`<option value="${m}">${esc(curLabel(m))}</option>`).join('')}</optgroup>`;
 
-function render(){if(typeof cur!=='undefined'&&cur&&!autoTried[cur]&&groups[cur]){autoTried[cur]=1;setTimeout(()=>autoRates(groups[cur]),1500)}gateUpd();
+function render(){if(typeof cur!=='undefined'&&cur&&!autoTried[cur]&&groups[cur]){autoTried[cur]=1;setTimeout(()=>autoRates(groups[cur]),1500);setTimeout(()=>backupDay(cur),4000)}gateUpd();
   if(cur&&!groups[cur]){if(pendingOpen===cur){$('#back').hidden=false;$('#title').textContent='A abrir o grupo…';$('#sub').textContent='';$('#hero').innerHTML='';app.innerHTML='<p class="empty">A carregar…</p>';return}cur=null}
   $('#back').hidden=!cur;{const av=$('#avatar');const sh=!cur&&!!user;av.hidden=!sh;if(sh){av.textContent=avL();av.style.background=(prof&&prof.cor)||''}}$('#more').hidden=!cur||(!!G()&&!meOf(G())&&G().membros.length>0);$('#more').classList.toggle('on',tab==='conf');if(tab==='conf')$('#more').hidden=true;$('#sync').hidden=$('#more').hidden;$('#back').textContent=cur&&tab==='conf'?'‹ Voltar ao grupo':'‹ Todos os grupos';
   if(cur)document.querySelector('.top').classList.remove('home');
@@ -877,6 +908,7 @@ function render(){if(typeof cur!=='undefined'&&cur&&!autoTried[cur]&&groups[cur]
     <form id="addc"><label>Juntar outra moeda<select id="ac">${otherOpts(g,'')}</select></label><div class="inline"><span style="white-space:nowrap">1 ${flag(g.base)} ${esc(g.base)} =</span><input id="acr" inputmode="decimal" placeholder="taxa"><span id="ac-code" style="white-space:nowrap"></span></div><div class="actions" style="margin-top:6px"><button>Adicionar moeda</button></div></form></div>
     <h2 class="sec">📷 Leitura de recibos${ii('Cria uma chave grátis do Gemini em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (Create API key) e cola-a aqui. Fica ativa para toda a gente. No plano grátis a Google pode usar as fotos.')}</h2><div class="card">${(appKey||g.iaKey)?`<p class="small" style="margin-top:0">✅ Ativa para todos.</p><div class="actions" style="margin-top:6px"><button id="gkey-rm" type="button">Desligar a leitura de recibos</button></div>`:`
     <div class="inline" style="margin:0"><input id="gkey" type="password" autocomplete="off" placeholder="Colar chave (AIza…)" aria-label="Chave do Gemini"><button id="gkey-ok" type="button">Guardar</button></div>`}</div>
+    ${bkHTML(g)}
     <div class="actions"><button id="expg">📤 Exportar grupo</button><button id="leaveg">Sair do grupo</button><button class="danger" id="delg">${confirmDel===g.id?'Confirmar: apagar para todos':'Apagar grupo para todos'}</button></div><p class="small"></p>`}
   app.innerHTML=h;if(focusAdd){focusAdd=false;const a=$('#am');if(a)a.focus()}}
 
