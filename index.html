@@ -475,13 +475,14 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-23g';
+const APPV='2026-11-23h';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
 function checkV(){if(!navigator.onLine)return;fetch('index.html',{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/APPV='([^']+)'/);if(m&&m[1]>APPV)showUpd()}).catch(()=>{})}
 checkV();
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkV()});setInterval(checkV,10*60*1000);
+var hidAt=0;document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){hidAt=Date.now();Object.keys(pend).forEach(flush);return}
+  if(hidAt&&Date.now()-hidAt>=60000&&!edit&&!updBlk){try{sessionStorage.setItem('ej-back',JSON.stringify({cur,tab}))}catch(e){}location.reload();return}hidAt=0;checkV()});setInterval(checkV,10*60*1000);
 const busy={},subs={};
 function sub(id){if(!fs||subs[id])return;
   subs[id]=onSnapshot(doc(fs,'grupos',id),snap=>{
@@ -1170,6 +1171,7 @@ app.addEventListener('submit',ev=>{ev.preventDefault();const f=ev.target,g=G();
     if(/^[A-Z]{3}$/.test(c)&&x>0){g.taxas[c]=x*g.taxas[g.base];save(g)}else note('Escolhe a moeda e indica a taxa de câmbio.',3000)}});
 
 groups=lsGet(LS,{});
+try{const bk=JSON.parse(sessionStorage.getItem('ej-back')||'null');sessionStorage.removeItem('ej-back');if(bk&&bk.cur&&groups[bk.cur]){navPush('g');cur=bk.cur;tab=bk.tab||'desp'}}catch(e){}
 $('#hero').addEventListener('click',async ev=>{if(!ev.target.closest('#share')||!G())return;
   const url=location.origin+location.pathname+'#g='+cur,g=G();
   if(navigator.share){try{await navigator.share({title:g.nome,text:'Junta-te ao grupo “'+g.nome+'” no EvenJohn',url});return}catch(e){if(e.name==='AbortError')return}}
