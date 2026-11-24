@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<script>try{var _t=localStorage.getItem('ej-theme')||'light';var _h=new Date().getHours();if(_t==='dark'||(_t==='auto'&&(_h>=19||_h<7)))document.documentElement.dataset.theme='dark';var _l=localStorage.getItem('ej-lang');if(_l)document.documentElement.lang=_l==='en'?'en':_l==='es'?'es':'pt-PT'}catch(e){}</script>
+<script>try{var _t=localStorage.getItem('ej-theme')||'light';var _d=new Date(),_h=_d.getHours(),_m=_h*60+_d.getMinutes(),_n=_h>=19||_h<7;try{var _s=JSON.parse(localStorage.getItem('ej-sun')||'null');if(_s&&_s.d===_d.toDateString())_n=_m<_s.r||_m>=_s.s}catch(e){}if(_t==='dark'||(_t==='auto'&&_n))document.documentElement.dataset.theme='dark';var _l=localStorage.getItem('ej-lang');if(_l)document.documentElement.lang=_l==='en'?'en':_l==='es'?'es':'pt-PT'}catch(e){}</script>
 <style>
 /* VOICE: calmo, minimalista, amigável
    IDEA: um caderno de contas leve, papel claro com etiquetas em tons pastel
@@ -370,6 +370,7 @@ body:has(#modal:not([hidden])) .fab,body:has(#ppov:not([hidden])) .fab{display:n
 .lost .lall{display:block;margin:10px auto 0;background:none;border:0;color:var(--mut,#777);font-size:14px;text-decoration:underline;padding:8px}
 #modal .askc{margin:14px 0 4px;padding:10px 14px;border-radius:14px;background:rgba(224,164,58,.16);color:inherit;font-weight:600;text-align:center}
 .bkrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid rgba(0,0,0,.06)}.bkrow:first-child{border-top:0}.bkrow>div{flex:1;min-width:0}.bkrow b{display:block}.bkrow small{opacity:.7}.bkm{color:#c0603a;font-weight:600}.bkrow .primary{min-height:40px;padding:0 16px}
+.itlist{margin-top:8px}.itlist summary{cursor:pointer;font-weight:600;opacity:.8;padding:6px 0}.itlist .ith{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid rgba(127,127,127,.15)}
 </style>
 </head>
 <body>
@@ -478,7 +479,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-24f';
+const APPV='2026-11-24h';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -717,7 +718,17 @@ function trS(t,attr){const li=LANG==='en'?0:LANG==='es'?1:-1;if(li<0||!t)return 
 function trTree(root){if(LANG==='pt'||!root)return;if(root.nodeType===3)root=root.parentNode;if(!root||!root.querySelectorAll&&root.nodeType!==1)return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;const ch=[];while(n=w.nextNode()){const p=n.parentNode;if(!p||(p.closest&&p.closest('script,style,textarea')))continue;const r=trS(n.nodeValue);if(r!=null&&r!==n.nodeValue)ch.push([n,r])}ch.forEach(([n,r])=>n.nodeValue=r);
   const els=[root,...root.querySelectorAll('[placeholder],[aria-label]')];els.forEach(e=>{if(!e.getAttribute)return;['placeholder','aria-label'].forEach(a=>{const v=e.getAttribute(a);if(v){const r=trS(v,1);if(r!=null&&r!==v)e.setAttribute(a,r)}})})}
 if(LANG!=='pt'){new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')trTree(m.target.parentNode);else m.addedNodes.forEach(x=>{if(x.nodeType===3)trTree(x.parentNode);else if(x.nodeType===1)trTree(x)})}}).observe(document.body,{childList:true,subtree:true,characterData:true});setTimeout(()=>trTree(document.body),0)}
-function isNight(){const h=new Date().getHours();return h>=19||h<7}
+/* modo noturno pelo pôr e nascer do sol (localização do telemóvel; sem ela, estimativa pelo fuso horário) */
+function sunPos(){try{const c=JSON.parse(localStorage.getItem('ej-geo')||'null');if(c&&isFinite(c.lat))return c}catch(e){}return {lat:0,lon:-new Date().getTimezoneOffset()/4,est:1}}
+function sunTimes(dt,lat,lon){const st=new Date(dt.getFullYear(),0,0),n=Math.floor((dt-st)/864e5),R=Math.PI/180,B=2*Math.PI*(n-81)/364;
+  const eq=9.87*Math.sin(2*B)-7.53*Math.cos(B)-1.5*Math.sin(B),dec=23.44*Math.sin(2*Math.PI*(284+n)/365)*R;
+  let x=Math.cos(90.833*R)/(Math.cos(lat*R)*Math.cos(dec))-Math.tan(lat*R)*Math.tan(dec);x=Math.max(-1,Math.min(1,x));const ha=Math.acos(x)/R;
+  const noon=720-4*lon-eq,off=-dt.getTimezoneOffset();return {r:noon-4*ha+off,s:noon+4*ha+off}}
+function isNight(){const d=new Date(),p=sunPos(),t=sunTimes(d,p.lat,p.lon),m=d.getHours()*60+d.getMinutes();
+  try{localStorage.setItem('ej-sun',JSON.stringify({d:d.toDateString(),r:t.r,s:t.s}))}catch(e){}return m<t.r||m>=t.s}
+function geoAsk(force){if(!navigator.geolocation)return;try{if(!force&&localStorage.getItem('ej-geo-asked'))return;localStorage.setItem('ej-geo-asked','1')}catch(e){}
+  navigator.geolocation.getCurrentPosition(p=>{try{localStorage.setItem('ej-geo',JSON.stringify({lat:Math.round(p.coords.latitude*10)/10,lon:Math.round(p.coords.longitude*10)/10}))}catch(e){}if(THEME==='auto')themeApply()},()=>{},{maximumAge:864e5,timeout:15000})}
+setTimeout(()=>{if(THEME==='auto')geoAsk()},3000);
 function themeApply(){const d=THEME==='dark'||(THEME==='auto'&&isNight());if(d)document.documentElement.dataset.theme='dark';else delete document.documentElement.dataset.theme;const m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',d?'#0f1a26':'#d6ecf0')}
 setInterval(()=>{if(THEME==='auto')themeApply()},60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&THEME==='auto')themeApply()});
 function payGet(){try{return JSON.parse(localStorage.getItem('ej-pay')||'{}')||{}}catch(e){return {}}}
@@ -771,10 +782,10 @@ document.addEventListener('change',ev=>{const t=ev.target;if(!t)return;if(t.id==
   else if(t.dataset&&t.dataset.bqon!=null){const q=bulkQ[+t.dataset.bqon];if(q){q.on=t.checked;render()}}
   else if(t.dataset&&t.dataset.bqsel!=null){const q=bulkQ[+t.dataset.bqsel];if(q){q.did=t.value||null;q.on=!!q.did;render()}}});
 function prefsHTML(){const sb=(attr,v,cur,t)=>`<button type="button" ${attr}="${v}" aria-pressed="${cur===v}">${t}</button>`;
-  return `<div class="prefs"><div class="pr"><span>Tema${ii('Automático: escuro das 19h às 7h, pela hora do telemóvel (que segue o fuso horário de onde estás).')}</span><div class="seg">${sb('data-theme-set','auto',THEME,'Automático')}${sb('data-theme-set','light',THEME,'Claro')}${sb('data-theme-set','dark',THEME,'Escuro')}</div></div>
+  return `<div class="prefs"><div class="pr"><span>Tema${ii('Automático: escurece ao pôr do sol e clareia ao nascer do sol, onde estiveres. Usa a localização do telemóvel (só neste telemóvel, não é partilhada); sem ela, faz uma estimativa pelo fuso horário.')}</span><div class="seg">${sb('data-theme-set','auto',THEME,'Automático')}${sb('data-theme-set','light',THEME,'Claro')}${sb('data-theme-set','dark',THEME,'Escuro')}</div></div>
   <div class="pr"><span>Idioma</span><div class="seg">${sb('data-lang-set','pt',LANG,'PT')}${sb('data-lang-set','en',LANG,'EN')}${sb('data-lang-set','es',LANG,'ES')}</div></div>${payHTML()}</div>`}
 document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('[data-theme-set],[data-lang-set]');if(!t)return;
-  if(t.dataset.themeSet){THEME=t.dataset.themeSet;try{localStorage.setItem('ej-theme',THEME)}catch(e){}themeApply();render()}
+  if(t.dataset.themeSet){THEME=t.dataset.themeSet;try{localStorage.setItem('ej-theme',THEME)}catch(e){}if(THEME==='auto')geoAsk(true);themeApply();render()}
   else if(t.dataset.langSet&&t.dataset.langSet!==LANG){try{localStorage.setItem('ej-lang',t.dataset.langSet)}catch(e){}location.reload()}});
 var IIS=[];function iiK(t){let k=IIS.indexOf(t);if(k<0){IIS.push(t);k=IIS.length-1}return k}function ii(t){let k=IIS.indexOf(t);if(k<0){IIS.push(t);k=IIS.length-1}return `<button type="button" class="ii" data-ii="${k}" aria-label="Explicação">i</button>`}
 document.addEventListener('toggle',ev=>{const t=ev.target;if(t&&t.classList&&t.classList.contains('fxd')&&edit)edit.fxOpen=t.open},true);
@@ -951,7 +962,7 @@ function privSee(g,e){return !e.priv||!e.by||e.by===meOf(g)}
 function itemsHTML(){const g=G(),e=edit;if(!e.itens||!e.itens.length||e.tipo==='reemb')return '';
   if(!privSee(g,e))return `<p class="privn">🔒 Artigos privados · só ${esc(nome(g,e.by))} os vê</p>`;
   const tg=`<div class="itbar"><b>🧾 Artigos</b><button type="button" id="e-privb" class="privp ${e.priv?'on':''}" aria-pressed="${!!e.priv}">${e.priv?'🔒 Privado':'🔓 Visível a todos'}</button>${ii('Toca em quem consumiu cada artigo (sem ninguém = todos). Privado: os outros veem o total e quanto calhou a cada um, mas não a lista de produtos.')}</div>`;
-  if(e.modo!=='artigos')return tg;
+  if(e.modo!=='artigos')return tg+`<details class="itlist"><summary>Ver ${e.itens.length} artigo${e.itens.length===1?'':'s'}</summary>${e.itens.map(it=>`<div class="ith"><span>${it.q>1?esc(it.q)+'× ':''}${esc(it.n)}</span><b>${fmt(it.v,e.moeda)}</b></div>`).join('')}</details><button type="button" class="linkbtn" data-modo="artigos" style="margin-top:6px">✂️ Dividir por produto</button>`;
   return tg+itemsHTML2()}
 function itemsHTML2(){const g=G(),e=edit;
   const on=g.membros.filter(p=>e.div[p.id].on);
@@ -1043,7 +1054,7 @@ async function scan(f,rIn){if(f&&edit&&(gkey()||aiKey())&&!(samp&&samp.gem))samp
     if(r.tipo==='banco')r.itens=[];
     const em=r.emoji&&firstEmo(String(r.emoji));if(em){edit.emoji=em;edit.emoFix=true}
     edit.itens=(Array.isArray(r.itens)?r.itens:[]).map(it=>({n:String(it&&it.nome||'Artigo').slice(0,60),q:Math.max(1,Math.round(+(it&&it.quantidade)||1)),v:Math.round((parseFloat(it&&it.preco)||0)*100),who:[]})).filter(it=>it.v>0).slice(0,80);
-    edit.modo=edit.itens.length?'artigos':'valor';if(edit.itens.length&&!Object.values(edit.div).some(r=>r.on))Object.values(edit.div).forEach(r=>r.on=true);
+    if(edit.modo==='artigos'&&!edit.itens.length)edit.modo='valor';if(edit.itens.length&&!Object.values(edit.div).some(r=>r.on))Object.values(edit.div).forEach(r=>r.on=true);
     for(const k in edit.div)edit.div[k].fix=false;
     edit.rx='';rebal('pag');rebal('div');drawEditor();
     const soma=edit.itens.reduce((a,it)=>a+it.v,0);
