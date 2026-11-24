@@ -367,6 +367,7 @@ body:has(#modal:not([hidden])) .fab,body:has(#ppov:not([hidden])) .fab{display:n
 .lockt{display:inline-flex;align-items:center;gap:4px;font-size:14px;color:var(--mut);font-weight:600}.lockt .ii{height:17px;width:17px;align-self:center}
 .card.lost{border:1.5px dashed #e0a43a}.lost .lrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid rgba(0,0,0,.06)}.lost .lrow img{width:44px;height:44px;object-fit:cover;border-radius:10px}.lost .lemo{width:44px;text-align:center;font-size:24px}.lost .lt{flex:1;min-width:0}.lost .lt b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lost .lt small{color:var(--mut,#777)}.lost .lx{background:none;border:0;font-size:16px;opacity:.5;padding:6px}
 #updblk{position:fixed;inset:0;z-index:9999;background:rgba(20,30,50,.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px}#updblk .ub{background:var(--card,#fffdf6);border-radius:24px;padding:28px 22px;text-align:center;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.25)}#updblk .ub-i{font-size:44px}#updblk h2{margin:8px 0 6px}#updblk p{margin:0 0 18px;opacity:.8;line-height:1.4}#updblk .primary{width:100%}#updblk small{display:block;margin-top:10px;opacity:.6}
+.lost .lall{display:block;margin:10px auto 0;background:none;border:0;color:var(--mut,#777);font-size:14px;text-decoration:underline;padding:8px}
 </style>
 </head>
 <body>
@@ -475,7 +476,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-23i';
+const APPV='2026-11-23l';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -615,19 +616,19 @@ async function scanMany(fs){if(!edit)return;if(!(samp&&samp.gem)&&typeof gkey===
   finally{sheet.querySelectorAll('.scan').forEach(l=>l.classList.remove('busy'))}}
 function freezeTx(g){g.despesas.forEach(d=>{if(d.moeda!==g.base&&!(d.tx&&d.tx.r>0&&d.tx.b===g.base&&g.taxas[d.tx.b])&&g.taxas[d.moeda]&&g.taxas[g.base]){const dr=typeof dayRate==='function'&&d.data?dayRate(g,d.moeda,d.data):null;d.tx={b:g.base,m:d.moeda,r:dr||g.taxas[d.moeda]/g.taxas[g.base]}}})}
 /* ---------- encontrar despesas que desapareceram (pelo registo de alterações e pelas fotos guardadas) ---------- */
-var lostL={},lostHide={};
+var lostL={},lostHide=lsGet('ej-losthide',{})||{};
 async function findLost(id){const g=groups[id];if(!g)return;const have=new Set(g.despesas.map(d=>d.id)),gone=new Set([...Object.keys(g.del||{}),...(g.lixo||[]).map(d=>d.id)]);
   (g.log||[]).forEach(h=>{if(h.i&&/apagou|anulou/.test(h.a))gone.add(h.i)});const m=new Map();
   (g.log||[]).slice().sort((a,b)=>a.t-b.t).forEach(h=>{if(h.i&&/^(criou|mudou)$/.test(h.a)&&!have.has(h.i)&&!gone.has(h.i))m.set(h.i,{id:h.i,ti:h.ti,v:h.v,mo:h.m,e:h.e,t:h.t,q:h.q})});
   if(fs)try{const pre=id+'-f-',qs=await getDocs(query(collection(fs,'grupos'),where(documentId(),'>=',pre),where(documentId(),'<',pre+'')));
-    qs.forEach(sn=>{const did=sn.id.slice(pre.length),v=sn.data();if(!v||!v.img||have.has(did)||gone.has(did))return;fotoC[sn.id]=v.img;const o=m.get(did)||{id:did,t:0};o.foto=1;m.set(did,o)})}catch(e){}
+    const used=new Set();qs.forEach(sn=>{const did=sn.id.slice(pre.length),v=sn.data();if(v&&v.img&&have.has(did))used.add(v.img)});qs.forEach(sn=>{const did=sn.id.slice(pre.length),v=sn.data();if(!v||!v.img||have.has(did)||gone.has(did)||used.has(v.img))return;fotoC[sn.id]=v.img;const o=m.get(did)||{id:did,t:0};o.foto=1;m.set(did,o)})}catch(e){}
   lostL[id]=[...m.values()].sort((a,b)=>(b.t||0)-(a.t||0));if(cur===id&&!edit)render()}
-function lostHTML(g){const L=(lostL[g.id]||[]).filter(x=>!g.despesas.some(d=>d.id===x.id)&&!lostHide[x.id]);if(!L.length)return '';
-  return `<div class="card lost"><h3 class="ppc-t">🛟 Despesas que desapareceram · ${L.length}${ii('Encontrei-as no registo de alterações ou nas fotos guardadas. Carrega em Repor: abre a despesa preenchida (e lê a foto, se houver). Confirma quem pagou e a divisão e guarda.')}</h3>
-  ${L.map(x=>`<div class="lrow">${x.foto?`<img src="${fotoC[g.id+'-f-'+x.id]}" alt="">`:`<span class="lemo">${esc(x.e||'💸')}</span>`}<div class="lt"><b>${esc(x.ti||'Despesa com foto')}</b><small>${x.v!=null?fmt(x.v,x.mo):''}${x.q?' · '+esc(x.q):''}${x.t?' · '+new Date(x.t).toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}):''}</small></div><button type="button" class="pga" data-lost="${x.id}">Repor</button><button type="button" class="lx" data-lostx="${x.id}" aria-label="Ignorar">✕</button></div>`).join('')}</div>`}
+function lostHTML(g){const nt=t=>String(t||'').trim().toLowerCase();const L=(lostL[g.id]||[]).filter(x=>x.ti&&!lostHide[x.id]&&!g.despesas.some(d=>d.id===x.id||(nt(d.titulo)===nt(x.ti))||(x.v!=null&&d.total===x.v&&d.moeda===x.mo)));if(!L.length)return '';
+  return `<div class="card lost"><h3 class="ppc-t">🛟 Despesas que desapareceram · ${L.length}${ii('Encontrei-as no registo de alterações ou nas fotos guardadas. Carrega em Repor: abre a despesa preenchida (e lê a foto, se houver). Confirma quem pagou e a divisão e guarda. Se já as puseste de outra forma, carrega em ✕ ou em Esconder todas.')}</h3>
+  ${L.map(x=>`<div class="lrow">${x.foto?`<img src="${fotoC[g.id+'-f-'+x.id]}" alt="">`:`<span class="lemo">${esc(x.e||'💸')}</span>`}<div class="lt"><b>${esc(x.ti||'Despesa com foto')}</b><small>${x.v!=null?fmt(x.v,x.mo):''}${x.q?' · '+esc(x.q):''}${x.t?' · '+new Date(x.t).toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}):''}</small></div><button type="button" class="pga" data-lost="${x.id}">Repor</button><button type="button" class="lx" data-lostx="${x.id}" aria-label="Ignorar">✕</button></div>`).join('')}<button type="button" class="lall" data-lostx="*">Esconder todas · já tratei disto</button></div>`}
 document.addEventListener('click',async ev=>{const t=ev.target.closest&&ev.target.closest('[data-lost],[data-lostx]');if(!t)return;const g=G();if(!g)return;
-  if(t.dataset.lostx){lostHide[t.dataset.lostx]=1;render();return}
-  const x=(lostL[g.id]||[]).find(y=>y.id===t.dataset.lost);if(!x)return;openEditor(null);edit.id=x.id;edit.titulo=x.ti||'';if(x.e){edit.emoji=x.e;edit.emoFix=true}if(x.v!=null){edit.total=x.v;edit.moeda=x.mo||g.base}if(x.t)edit.data=new Date(x.t-new Date(x.t).getTimezoneOffset()*6e4).toISOString().slice(0,10);
+  if(t.dataset.lostx){if(t.dataset.lostx==='*')(lostL[g.id]||[]).forEach(x=>lostHide[x.id]=1);else lostHide[t.dataset.lostx]=1;lsSet('ej-losthide',lostHide);render();return}
+  const x=(lostL[g.id]||[]).find(y=>y.id===t.dataset.lost);if(!x)return;openEditor(null);edit.id=x.id;if(x.foto&&!x.ti)edit.lostFoto=x.id;edit.titulo=x.ti||'';if(x.e){edit.emoji=x.e;edit.emoFix=true}if(x.v!=null){edit.total=x.v;edit.moeda=x.mo||g.base}if(x.t)edit.data=new Date(x.t-new Date(x.t).getTimezoneOffset()*6e4).toISOString().slice(0,10);
   try{rebal('pag');rebal('div')}catch(e){}const img=x.foto&&fotoC[g.id+'-f-'+x.id];if(img)edit.fotoNew=img;drawEditor();
   if(img){try{const b=await (await fetch(img)).blob();scan(new File([b],'recibo.jpg',{type:'image/jpeg'}))}catch(e){}}
   note('Confirma quem pagou e a divisão e carrega em Guardar.',5000)});
@@ -1020,6 +1021,7 @@ function dupOf(g,x,skip){const t=x.total,m=x.moeda,dt=x.data?new Date(x.data):nu
   return g.despesas.find(d=>d.id!==skip&&d.tipo!=='reemb'&&d.moeda===m&&d.total===t&&(!dt||!d.data||Math.abs(new Date(d.data)-dt)<=864e5))||null}
 function dupTag(g,d){if(d.tipo==='reemb')return false;const o=dupOf(g,d,d.id);if(!o)return false;const pa=x=>Object.keys(x.pag).filter(k=>x.pag[k]>0).sort().join();return pa(o)===pa(d)}
 function saveEditor(){const g=G(),e=edit;
+  if(e.lostFoto&&e.tipo!=='reemb'){const o=dupOf(g,e,e.id);if(o){const img=e.fotoNew||fotoC[g.id+'-f-'+e.lostFoto],nk=g.id+'-f-'+o.id;if(img&&!o.foto){fotoC[nk]=img;fotoPut(nk,img).catch(()=>{});o.foto=1;o.u=Date.now()}lostHide[e.lostFoto]=1;lsSet('ej-losthide',lostHide);fotoDel(g.id+'-f-'+e.lostFoto);closeEditor();save(g);note('Já estava nas despesas: “'+(o.titulo||'Despesa')+'”'+(img?' — juntei-lhe a foto.':'.'),5000);return}}
   if(!e.id&&!e.dupOk&&e.tipo!=='reemb'){const o=dupOf(g,e,null);if(o){e.dupOk=true;const b=$('#e-ok');if(b)b.textContent='Guardar na mesma';
     const w=document.getElementById('e-dupw')||document.createElement('p');w.id='e-dupw';w.className='dupw';w.textContent=`⚠️ Parece repetida: “${o.titulo||'Sem título'}” · ${fmt(o.total,o.moeda)} · ${o.data||''} · ${Object.keys(o.pag).filter(k=>o.pag[k]>0).map(k=>nome(g,k)).join(', ')} pagou.`;
     if(b&&!w.parentNode)b.closest('.actions').before(w);return}}if(e.pm&&e.pm!==e.moeda&&parse(e.pv||'')>0&&!e.lev){const rr=pvCalc();if(rr)e.rx=String(rr)}let tx=null;if(e.moeda!==g.base){const x=parseFloat(String(e.rx||'').replace(',','.'));if(x>0){tx={b:g.base,m:e.moeda,r:x};g.taxas[e.moeda]=x*g.taxas[g.base]}}const pick=(rows)=>{const o={};order(g,rows).forEach(k=>o[k]=rows[k].v);return o};
