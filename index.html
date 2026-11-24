@@ -490,14 +490,18 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-24m';
+const APPV='2026-11-24p';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
-function checkV(){if(!navigator.onLine)return;fetch('index.html',{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/APPV='([^']+)'/);if(m&&m[1]>APPV)showUpd()}).catch(()=>{})}
+var lastV=0;function checkV(){if(!navigator.onLine||Date.now()-lastV<60000)return;lastV=Date.now();fetch('version.json?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&j.v&&j.v>APPV)showUpd()}).catch(()=>{})}
 checkV();
 var hidAt=0;document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){hidAt=Date.now();Object.keys(pend).forEach(flush);return}
-  if(hidAt&&Date.now()-hidAt>=60000&&!edit&&!updBlk){try{sessionStorage.setItem('ej-back',JSON.stringify({cur,tab}))}catch(e){}location.reload();return}hidAt=0;checkV()});setInterval(checkV,10*60*1000);
+  const away=hidAt?Date.now()-hidAt:0;hidAt=0;checkV();if(away>=60000)resync();else if(!edit)render()});
+/* ao voltar à app depois de 1 min: envia o que falta e lê o grupo fresco do servidor (sem descarregar a página) */
+async function resync(){if(!fs||!navigator.onLine)return;Object.keys(pend).forEach(id=>{if(pend[id])flush(id)});const ids=cur?[cur]:Object.keys(groups);
+  for(const id of ids){try{const sn=await getDocFromServer(doc(fs,'grupos',id));if(!sn.exists())continue;const S={...clean(sn.data()),id},B=srvC[id];const back=guard(id,S,false);srvC[id]=clean(S);
+    groups[id]=pend[id]&&groups[id]?mergeG(S,groups[id],B):S;if(back.length)setTimeout(()=>restoreLost(id,back),0)}catch(e){}}cache();if(!edit)render()}setInterval(checkV,30*60*1000);
 /* ---------- 1. confirmar que ficou mesmo gravado ---------- */
 var vTry={};
 async function verify(id,L,B){if(!fs||!L)return;try{const sn=await getDocFromServer(doc(fs,'grupos',id));if(!sn.exists())return;const S=sn.data(),bad=[];
@@ -847,7 +851,7 @@ function enhanceCur(root){root.querySelectorAll('select:not([data-enh])').forEac
 new MutationObserver(()=>enhanceCur(document.body)).observe(document.body,{childList:true,subtree:true});
 const allOpts=sel=>`<optgroup label="Mais usadas">${TOPC.map(m=>`<option value="${m}" ${m===sel?'selected':''}>${esc(curLabel(m))}</option>`).join('')}</optgroup><optgroup label="Todas as moedas">${ALLC.filter(m=>!TOPC.includes(m)).sort(byName).map(m=>`<option value="${m}">${esc(curLabel(m))}</option>`).join('')}</optgroup>`;
 
-function render(){if(typeof cur!=='undefined'&&cur&&!autoTried[cur]&&groups[cur]){autoTried[cur]=1;setTimeout(()=>autoRates(groups[cur]),1500);setTimeout(()=>backupDay(cur),4000)}gateUpd();
+function render(){if(typeof cur!=='undefined'&&cur&&!autoTried[cur]&&groups[cur]){autoTried[cur]=1;setTimeout(()=>ensureIds(groups[cur]),800);setTimeout(()=>autoRates(groups[cur]),1500);setTimeout(()=>backupDay(cur),4000)}gateUpd();
   if(cur&&!groups[cur]){if(pendingOpen===cur){$('#back').hidden=false;$('#title').textContent='A abrir o grupo…';$('#sub').textContent='';$('#hero').innerHTML='';app.innerHTML='<p class="empty">A carregar…</p>';return}cur=null}
   $('#back').hidden=!cur;{const av=$('#avatar');const sh=!cur&&!!user;av.hidden=!sh;if(sh){av.textContent=avL();av.style.background=(prof&&prof.cor)||''}}$('#more').hidden=!cur||(!!G()&&!meOf(G())&&G().membros.length>0);$('#more').classList.toggle('on',tab==='conf');if(tab==='conf')$('#more').hidden=true;$('#sync').hidden=$('#more').hidden;$('#back').textContent=cur&&tab==='conf'?'‹ Voltar ao grupo':'‹ Todos os grupos';
   if(cur)document.querySelector('.top').classList.remove('home');
@@ -1739,6 +1743,10 @@ let askTake=null;
 const DEVK=(()=>{try{let d=localStorage.getItem('ej-dev');if(!d){d=Math.random().toString(36).slice(2,12);localStorage.setItem('ej-dev',d)}return d}catch(e){return 'x'}})();
 const myKey=()=>(typeof user!=='undefined'&&user&&user.uid)||DEVK;
 function takenBy(g,mid){const c=(g.claims||{})[mid];return c&&c!==myKey()?c:null}
+/* garante que o grupo sabe quem és (para as regras de segurança do Firebase) */
+function ensureIds(g){if(!g||typeof user==='undefined'||!user||!user.uid)return;const me=meOf(g);let ch=false;
+  if(me&&(g.claims||{})[me]!==user.uid){const c={...(g.claims||{})};for(const m in c)if(c[m]===user.uid&&m!==me)delete c[m];c[me]=user.uid;g.claims=c;ch=true}
+  if(isOwner(g)&&String(g.criador||'').length!==28){g.criador=user.uid;ch=true}if(ch)save(g)}
 function claim(g,mid){const k=myKey();const c={...(g.claims||{})};for(const m in c)if(c[m]===k)delete c[m];if(mid)c[mid]=k;g.claims=c;save(g)}
 
 
