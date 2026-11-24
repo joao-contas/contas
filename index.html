@@ -381,6 +381,7 @@ body:has(#modal:not([hidden])) .fab,body:has(#ppov:not([hidden])) .fab{display:n
 .fimbtn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin-top:14px;color:var(--ink)}.fimbtn>span:first-child{font-size:26px}.fimbtn>span:nth-child(2){flex:1}.fimbtn small{display:block;color:var(--mut);font-weight:400;font-size:13px}
 .fim h3{margin:18px 0 4px;font-size:15px}.fimtot{text-align:center;padding:6px 0 4px}.fimtot b{display:block;font:600 30px/1.2 Outfit,sans-serif;margin:2px 0}.fimtot small{color:var(--mut)}.fimr{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid rgba(127,127,127,.15)}.fimok{color:#2a8a5a;font-weight:600}
 .fimact{display:flex;gap:10px;margin-top:20px}.fimact button{flex:1}.fimlock{width:100%;margin-top:12px}.robar{width:100%;margin:0 0 12px;background:rgba(224,164,58,.18)!important;color:var(--ink);font-weight:600;border-radius:16px;box-shadow:none}
+.fxsrc{opacity:.75;font-size:12.5px}.fxd summary .fxsrc{display:block;font-weight:400;margin-top:2px}.fxd summary b{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -489,7 +490,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-24l';
+const APPV='2026-11-24m';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -954,7 +955,7 @@ function check(side){const g=G(),rows=edit[side],on=order(g,rows),s=on.reduce((a
 function openEditor(d){if(modal.hidden)navPush('ed');const g=G();confirmDel=null;
   const mk=(src,fx,isPag,first)=>{const o={};g.membros.forEach((p,i)=>{const has=src?(p.id in src):(isPag?(meOf(g)?p.id===meOf(g):i===0):false);
     o[p.id]={on:has&&(!src||!isPag||src[p.id]>0),v:src&&src[p.id]||0,fix:!!(fx&&fx.includes(p.id)),p:(d&&d.partes&&d.partes[p.id])||1}});return o};
-  edit=d?{lev:d.lev||'',lvs:d.lv?val(d.lv):'',pm:d.pe?d.pe.m:'',pv:d.pe?val(d.pe.v):'',tx:d.tx||null,itens:clean(d.itens||[]),id:d.id,emoji:dEmo(d),emoFix:!!d.emoji,titulo:d.titulo,moeda:d.moeda,total:d.total,data:d.data,tipo:d.tipo||'desp',modo:d.modo||'valor',cr:d.cr,pag:mk(d.pag,d.fixP,true),div:mk(d.div,d.fixD,false)}
+  edit=d?{lev:d.lev||'',lvs:d.lv?val(d.lv):'',pm:d.pe?d.pe.m:'',pv:d.pe?val(d.pe.v):'',pvNote:d.pe&&d.pe.s||'',tx:d.tx||null,itens:clean(d.itens||[]),id:d.id,emoji:dEmo(d),emoFix:!!d.emoji,titulo:d.titulo,moeda:d.moeda,total:d.total,data:d.data,tipo:d.tipo||'desp',modo:d.modo||'valor',cr:d.cr,pag:mk(d.pag,d.fixP,true),div:mk(d.div,d.fixD,false)}
         :{itens:[],id:null,emoji:'💸',emoFix:false,titulo:'',moeda:g.base,total:0,data:today(),tipo:'desp',modo:'valor',pag:mk(null,null,true),div:mk(null,null,false)};
   if(!d){rebal('pag');rebal('div')}
   edit.hasFoto=!!(d&&d.foto);edit.priv=!!(d&&d.priv);edit.by=(d&&d.by)||meOf(G());edit.paga=false;edit.pg={...((d&&d.pg)||{})};if(d&&d.paga)Object.keys(d.div).forEach(k=>{if(d.div[k]>0&&!(d.pag[k]>0))edit.pg[k]=1});edit.fotoNew=null;edit.fotoRm=false;drawEditor();modal.hidden=false;setTimeout(()=>{if(edit&&!edit.snap)edit.snap=edSig()},400);setTimeout(()=>{const t=$('#e-t');if(t&&!d)t.focus()},50)}
@@ -982,16 +983,22 @@ const rateOf=(g,c)=>c===g.base?1:((edit&&dayRate(g,c,edit.data||today()))||(type
 /* "Pagaste em": quando a conta é numa moeda e pagaste noutra (ex.: conta em colones, pago com cartão em euros) */
 function pvCalc(){const g=G(),e=edit;if(!e.pm||e.pm===e.moeda)return null;const v=parse(e.pv||'');const rp=rateOf(g,e.pm);if(!(v>0)||!rp||!(e.total>0))return null;
   const baseAmt=v/rp;return e.total/baseAmt}
-function setPm(c){edit.pm=c;if(edit.pm===edit.moeda){edit.pv='';if(edit.rxSrc==='pago'){edit.rx='';edit.rxSrc=''}}else{edit.pv='';const g=G(),r=parseFloat(String(edit.rx||'').replace(',','.')),rp=rateOf(g,edit.pm);if(r>0&&rp&&edit.total>0)edit.pv=val(Math.round(edit.total/r*rp))}$('#e-rate').innerHTML=rateRow();refresh();const i=$('#e-pv');if(i)i.focus()}
+function setPm(c){edit.pm=c;if(edit.pm===edit.moeda){edit.pv='';if(edit.rxSrc==='pago'){edit.rx='';edit.rxSrc=''}}else{edit.pv='';const g=G(),r=parseFloat(String(edit.rx||'').replace(',','.')),rp=rateOf(g,edit.pm);if(r>0&&rp&&edit.total>0){edit.pv=val(Math.round(edit.total/r*rp));edit.pvSrc='auto'}}$('#e-rate').innerHTML=rateRow();refresh();const i=$('#e-pv');if(i)i.focus()}
 function prOf(){const e=edit,v=parse(e.pv||'');if(v>0&&e.total>0)return fmtRate(e.total/v);const r=parseFloat(String(e.rx||'').replace(',','.')),rp=rateOf(G(),e.pm);return r>0&&rp?fmtRate(r/rp):''}
 function fxSum(){const g=G(),e=edit,r=parseFloat(String(e.rx||'').replace(',','.'));if(!(r>0)||!(e.total>0))return 'Escreve o total para ver quanto dá em '+esc(g.base)+'.';
-  const sd=e.rxSrc==='dia'?' <small>(mercado de '+esc(new Date((e.data||today())+'T12:00').toLocaleDateString('pt-PT'))+')</small>':e.rxSrc==='manual'||e.rxSrc==='pago'?' <small>(a tua taxa)</small>':'';
+  const sd=e.rxSrc==='dia'?' <small>(mercado de '+esc(new Date((e.data||today())+'T12:00').toLocaleDateString('pt-PT'))+')</small>':e.rxSrc==='manual'||e.rxSrc==='pago'?' <small>(a tua taxa)</small>':' <small>(taxa do grupo'+(gUpd(g)?' de '+esc(gUpd(g)):'')+')</small>';
   return `≈ <b>${fmt(Math.round(e.total/r),g.base)}</b> · 1 ${esc(g.base)} = ${esc(e.rx)} ${esc(e.moeda)}${sd}`}
+function gUpd(g){const u=g.taxasUpd;if(!u)return '';const d=new Date(isNaN(+u)?u:+u);return isNaN(d)?'':d.toLocaleDateString('pt-PT')}
+function srcNote(){const g=G(),e=edit,dt=x=>new Date((x||today())+'T12:00').toLocaleDateString('pt-PT');
+  if(e.pvSrc==='scan')return '📷 valor do print/recibo';if(e.pvSrc==='manual')return '✍️ valor que escreveste';if(e.pvSrc==='taxa')return '✍️ taxa que escreveste';
+  if(e.pvSrc==='auto')return rxNote();
+  return e.pvNote||''}
+function rxNote(){const g=G(),e=edit,dt=x=>new Date((x||today())+'T12:00').toLocaleDateString('pt-PT');const k=e.rxSrc;if(k==='dia')return '📈 taxa de mercado de '+dt(e.data);if(k==='mercado')return '📈 taxa de mercado de hoje';if(k==='manual'||k==='pago')return '✍️ a tua taxa';if(k==='gravada')return '📌 taxa guardada desta despesa';if(k==='grupo')return '📈 taxa do grupo'+(gUpd(g)?' de '+gUpd(g):'');return ''}
 function pvHint(){const g=G(),e=edit,r=pvCalc();if(!r)return `Valor do talão ou extrato.`;
-  return `✓ ${fmt(e.total,e.moeda)} = ${fmt(parse(e.pv),e.pm)}`}
+  const sn=srcNote();return `✓ ${fmt(e.total,e.moeda)} = ${fmt(parse(e.pv),e.pm)}${sn?`<br><small class="fxsrc">${esc(sn)}</small>`:''}`}
 function rateRow(){const r=rateRow0();if(!r)return '';const e=edit,m=e.moeda,pm=e.pm||m,pv=parse(e.pv||'');
   const t=e.lev?'💵 Levantamento':pm!==m?(pv>0?'💳 '+fmt(pv,pm):'💳 em '+pm):(()=>{const r=parseFloat(String(e.rx||'').replace(',','.'));return r>0&&e.total>0?'≈ '+fmt(Math.round(e.total/r),G().base):'Taxa'})();
-  return `<details class="fxd" ${e.fxOpen?'open':''}><summary><span>Pagamento</span><b>${esc(t)}</b></summary>${r}</details>`}
+  const sn=e.lev?'':pm!==m?(pv>0?srcNote():''):rxNote();return `<details class="fxd" ${e.fxOpen?'open':''}><summary><span>Pagamento${sn?`<small class="fxsrc">${esc(sn)}</small>`:''}</span><b>${esc(t)}</b></summary>${r}</details>`}
 function rateRow0(){const g=G(),e=edit,m=e.moeda;if(m===g.base)return '';
   const dk=dayRate(g,m,e.data||today()),mk=dk||(typeof liveRate==='function'?liveRate(g,m):null);
   if(!e.rx){let r=null,src='';if(e.tx&&e.tx.b===g.base&&e.tx.m===m){r=e.tx.r;src='gravada'}else if(dk){r=dk;src='dia'}else if(mk){r=mk;src='mercado'}else if(g.taxas[m]){r=g.taxas[m]/g.taxas[g.base];src='grupo'}
@@ -1059,7 +1066,7 @@ async function scan(f,rIn){if(f&&edit&&(gkey()||aiKey())&&!(samp&&samp.gem))samp
     if(total>0)edit.total=total;
     if(g.taxas[m])edit.moeda=m;else if(ALLC.includes(m)){edit.moeda=m;msg=` ${curName(m)||m} é nova no grupo: indica a taxa de câmbio por baixo do total.`}
     if(/^\d{4}-\d{2}-\d{2}$/.test(r.data||''))edit.data=r.data;
-    {const mp=String(r.moeda_paga||'').toUpperCase().trim(),tx=parseFloat(String(r.taxa||'').replace(',','.'))||0;let vp=Math.round((parseFloat(r.valor_pago)||0)*100);if(!(vp>0)&&tx>0&&edit.total>0)vp=Math.round(edit.total/tx);if(mp&&vp>0&&mp!==edit.moeda&&ALLC.includes(mp)){edit.pm=mp;edit.pv=val(vp);edit.lev=null;const rr=pvCalc();if(rr){edit.rx=String(rr);edit.rxSrc='pago'}}}
+    {const mp=String(r.moeda_paga||'').toUpperCase().trim(),tx=parseFloat(String(r.taxa||'').replace(',','.'))||0;let vp=Math.round((parseFloat(r.valor_pago)||0)*100);if(!(vp>0)&&tx>0&&edit.total>0)vp=Math.round(edit.total/tx);if(mp&&vp>0&&mp!==edit.moeda&&ALLC.includes(mp)){edit.pm=mp;edit.pv=val(vp);edit.pvSrc='scan';edit.lev=null;const rr=pvCalc();if(rr){edit.rx=String(rr);edit.rxSrc='pago'}}}
     if(r.tipo==='banco')r.itens=[];
     const em=r.emoji&&firstEmo(String(r.emoji));if(em){edit.emoji=em;edit.emoFix=true}
     edit.itens=(Array.isArray(r.itens)?r.itens:[]).map(it=>({n:String(it&&it.nome||'Artigo').slice(0,60),q:Math.max(1,Math.round(+(it&&it.quantidade)||1)),v:Math.round((parseFloat(it&&it.preco)||0)*100),who:[]})).filter(it=>it.v>0).slice(0,80);
@@ -1083,7 +1090,7 @@ function saveEditor(){const g=G(),e=edit;if(ro(g)){note('🔒 O grupo está fech
   if(!e.id&&!e.dupOk&&e.tipo!=='reemb'){const o=dupOf(g,e,null);if(o){e.dupOk=true;const b=$('#e-ok');if(b)b.textContent='Guardar na mesma';
     const w=document.getElementById('e-dupw')||document.createElement('p');w.id='e-dupw';w.className='dupw';w.textContent=`⚠️ Parece repetida: “${o.titulo||'Sem título'}” · ${fmt(o.total,o.moeda)} · ${o.data||''} · ${Object.keys(o.pag).filter(k=>o.pag[k]>0).map(k=>nome(g,k)).join(', ')} pagou.`;
     if(b&&!w.parentNode)b.closest('.actions').before(w);return}}if(e.pm&&e.pm!==e.moeda&&parse(e.pv||'')>0&&!e.lev){const rr=pvCalc();if(rr)e.rx=String(rr)}let tx=null;if(e.moeda!==g.base){const x=parseFloat(String(e.rx||'').replace(',','.'));if(x>0){tx={b:g.base,m:e.moeda,r:x};g.taxas[e.moeda]=x*g.taxas[g.base]}}const pick=(rows)=>{const o={};order(g,rows).forEach(k=>o[k]=rows[k].v);return o};
-  const pe=e.pm&&e.pm!==e.moeda&&parse(e.pv||'')>0?{m:e.pm,v:parse(e.pv)}:null;
+  const pe=e.pm&&e.pm!==e.moeda&&parse(e.pv||'')>0?{m:e.pm,v:parse(e.pv),...(srcNote()?{s:srcNote()}:{})}:null;
   const d={id:e.id||uid(),tx,pe,lev:e.lev||null,lv:e.lev&&parse(e.lvs||'')>0?parse(e.lvs):null,emoji:e.emoji,itens:e.itens||[],titulo:e.titulo.trim()||(e.tipo==='reemb'?'Reembolso':'Despesa'),moeda:e.moeda,total:e.total,data:e.data||today(),tipo:e.tipo,modo:e.modo,cr:e.cr||Date.now(),
     pag:pick(e.pag),div:pick(e.div),fixP:order(g,e.pag).filter(k=>e.pag[k].fix),fixD:e.modo==='valor'?order(g,e.div).filter(k=>e.div[k].fix):[],
     partes:e.modo==='partes'?Object.fromEntries(order(g,e.div).map(k=>[k,+e.div[k].p||0])):{}};
@@ -1096,8 +1103,8 @@ sheet.addEventListener('input',ev=>{const t=ev.target;if(!edit)return;
   else if(t.id==='e-dat'){edit.data=t.value;if(!edit.rx||['mercado','grupo','dia'].includes(edit.rxSrc)){edit.rx='';const pvWas=edit.pm&&edit.pm!==edit.moeda;const er=$('#e-rate');if(er){er.innerHTML=rateRow();refresh()}}}
   else if(t.id==='e-rx'){edit.rx=t.value;edit.rxSrc='manual';const f=$('#e-fxs');if(f)f.innerHTML=fxSum();refresh()}
   else if(t.id==='e-lv'){edit.lvs=t.value;lvApply();const h=$('#e-lvh');if(h)h.innerHTML=lvHint();refresh()}
-  else if(t.id==='e-pr'){const pr=parseFloat(String(t.value).replace(',','.'));if(pr>0&&edit.total>0){edit.pv=val(Math.round(edit.total/pr));const pv=$('#e-pv');if(pv)pv.value=edit.pv;const rp=rateOf(G(),edit.pm);if(rp){edit.rx=fmtRate(pr*rp);edit.rxSrc='pago'}const h=$('#e-pvh');if(h)h.innerHTML=pvHint()}refresh()}
-  else if(t.id==='e-pv'){edit.pv=t.value;const r=pvCalc();if(r){edit.rx=String(r);edit.rxSrc='pago';const x=$('#e-rx');if(x)x.value=fmtRate(r)}{const q=$('#e-pr');if(q)q.value=prOf()}const h=$('#e-pvh');if(h)h.innerHTML=pvHint();refresh()}
+  else if(t.id==='e-pr'){const pr=parseFloat(String(t.value).replace(',','.'));if(pr>0&&edit.total>0){edit.pv=val(Math.round(edit.total/pr));edit.pvSrc='taxa';const pv=$('#e-pv');if(pv)pv.value=edit.pv;const rp=rateOf(G(),edit.pm);if(rp){edit.rx=fmtRate(pr*rp);edit.rxSrc='pago'}const h=$('#e-pvh');if(h)h.innerHTML=pvHint()}refresh()}
+  else if(t.id==='e-pv'){edit.pv=t.value;edit.pvSrc='manual';const r=pvCalc();if(r){edit.rx=String(r);edit.rxSrc='pago';const x=$('#e-rx');if(x)x.value=fmtRate(r)}{const q=$('#e-pr');if(q)q.value=prOf()}const h=$('#e-pvh');if(h)h.innerHTML=pvHint();refresh()}
   else if(t.id==='e-tot'){edit.total=Math.max(0,parse(t.value));rebal('pag');rebal('div');if(edit.lev&&edit.lvs){lvApply();const h=$('#e-lvh');if(h)h.innerHTML=lvHint()}const r=pvCalc();if(r){edit.rx=fmtRate(r);edit.rxSrc='pago';const x=$('#e-rx');if(x)x.value=edit.rx;const h=$('#e-pvh');if(h)h.innerHTML=pvHint();const q=$('#e-pr');if(q)q.value=prOf()}const f=$('#e-fxs');if(f)f.innerHTML=fxSum();refresh()}
   else if(t.dataset.amt){const r=edit[t.dataset.amt][t.dataset.k];r.v=Math.max(0,parse(t.value));r.fix=true;rebal(t.dataset.amt);refresh()}
   else if(t.dataset.part){edit.div[t.dataset.part].p=t.value.replace(',','.');rebal('div');refresh()}});
@@ -1113,7 +1120,7 @@ sheet.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t||!
   if(t.dataset&&t.dataset.lev!=null&&t.closest('#e-rate')){setLev(t.dataset.lev);return}
   if(t.id==='e-rxed'){edit.rxOpen=true;$('#e-rate').innerHTML=rateRow();const i=$('#e-rx');if(i)i.focus();return}
   if(t.dataset&&t.dataset.pm){setPm(t.dataset.pm);return}
-  if(false){if(edit.pm===edit.moeda){edit.pv='';if(edit.rxSrc==='pago'){edit.rx='';edit.rxSrc=''}}else if(!edit.pv){const g=G(),r=parseFloat(String(edit.rx||'').replace(',','.')),rp=rateOf(g,edit.pm);if(r>0&&rp&&edit.total>0)edit.pv=val(Math.round(edit.total/r*rp))}$('#e-rate').innerHTML=rateRow();refresh();const i=$('#e-pv');if(i)i.focus();return}
+  if(false){if(edit.pm===edit.moeda){edit.pv='';if(edit.rxSrc==='pago'){edit.rx='';edit.rxSrc=''}}else if(!edit.pv){const g=G(),r=parseFloat(String(edit.rx||'').replace(',','.')),rp=rateOf(g,edit.pm);if(r>0&&rp&&edit.total>0){edit.pv=val(Math.round(edit.total/r*rp));edit.pvSrc='auto'}}$('#e-rate').innerHTML=rateRow();refresh();const i=$('#e-pv');if(i)i.focus();return}
   if(t.id==='e-rxm'){const mk=liveRate(G(),edit.moeda);if(mk){edit.rx=fmtRate(mk);edit.rxSrc='mercado';$('#e-rate').innerHTML=rateRow();refresh()}return}
   if(t.id==='e-emo-more'){$('#e-emos').hidden=!$('#e-emos').hidden;return}
   if(t.dataset.emo==='exp'){setEmo('exp',t.dataset.e,t.parentNode);return}
