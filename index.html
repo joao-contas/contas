@@ -378,6 +378,9 @@ body:has(#modal:not([hidden])) .fab,body:has(#ppov:not([hidden])) .fab{display:n
 .rsb{display:grid;grid-template-columns:44% 1fr 62px 32px;align-items:center;gap:8px;width:100%;padding:8px 2px;background:none!important;box-shadow:none;border-radius:10px;color:var(--ink);font-weight:400;text-align:left;min-height:0}
 .rsl{display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:14px}.rse{font-size:17px;flex:0 0 24px;width:24px;text-align:center;overflow:hidden}.rst{height:10px;border-radius:6px;background:rgba(127,127,127,.14);overflow:hidden}.rst i{display:block;height:100%;border-radius:6px;background:var(--lavd)}.rsb b{font-size:14px;text-align:right}.rsb small{font-size:12px;color:var(--mut);text-align:right}
 .exb.top i{background:#c0603a!important}
+.fimbtn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin-top:14px;color:var(--ink)}.fimbtn>span:first-child{font-size:26px}.fimbtn>span:nth-child(2){flex:1}.fimbtn small{display:block;color:var(--mut);font-weight:400;font-size:13px}
+.fim h3{margin:18px 0 4px;font-size:15px}.fimtot{text-align:center;padding:6px 0 4px}.fimtot b{display:block;font:600 30px/1.2 Outfit,sans-serif;margin:2px 0}.fimtot small{color:var(--mut)}.fimr{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid rgba(127,127,127,.15)}.fimok{color:#2a8a5a;font-weight:600}
+.fimact{display:flex;gap:10px;margin-top:20px}.fimact button{flex:1}.fimlock{width:100%;margin-top:12px}.robar{width:100%;margin:0 0 12px;background:rgba(224,164,58,.18)!important;color:var(--ink);font-weight:600;border-radius:16px;box-shadow:none}
 </style>
 </head>
 <body>
@@ -486,7 +489,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-24j';
+const APPV='2026-11-24k';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -506,12 +509,12 @@ async function verify(id,L,B){if(!fs||!L)return;try{const sn=await getDocFromSer
     if(vTry[id]<=3){note('⚠️ Uma alteração não ficou gravada. A gravar outra vez…',3500);srvC[id]=clean({...S,id});save(g)}
     else note('⚠️ Não consegui confirmar a gravação de “'+(bad[0].titulo||'despesa')+'”. Verifica a rede e abre a app outra vez.',9000)}catch(e){}}
 /* ---------- 2. cópia de segurança diária (guarda 7 dias) ---------- */
+function dShift(n){const d=new Date();d.setDate(d.getDate()+n);return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)}
 async function backupDay(id){if(!fs)return;const g=groups[id];if(!g||!g.despesas.length)return;const d=today(),k='ej-bk-'+id;if(lsGet(k,'')===d)return;
   try{const ref=doc(fs,'grupos',id+'-bk-'+d),sn=await getDoc(ref);if(!sn.exists()){const c=clean(g);delete c.id;await setDoc(ref,{...c,bk:d,wt:serverTimestamp()})}lsSet(k,d);
-    const pre=id+'-bk-',qs=await getDocs(query(collection(fs,'grupos'),where(documentId(),'>=',pre),where(documentId(),'<',pre+'')));const ds=[];qs.forEach(x=>ds.push(x.id));ds.sort();
-    ds.slice(0,Math.max(0,ds.length-7)).forEach(x=>deleteDoc(doc(fs,'grupos',x)).catch(()=>{}))}catch(e){}}
+    for(let n=8;n<=12;n++)deleteDoc(doc(fs,'grupos',id+'-bk-'+dShift(-n))).catch(()=>{})}catch(e){}}
 var bkList=null,cpOpen=false;
-async function bkLoad(id){bkList=[];try{const pre=id+'-bk-',qs=await getDocs(query(collection(fs,'grupos'),where(documentId(),'>=',pre),where(documentId(),'<',pre+'')));qs.forEach(x=>bkList.push({dia:x.id.slice(pre.length),v:x.data()}));bkList.sort((a,b)=>b.dia.localeCompare(a.dia))}catch(e){bkList=[]}render()}
+async function bkLoad(id){bkList=[];try{const r=await Promise.all([0,1,2,3,4,5,6,7].map(n=>{const dia=dShift(-n);return getDoc(doc(fs,'grupos',id+'-bk-'+dia)).then(x=>x.exists()?{dia,v:x.data()}:null).catch(()=>null)}));bkList=r.filter(Boolean)}catch(e){bkList=[]}render()}
 function bkHTML(g){if(!fs)return '';let h=`<h2 class="sec">🗄️ Cópias de segurança${ii('Todos os dias a app guarda uma cópia do grupo (os últimos 7 dias). Se faltar alguma despesa, repõe-na a partir de uma cópia. Nada é apagado ao repor.')}</h2><div class="card">`;
   if(!cpOpen)return h+`<button type="button" id="bk-open" style="width:100%">Ver cópias</button></div>`;
   if(bkList===null)return h+'<p class="small" style="margin:0">A carregar…</p></div>';
@@ -557,7 +560,7 @@ function pgMerge(w,a,b){const pa=a.pg||{},pb=b.pg||{},ta=a.pgT||{},tb=b.pgT||{},
   new Set([...Object.keys(pa),...Object.keys(pb),...Object.keys(ta),...Object.keys(tb)]).forEach(k=>{const A=ta[k]||0,B=tb[k]||0;const on=A!==B?(A>B?!!pa[k]:!!pb[k]):(!!pa[k]||!!pb[k]);if(on)pg[k]=1;if(A||B)T[k]=Math.max(A,B)});
   const r={...w};if(Object.keys(pg).length)r.pg=pg;else delete r.pg;if(Object.keys(T).length)r.pgT=T;else delete r.pgT;return r}
 function mergeG(S,L,B){if(!S)return L;if(!L)return S;const J=x=>JSON.stringify(x),M={...S};
-  for(const k of ['nome','emoji','base','taxas','taxasUpd','taxasDia','peRev','cart','claims','criador','ownerMid','iaKey'])if(J(L[k])!==J(B?B[k]:undefined)){if(L[k]===undefined)delete M[k];else M[k]=L[k]}
+  for(const k of ['nome','emoji','base','taxas','taxasUpd','taxasDia','peRev','cart','claims','criador','ownerMid','iaKey','fechado'])if(J(L[k])!==J(B?B[k]:undefined)){if(L[k]===undefined)delete M[k];else M[k]=L[k]}
   const mx=(a,b)=>{const o={...(a||{})};for(const k in (b||{}))o[k]=Math.max(o[k]||0,b[k]);const e=Object.entries(o).sort((x,y)=>y[1]-x[1]).slice(0,300);return Object.fromEntries(e)};
   const mg=(sa,la,del)=>{const m=new Map();(sa||[]).forEach(x=>m.set(x.id,x));(la||[]).forEach(x=>{const s=m.get(x.id);if(!s){m.set(x.id,x);return}const w=(x.u||0)>(s.u||0)?x:s;m.set(x.id,(x.pg||s.pg||x.pgT||s.pgT)?pgMerge(w,s,x):w)});return [...m.values()].filter(x=>!del[x.id]||(x.u||0)>del[x.id])};
   M.del=mx(S.del,L.del);{const ok=new Set([...(S.lixo||[]),...(L.lixo||[])].map(d=>d.id));[...(S.log||[]),...(L.log||[])].forEach(h=>{if(h.i&&/apagou|anulou/.test(h.a))ok.add(h.i)});for(const k in M.del)if(!ok.has(k))delete M.del[k]}M.mdel=mx(S.mdel,L.mdel);M.despesas=mg(S.despesas,L.despesas,M.del);M.membros=mg(S.membros,L.membros,M.mdel);
@@ -663,8 +666,6 @@ var lostL={},lostHide=lsGet('ej-losthide',{})||{};
 async function findLost(id){const g=groups[id];if(!g)return;const have=new Set(g.despesas.map(d=>d.id)),gone=new Set([...Object.keys(g.del||{}),...(g.lixo||[]).map(d=>d.id)]);
   (g.log||[]).forEach(h=>{if(h.i&&/apagou|anulou/.test(h.a))gone.add(h.i)});const m=new Map();
   (g.log||[]).slice().sort((a,b)=>a.t-b.t).forEach(h=>{if(h.i&&/^(criou|mudou)$/.test(h.a)&&!have.has(h.i)&&!gone.has(h.i))m.set(h.i,{id:h.i,ti:h.ti,v:h.v,mo:h.m,e:h.e,t:h.t,q:h.q})});
-  if(fs)try{const pre=id+'-f-',qs=await getDocs(query(collection(fs,'grupos'),where(documentId(),'>=',pre),where(documentId(),'<',pre+'')));
-    const used=new Set();qs.forEach(sn=>{const did=sn.id.slice(pre.length),v=sn.data();if(v&&v.img&&have.has(did))used.add(v.img)});qs.forEach(sn=>{const did=sn.id.slice(pre.length),v=sn.data();if(!v||!v.img||have.has(did)||gone.has(did)||used.has(v.img))return;fotoC[sn.id]=v.img;const o=m.get(did)||{id:did,t:0};o.foto=1;m.set(did,o)})}catch(e){}
   lostL[id]=[...m.values()].sort((a,b)=>(b.t||0)-(a.t||0));if(cur===id&&!edit)render()}
 function lostHTML(g){const nt=t=>String(t||'').trim().toLowerCase();const L=(lostL[g.id]||[]).filter(x=>x.ti&&!lostHide[x.id]&&!g.despesas.some(d=>d.id===x.id||(nt(d.titulo)===nt(x.ti))||(x.v!=null&&d.total===x.v&&d.moeda===x.mo)));if(!L.length)return '';
   return `<div class="card lost"><h3 class="ppc-t">🛟 Despesas que desapareceram · ${L.length}${ii('Encontrei-as no registo de alterações ou nas fotos guardadas. Carrega em Repor: abre a despesa preenchida (e lê a foto, se houver). Confirma quem pagou e a divisão e guarda. Se já as puseste de outra forma, carrega em ✕ ou em Esconder todas.')}</h3>
@@ -888,7 +889,7 @@ function render(){if(typeof cur!=='undefined'&&cur&&!autoTried[cur]&&groups[cur]
   if(tab==='desp'){
     const ds=[...g.despesas].sort((a,c)=>(c.data||'').localeCompare(a.data||'')||(c.cr||0)-(a.cr||0));
     {const me=meOf(g);if(me)h+=walletHTML(g,me)}
-    h+=`<div class="addrow"><button class="primary fab" id="add" aria-label="Nova despesa" title="Nova despesa">+</button></div>${searchHTML(g)}<div class="list">${ds.length?dayGroup(ds.filter(d=>matchQ(g,d)&&mineOk(g,d)&&!hidN(g,d)),d=>{
+    h+=`${ro(g)?'':'<div class="addrow"><button class="primary fab" id="add" aria-label="Nova despesa" title="Nova despesa">+</button></div>'}${searchHTML(g)}<div class="list">${ds.length?dayGroup(ds.filter(d=>matchQ(g,d)&&mineOk(g,d)&&!hidN(g,d)),d=>{
       const pags=Object.keys(d.pag).filter(k=>d.pag[k]>0).map(k=>nome(g,k));
       return `<button class="item card ${(()=>{const me=meOf(g);return (me&&!inMine(g,d,me)?'notme':'')+(pgFull(d)?' pdone':'')})()}" data-edit="${esc(d.id)}"><span class="ic">${esc(dEmo(d))}</span><h3>${esc(d.titulo||'Sem título')}${d.foto?' <span class="clip">📎</span>':''}${dupTag(g,d)?' <span class="pgtag dupt">⚠️ repetida?</span>':''}${soloOf(d)&&soloOf(d)===meOf(g)?' <span class="pgtag solo">🔒 só tua</span>':''}${pgFull(d)?' <span class="pgtag pgok">✓ Pago</span>':pgN(d)?(()=>{const me=meOf(g),falta=me&&d.div[me]>0&&!(d.pag[me]>0)&&!(d.pg&&d.pg[me]);return falta?' <span class="pgtag falta">⚠️ Falta pagares '+fmt(d.div[me],d.moeda)+'</span>':' <span class="pgtag">✓ '+pgN(d)+' já pago'+(pgN(d)>1?'s':'')+'</span>'})():''}</h3><small>${d.tipo==='reemb'?'Reembolso: '+esc(pags.join(', '))+' → '+esc(Object.keys(d.div).map(k=>nome(g,k)).join(', ')):esc(pags.join(' e '))+(pags.length>1?' pagaram':' pagou')}</small><span class="amt">${fmt(d.total,d.moeda)}${d.moeda!==g.base?`<br><small style="font:400 13px Inter,sans-serif;color:var(--mut)">${fmt(toCur(g,RD(g,d,d.total),g.base),g.base)}</small>`:''}</span></button>`}):'<p class="empty">Sem despesas. Toca em “Nova despesa” para começar.</p>'}</div>`}
   if(tab==='res'){const nd=g.despesas.filter(d=>d.tipo!=='reemb'&&!hidN(g,d)),dias=new Set(nd.map(d=>d.data).filter(Boolean)).size,tt=gasto(g),B=v=>fmt(toCur(g,v,g.base),g.base);
@@ -904,6 +905,7 @@ function render(){if(typeof cur!=='undefined'&&cur&&!autoTried[cur]&&groups[cur]
     if(me){const v=b[me],out=tr.filter(t=>t.de===me),inn=tr.filter(t=>t.para===me);
       h+=`<div class="card you ${v>0.5?'rec':v<-0.5?'dev':'ok'}"><p class="you-l">A tua situação</p><p class="you-big">${v>0.5?'Vais receber '+F(v):v<-0.5?'Tens de pagar '+F(v):'Estás em dia ✓'}</p>
       ${out.map(t=>trRow(t,'de')).join('')}${inn.map(t=>trRow(t,'para')).join('')}${v>0.5&&payTxt()?'<button type="button" id="pay-copy" class="paycp">📋 Copiar os meus dados de pagamento</button>':''}</div>`}
+    h+=fimHTML(g);
     // 2. pessoas
     const ord=[...g.membros].sort((x,y)=>b[y.id]-b[x.id]);
     h+=`<h2 class="sec">Quem está a dever e a receber</h2><div class="card">${ord.map(p=>{const v=b[p.id];
@@ -1076,7 +1078,7 @@ function closeEditor(fp){if(!fp&&!modal.hidden)navPop('ed');modal.hidden=true;ed
 function dupOf(g,x,skip){const t=x.total,m=x.moeda,dt=x.data?new Date(x.data):null;if(!(t>0))return null;
   return g.despesas.find(d=>d.id!==skip&&d.tipo!=='reemb'&&d.moeda===m&&d.total===t&&(!dt||!d.data||Math.abs(new Date(d.data)-dt)<=864e5))||null}
 function dupTag(g,d){if(d.tipo==='reemb')return false;const o=dupOf(g,d,d.id);if(!o)return false;const pa=x=>Object.keys(x.pag).filter(k=>x.pag[k]>0).sort().join();return pa(o)===pa(d)}
-function saveEditor(){const g=G(),e=edit;
+function saveEditor(){const g=G(),e=edit;if(ro(g)){note('🔒 O grupo está fechado (só leitura).',3000);return}
   if(e.lostFoto&&e.tipo!=='reemb'){const o=dupOf(g,e,e.id);if(o){const img=e.fotoNew||fotoC[g.id+'-f-'+e.lostFoto],nk=g.id+'-f-'+o.id;if(img&&!o.foto){fotoC[nk]=img;fotoPut(nk,img).catch(()=>{});o.foto=1;o.u=Date.now()}lostHide[e.lostFoto]=1;lsSet('ej-losthide',lostHide);fotoDel(g.id+'-f-'+e.lostFoto);closeEditor();save(g);note('Já estava nas despesas: “'+(o.titulo||'Despesa')+'”'+(img?' — juntei-lhe a foto.':'.'),5000);return}}
   if(!e.id&&!e.dupOk&&e.tipo!=='reemb'){const o=dupOf(g,e,null);if(o){e.dupOk=true;const b=$('#e-ok');if(b)b.textContent='Guardar na mesma';
     const w=document.getElementById('e-dupw')||document.createElement('p');w.id='e-dupw';w.className='dupw';w.textContent=`⚠️ Parece repetida: “${o.titulo||'Sem título'}” · ${fmt(o.total,o.moeda)} · ${o.data||''} · ${Object.keys(o.pag).filter(k=>o.pag[k]>0).map(k=>nome(g,k)).join(', ')} pagou.`;
@@ -1120,7 +1122,7 @@ sheet.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t||!
   else if(t.id==='e-x'){if(!askClose())closeEditor()}
   else if(t.id==='e-disc')closeEditor();
   else if(t.id==='e-ok')saveEditor();
-  else if(t.id==='e-del'){if(confirmDel===edit.id){const g=G();const dd=g.despesas.find(x=>x.id===edit.id);if(dd){logH(g,'apagou',dd);g.lixo=[clean(dd),...(g.lixo||[])].slice(0,20)}g.del={...(g.del||{}),[edit.id]:Date.now()};g.despesas=g.despesas.filter(x=>x.id!==edit.id);closeEditor();save(g);note('Apagado.',2000)}else{confirmDel=edit.id;drawEditor()}}});
+  else if(t.id==='e-del'){if(ro(G())){note('🔒 O grupo está fechado (só leitura).',3000);return}if(confirmDel===edit.id){const g=G();const dd=g.despesas.find(x=>x.id===edit.id);if(dd){logH(g,'apagou',dd);g.lixo=[clean(dd),...(g.lixo||[])].slice(0,20)}g.del={...(g.del||{}),[edit.id]:Date.now()};g.despesas=g.despesas.filter(x=>x.id!==edit.id);closeEditor();save(g);note('Apagado.',2000)}else{confirmDel=edit.id;drawEditor()}}});
 modal.addEventListener('click',ev=>{if(ev.target===modal)closeEditor()});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&!modal.hidden)closeEditor()});
 
@@ -1169,7 +1171,7 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
   else if(t.id==='add')openEditor(null);
   else if(t.id==='addr')openReemb();
   else if(t.dataset.edit)openEditor(g.despesas.find(d=>d.id===t.dataset.edit));
-  else if(t.dataset.pay){if(payAsk!==t.dataset.pay){payAsk=t.dataset.pay;render();return}payAsk=null;const [de,para]=t.dataset.pay.split('>'),amt=+t.dataset.amt,pid=uid();
+  else if(t.dataset.pay){if(ro(g)){note('🔒 O grupo está fechado (só leitura).',3000);return}if(payAsk!==t.dataset.pay){payAsk=t.dataset.pay;render();return}payAsk=null;const [de,para]=t.dataset.pay.split('>'),amt=+t.dataset.amt,pid=uid();
     g.despesas.push({id:pid,tx:t.dataset.m!==g.base&&g.taxas[t.dataset.m]?{b:g.base,m:t.dataset.m,r:g.taxas[t.dataset.m]/g.taxas[g.base]}:null,titulo:'Reembolso',emoji:'🤝',tipo:'reemb',modo:'valor',moeda:t.dataset.m,total:amt,data:today(),cr:Date.now(),pag:{[de]:amt},div:{[para]:amt},fixP:[],fixD:[],partes:{}});
     logH(g,'registou pagamento',{titulo:nome(g,de)+' → '+nome(g,para),total:amt,moeda:t.dataset.m,emoji:'🤝'});save(g);undoNote(pid)}
   else if(t.dataset.rm){if(!isOwner(g))return;{const p=g.membros.find(p=>p.id===t.dataset.rm);if(p)logH(g,'removeu do grupo',{titulo:p.nome,emoji:p.emoji})}g.mdel={...(g.mdel||{}),[t.dataset.rm]:Date.now()};g.membros=g.membros.filter(p=>p.id!==t.dataset.rm);save(g)}
@@ -1521,7 +1523,41 @@ function rsDraw(ov){const g=G(),[,v,k,key]=catOpen.split('|'),D=rsData(g,v),F=v2
   const m=k==='c'?key.match(/^(\S+)\s+(.*)$/):null,ic=k==='d'?'📅':m?m[1]:'🏷️',nm=k==='d'?exDay(key,1):m?m[2]:key;
   ov.querySelector('.whobox').innerHTML=`<div class="pph"><span class="e">${esc(ic)}</span><div><h2>${esc(nm)}</h2><p>${v==='eu'?'🔒 Só tu · ':'Grupo · '}${L.length} despesa${L.length===1?'':'s'} · ${F(tot)}</p></div><button class="x" data-ppx="1" aria-label="Fechar">✕</button></div>
   <div class="ppx">${L.map(x=>{const d=x.d;return `<button class="ppi" data-ppe="${esc(d.id)}"><span class="ic">${esc(dEmo(d))}</span><span class="t"><b>${esc(d.titulo||'Sem título')}</b><small>${esc(d.data||'')}${v==='eu'?(soloOf(d)?' · só tua':' · a tua parte de '+fmt(d.total,d.moeda)):' · '+esc(Object.keys(d.pag).filter(j=>d.pag[j]>0).map(j=>nome(g,j)).join(', '))}</small></span><span class="a">${F(x.v)}</span></button>`}).join('')}</div>`;ov.hidden=false}
-function catDraw(){const g=G(),ov=document.getElementById('ppov');if(!g||!catOpen||!ov)return;if(catOpen.startsWith('R|')){rsDraw(ov);return}
+/* ---------- 🏁 Terminar viagem ---------- */
+const ro=g=>!!(g&&g.fechado);
+function fimData(g){const D=rsData(g,'grupo'),dias=Object.keys(D.dia).filter(k=>k!=='?').sort(),b=saldos(g),tr=acertos(b);
+  const cs=Object.keys(D.cat).sort((a,c)=>D.cat[c]-D.cat[a]),ps=Object.keys(D.pes).sort((a,c)=>D.pes[c]-D.pes[a]);return {D,dias,b,tr,cs,ps}}
+function fimTxt(g){const {D,dias,tr,cs,ps}=fimData(g),F=v=>fmt(toCur(g,v,g.base),g.base);
+  let t=`${g.emoji||'🧳'} ${g.nome}\n${dias.length?exDay(dias[0])+' a '+exDay(dias[dias.length-1])+' · ':''}${dias.length} dias · ${g.membros.length} pessoas\n\n💶 Total gasto pelo grupo: ${F(D.tot)}\n${F(D.tot/Math.max(1,dias.length))} por dia · ${F(D.tot/Math.max(1,g.membros.length))} por pessoa\n\n👥 Quem pagou\n`;
+  ps.forEach(k=>t+=`• ${nome(g,k)}: ${F(D.pes[k])}\n`);t+=`\n🏷️ Onde gastámos\n`;cs.forEach(c=>t+=`• ${c}: ${F(D.cat[c])} (${Math.round(D.cat[c]/D.tot*100)}%)\n`);
+  t+=`\n🔁 Acertos\n`+(tr.length?tr.map(x=>`• ${nome(g,x.de)} paga ${F(x.v)} a ${nome(g,x.para)}`).join('\n'):'• Está tudo acertado ✓');return t+'\n\nFeito com EvenJohn'}
+function fimHTML(g){if(!g.despesas.some(d=>d.tipo!=='reemb'))return '';return `<button type="button" class="card fimbtn" id="fim-open"><span>🏁</span><span><b>${ro(g)?'Viagem terminada':'Terminar viagem'}</b><small>${ro(g)?'Resumo final, PDF e partilha':'Resumo final, acertos, PDF e fechar o grupo'}</small></span><b>›</b></button>`}
+function fimDraw(){const g=G(),ov=document.getElementById('ppov');if(!g||!ov)return;const {D,dias,tr,cs,ps}=fimData(g),F=v=>fmt(toCur(g,v,g.base),g.base),own=isOwner(g),open=tr.length;
+  ov.querySelector('.whobox').innerHTML=`<div class="pph"><span class="e">🏁</span><div><h2>${ro(g)?'Viagem terminada':'Terminar viagem'}</h2><p>${esc(g.nome)} · ${dias.length} dias · ${g.membros.length} pessoas</p></div><button class="x" data-ppx="1" aria-label="Fechar">✕</button></div>
+  <div class="ppx fim"><div class="fimtot"><small>O grupo gastou</small><b>${F(D.tot)}</b><small>${F(D.tot/Math.max(1,dias.length))} por dia · ${F(D.tot/Math.max(1,g.membros.length))} por pessoa</small></div>
+  <h3>🔁 Acertos</h3>${open?tr.map(x=>`<div class="fimr"><span>${esc(nome(g,x.de))} → ${esc(nome(g,x.para))}</span><b>${F(x.v)}</b></div>`).join(''):'<p class="fimok">✓ Está tudo acertado</p>'}
+  ${open&&payTxt()&&tr.some(x=>x.para===meOf(g))?'<button type="button" id="pay-copy" class="paycp">📋 Copiar os meus dados de pagamento</button>':''}
+  <h3>👥 Quem pagou</h3>${ps.map(k=>`<div class="fimr"><span>${esc(nome(g,k))}</span><b>${F(D.pes[k])}</b></div>`).join('')}
+  <h3>🏷️ Onde gastámos</h3>${cs.map(c=>`<div class="fimr"><span>${esc(c)}</span><b>${F(D.cat[c])}</b></div>`).join('')}
+  <div class="fimact"><button type="button" class="primary" id="fim-share">📤 Partilhar resumo</button><button type="button" id="fim-pdf">📄 PDF</button></div>
+  ${own?(ro(g)?'<button type="button" id="fim-reopen" class="fimlock">🔓 Reabrir o grupo</button>':`<button type="button" id="fim-close" class="fimlock">🔒 Fechar o grupo (só leitura)</button><p class="small" style="text-align:center;margin:6px 0 0">${open?'Ainda há acertos por fazer. Podes fechar na mesma; os pagamentos deixam de poder ser registados.':'Ninguém pode alterar mais nada. Podes reabrir quando quiseres.'}</p>`):ro(g)?'':'<p class="small" style="text-align:center;margin:10px 0 0">Só quem criou o grupo o pode fechar.</p>'}</div>`;ov.hidden=false}
+function fimPDF(g){const {D,dias,tr,cs,ps}=fimData(g),F=v=>fmt(toCur(g,v,g.base),g.base),mx=Math.max(1,...cs.map(c=>D.cat[c])),w=window.open('','_blank');if(!w){note('O telemóvel bloqueou a janela. Tenta outra vez.',4000);return}
+  const row=(a,b2,p)=>`<tr><td>${esc(a)}</td><td class="bar">${p!=null?`<i style="width:${p}%"></i>`:''}</td><td class="v">${b2}</td></tr>`;
+  w.document.write(`<!DOCTYPE html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${esc(g.nome)} — resumo</title><style>body{font:15px/1.45 -apple-system,Segoe UI,Roboto,sans-serif;color:#1b2a3a;max-width:720px;margin:28px auto;padding:0 20px}h1{font-size:28px;margin:0}h2{font-size:17px;margin:26px 0 8px;border-bottom:1px solid #dde3ea;padding-bottom:6px}.sub{color:#6b7a8c;margin:4px 0 18px}.big{display:flex;gap:14px}.big div{flex:1;background:#eef5f7;border-radius:12px;padding:12px}.big b{display:block;font-size:22px}.big small{color:#6b7a8c}table{width:100%;border-collapse:collapse}td{padding:6px 0;border-bottom:1px solid #f0f2f5}td.v{text-align:right;font-weight:600;white-space:nowrap;width:110px}td.bar{width:40%;padding:0 12px}td.bar i{display:block;height:8px;border-radius:4px;background:#1b7a8c}.foot{margin-top:28px;color:#8a97a6;font-size:12px;text-align:center}@media print{button{display:none}}button{margin:18px 0;padding:12px 18px;border-radius:12px;border:0;background:#1b7a8c;color:#fff;font-size:15px}</style></head><body>
+  <h1>${esc((g.emoji||'')+' '+g.nome)}</h1><p class="sub">${dias.length?exDay(dias[0],1)+' a '+exDay(dias[dias.length-1],1)+' · ':''}${dias.length} dias · ${g.membros.length} pessoas · ${D.list.length} despesas de grupo</p>
+  <div class="big"><div><small>Total do grupo</small><b>${F(D.tot)}</b></div><div><small>Por dia</small><b>${F(D.tot/Math.max(1,dias.length))}</b></div><div><small>Por pessoa</small><b>${F(D.tot/Math.max(1,g.membros.length))}</b></div></div>
+  <h2>Acertos</h2><table>${tr.length?tr.map(x=>row(nome(g,x.de)+' → '+nome(g,x.para),F(x.v))).join(''):'<tr><td>Está tudo acertado ✓</td></tr>'}</table>
+  <h2>Quem pagou</h2><table>${ps.map(k=>row(nome(g,k),F(D.pes[k]),D.pes[k]/D.pes[ps[0]]*100)).join('')}</table>
+  <h2>Onde gastámos</h2><table>${cs.map(c=>row(c,F(D.cat[c]),D.cat[c]/mx*100)).join('')}</table>
+  <h2>Despesas</h2><table>${D.list.slice().sort((a,c)=>(a.d.data||'').localeCompare(c.d.data||'')).map(x=>row((x.d.data||'')+'  '+(x.d.titulo||''),F(x.v))).join('')}</table>
+  <p class="foot">Feito com EvenJohn · ${new Date().toLocaleDateString('pt-PT')}</p><button onclick="print()">Guardar como PDF</button><script>setTimeout(()=>print(),600)<\/script></body></html>`);w.document.close()}
+document.addEventListener('click',async ev=>{const t=ev.target.closest&&ev.target.closest('#fim-open,#fim-share,#fim-pdf,#fim-close,#fim-reopen');if(!t)return;const g=G();if(!g)return;
+  if(t.id==='fim-open'){if(!ppOpen&&!catOpen)navPush('pp');ppOpen=null;catOpen='FIM';fimDraw();return}
+  if(t.id==='fim-share'){const tx=fimTxt(g);try{if(navigator.share){await navigator.share({title:g.nome,text:tx});return}}catch(e){if(e&&e.name==='AbortError')return}try{await navigator.clipboard.writeText(tx);note('Resumo copiado. Cola no WhatsApp.',3000)}catch(e){}return}
+  if(t.id==='fim-pdf'){fimPDF(g);return}
+  if(t.id==='fim-close'){if(!t.dataset.ok){t.dataset.ok=1;t.textContent='Toca outra vez para fechar';return}g.fechado={t:Date.now(),q:nome(g,meOf(g))||''};g.log=[{t:Date.now(),q:nome(g,meOf(g))||'Alguém',a:'fechou o grupo',ti:'',e:'🔒'},...(g.log||[])].slice(0,80);save(g);fimDraw();render();note('🔒 Grupo fechado. Só leitura.',3000);return}
+  if(t.id==='fim-reopen'){g.fechado=null;g.log=[{t:Date.now(),q:nome(g,meOf(g))||'Alguém',a:'reabriu o grupo',ti:'',e:'🔓'},...(g.log||[])].slice(0,80);save(g);fimDraw();render();note('🔓 Grupo reaberto.',3000)}},true);
+function catDraw(){const g=G(),ov=document.getElementById('ppov');if(!g||!catOpen||!ov)return;if(catOpen==='FIM'){fimDraw();return}if(catOpen.startsWith('R|')){rsDraw(ov);return}
   const B=v=>fmt(toCur(g,v,g.base),g.base),all=g.despesas.filter(d=>d.tipo!=='reemb'&&!hidN(g,d)),isD=catOpen.startsWith('d:'),isP=catOpen==='p:paga',ds=all.filter(d=>isP?pgFull(d):isD?d.data===catOpen.slice(2):catOf(d)===catOpen).sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b.cr||0)-(a.cr||0));
   const tot=ds.reduce((a,d)=>a+RD(g,d,d.total),0),tt=all.reduce((a,d)=>a+RD(g,d,d.total),0)||1;
   const m=isD||isP?null:catOpen.match(/^(\S+)\s+(.*)$/),ic=isP?'✓':isD?'📅':m?m[1]:'🏷️',nm=isP?'Já pagas':isD?exDay(catOpen.slice(2),1):m?m[2]:catOpen;
@@ -1641,9 +1677,9 @@ function mineHTML(g){const me=meOf(g);if(!me||!g.despesas.length)return '';const
   if(!so&&mineOnly==='2')mineOnly='1';const b=(v,l)=>`<button type="button" data-mine="${v}" aria-pressed="${mineOnly===v}">${l}</button>`;
   return `<div class="seg mineseg">${b('1','Comigo · '+n)}${so?b('2','🔒 Só minhas · '+so):''}${b('0','Todas · '+t)}</div>`}
 document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('[data-pg]');if(!t||!edit)return;ev.preventDefault();edit.pg=edit.pg||{};const k=t.dataset.pg;if(edit.pg[k])delete edit.pg[k];else edit.pg[k]=1;const rd=document.getElementById('r-div');if(rd)rd.innerHTML=rowsHTML('div');pgNow(k)});
-function pgNow(k){const g=G();if(!g||!edit||!edit.id)return;const d=g.despesas.find(x=>x.id===edit.id);if(!d)return;const pg={...(d.pg||{})};if(edit.pg[k])pg[k]=1;else delete pg[k];if(d.paga){Object.keys(d.div).forEach(j=>{if(d.div[j]>0&&!(d.pag[j]>0)&&j!==k)pg[j]=1});delete d.paga}if(Object.keys(pg).length)d.pg=pg;else delete d.pg;d.u=Date.now();d.pgT={...(d.pgT||{}),[k]:d.u};logH(g,'mudou',d,(edit.pg[k]?'marcou como pago: ':'tirou o pago: ')+nome(g,k));save(g);note(edit.pg[k]?'✓ '+nome(g,k)+' — pago, guardado.':'Pago retirado, guardado.',2200)}
+function pgNow(k){const g=G();if(!g||!edit||!edit.id||ro(g))return;const d=g.despesas.find(x=>x.id===edit.id);if(!d)return;const pg={...(d.pg||{})};if(edit.pg[k])pg[k]=1;else delete pg[k];if(d.paga){Object.keys(d.div).forEach(j=>{if(d.div[j]>0&&!(d.pag[j]>0)&&j!==k)pg[j]=1});delete d.paga}if(Object.keys(pg).length)d.pg=pg;else delete d.pg;d.u=Date.now();d.pgT={...(d.pgT||{}),[k]:d.u};logH(g,'mudou',d,(edit.pg[k]?'marcou como pago: ':'tirou o pago: ')+nome(g,k));save(g);note(edit.pg[k]?'✓ '+nome(g,k)+' — pago, guardado.':'Pago retirado, guardado.',2200)}
 document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('[data-mine]');if(!t)return;mineOnly=t.dataset.mine;try{localStorage.setItem('ej-mine',mineOnly)}catch(e){}render()});
-function searchHTML(g){return mineHTML(g)+(g.despesas.length>5?`<div class="srch"><input id="q" type="search" placeholder="🔍 Procurar despesa ou pessoa…" value="${esc(qStr)}" autocomplete="off"></div>`:'')}
+function searchHTML(g){return (ro(g)?`<button type="button" class="robar" id="fim-open">🏁 Viagem terminada · só leitura ›</button>`:'')+mineHTML(g)+(g.despesas.length>5?`<div class="srch"><input id="q" type="search" placeholder="🔍 Procurar despesa ou pessoa…" value="${esc(qStr)}" autocomplete="off"></div>`:'')}
 const nrm=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 function matchQ(g,d){if(!qStr.trim())return true;const q=nrm(qStr.trim());const who=[...Object.keys(d.pag),...Object.keys(d.div)].map(k=>nome(g,k)).join(' ');
   return nrm(d.titulo).includes(q)||nrm(who).includes(q)||nrm(d.data).includes(q)||nrm(d.moeda).includes(q)}
