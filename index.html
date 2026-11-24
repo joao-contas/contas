@@ -371,6 +371,13 @@ body:has(#modal:not([hidden])) .fab,body:has(#ppov:not([hidden])) .fab{display:n
 #modal .askc{margin:14px 0 4px;padding:10px 14px;border-radius:14px;background:rgba(224,164,58,.16);color:inherit;font-weight:600;text-align:center}
 .bkrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid rgba(0,0,0,.06)}.bkrow:first-child{border-top:0}.bkrow>div{flex:1;min-width:0}.bkrow b{display:block}.bkrow small{opacity:.7}.bkm{color:#c0603a;font-weight:600}.bkrow .primary{min-height:40px;padding:0 16px}
 .itlist{margin-top:8px}.itlist summary{cursor:pointer;font-weight:600;opacity:.8;padding:6px 0}.itlist .ith{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid rgba(127,127,127,.15)}
+.mycons{text-align:center;margin:14px 0 4px}.mycons span{display:inline-block;font-size:12px;opacity:.7;padding:3px 10px;border-radius:20px;background:rgba(127,127,127,.12)}.mycons b{display:block;font-size:28px;margin-top:6px}.mycons small{opacity:.75}
+.rsseg{margin-bottom:6px;display:flex;width:100%}.rsseg button{flex:1}.rshero{text-align:center;padding:14px 4px 6px}.rshero small{display:block;color:var(--mut);font-size:13px}.rshero>b{display:block;font:600 34px/1.15 Outfit,sans-serif;margin:4px 0 10px}.rsp{display:inline-block;font-size:12px;padding:3px 10px;border-radius:20px;background:rgba(127,127,127,.12);margin-bottom:8px;color:var(--mut)}
+.rssplit{height:10px;border-radius:6px;background:#e0a43a;overflow:hidden;margin:0 6px}.rssplit i{display:block;height:100%;background:var(--lavd)}.rsleg{display:flex;justify-content:space-between;margin:6px 6px 10px;font-size:13px}.rsleg em{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}.rsleg .c1{background:var(--lavd)}.rsleg .c2{background:#e0a43a}
+.rsh{margin:20px 2px 6px;font-size:15px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}.rsh span{font-weight:400;font-size:12px;color:var(--mut)}
+.rsb{display:grid;grid-template-columns:44% 1fr 62px 32px;align-items:center;gap:8px;width:100%;padding:8px 2px;background:none!important;box-shadow:none;border-radius:10px;color:var(--ink);font-weight:400;text-align:left;min-height:0}
+.rsl{display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:14px}.rse{font-size:17px;flex:0 0 24px;width:24px;text-align:center;overflow:hidden}.rst{height:10px;border-radius:6px;background:rgba(127,127,127,.14);overflow:hidden}.rst i{display:block;height:100%;border-radius:6px;background:var(--lavd)}.rsb b{font-size:14px;text-align:right}.rsb small{font-size:12px;color:var(--mut);text-align:right}
+.exb.top i{background:#c0603a!important}
 </style>
 </head>
 <body>
@@ -479,7 +486,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-24h';
+const APPV='2026-11-24j';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -885,7 +892,7 @@ function render(){if(typeof cur!=='undefined'&&cur&&!autoTried[cur]&&groups[cur]
       const pags=Object.keys(d.pag).filter(k=>d.pag[k]>0).map(k=>nome(g,k));
       return `<button class="item card ${(()=>{const me=meOf(g);return (me&&!inMine(g,d,me)?'notme':'')+(pgFull(d)?' pdone':'')})()}" data-edit="${esc(d.id)}"><span class="ic">${esc(dEmo(d))}</span><h3>${esc(d.titulo||'Sem título')}${d.foto?' <span class="clip">📎</span>':''}${dupTag(g,d)?' <span class="pgtag dupt">⚠️ repetida?</span>':''}${soloOf(d)&&soloOf(d)===meOf(g)?' <span class="pgtag solo">🔒 só tua</span>':''}${pgFull(d)?' <span class="pgtag pgok">✓ Pago</span>':pgN(d)?(()=>{const me=meOf(g),falta=me&&d.div[me]>0&&!(d.pag[me]>0)&&!(d.pg&&d.pg[me]);return falta?' <span class="pgtag falta">⚠️ Falta pagares '+fmt(d.div[me],d.moeda)+'</span>':' <span class="pgtag">✓ '+pgN(d)+' já pago'+(pgN(d)>1?'s':'')+'</span>'})():''}</h3><small>${d.tipo==='reemb'?'Reembolso: '+esc(pags.join(', '))+' → '+esc(Object.keys(d.div).map(k=>nome(g,k)).join(', ')):esc(pags.join(' e '))+(pags.length>1?' pagaram':' pagou')}</small><span class="amt">${fmt(d.total,d.moeda)}${d.moeda!==g.base?`<br><small style="font:400 13px Inter,sans-serif;color:var(--mut)">${fmt(toCur(g,RD(g,d,d.total),g.base),g.base)}</small>`:''}</span></button>`}):'<p class="empty">Sem despesas. Toca em “Nova despesa” para começar.</p>'}</div>`}
   if(tab==='res'){const nd=g.despesas.filter(d=>d.tipo!=='reemb'&&!hidN(g,d)),dias=new Set(nd.map(d=>d.data).filter(Boolean)).size,tt=gasto(g),B=v=>fmt(toCur(g,v,g.base),g.base);
-    h+=nd.length?`${(()=>{const pg=nd.filter(d=>pgFull(d));if(!pg.length)return '';const v=pg.reduce((a,d)=>a+RD(g,d,d.total),0);return `<button type="button" class="card pagbox" data-cat="p:paga"><span class="pbi">✓</span><span class="pbt"><b>Já pagas</b><small>${pg.length} despesa${pg.length===1?'':'s'} fora dos saldos</small></span><b class="pbv">${B(v)} ›</b></button>`})()}${exHTML(g)}`:'<p class="empty">Ainda não há despesas para resumir.</p>';h+=histHTML(g)}
+    h+=nd.length?`${(()=>{const pg=nd.filter(d=>pgFull(d));if(!pg.length)return '';const v=pg.reduce((a,d)=>a+RD(g,d,d.total),0);return `<button type="button" class="card pagbox" data-cat="p:paga"><span class="pbi">✓</span><span class="pbt"><b>Já pagas</b><small>${pg.length} despesa${pg.length===1?'':'s'} fora dos saldos</small></span><b class="pbv">${B(v)} ›</b></button>`})()}${rsHTML(g)}`:'<p class="empty">Ainda não há despesas para resumir.</p>';h+=histHTML(g)}
   if(tab==='sald'){
     const tr=transf(g,b),me=meOf(g),F=v=>fmt(toCur(g,Math.abs(v),sc),sc);
     const trRow=(t,mine)=>{const key=t.de+'>'+t.para,m=rowCur[key]&&g.taxas[rowCur[key]]?rowCur[key]:sc,amt=toCur(g,t.v,m),bl=bankLine(g,t.de,t.v,m);
@@ -1451,7 +1458,7 @@ function ppDraw(){const g=G(),ov=document.getElementById('ppov');if(!g||!ppOpen|
   const rs=g.despesas.filter(d=>d.tipo==='reemb'&&(d.pag[p.id]>0||d.div[p.id]>0));
   const it=(d,v,sub)=>`<button class="ppi" data-ppe="${esc(d.id)}"><span class="ic">${esc(dEmo(d))}</span><span class="t"><b>${esc(d.titulo||'Sem título')}</b><small>${esc(sub)}</small></span><span class="a">${fmt(v,d.moeda)}${d.moeda!==g.base?`<small>${B(RD(g,d,v))}</small>`:''}</span></button>`;
   ov.querySelector('.whobox').innerHTML=`<div class="pph">${avP(g,p,'xl')}<div><h2>${esc(p.nome)}</h2><p>${n[p.id]} despesa${n[p.id]===1?'':'s'} paga${n[p.id]===1?'':'s'} · ${tot>0?Math.round(t[p.id]/tot*100):0}% do total</p></div><button class="x" data-ppx="1" aria-label="Fechar">✕</button></div>
-  <div class="ppbig"><div><b>${B(t[p.id])}</b><span>pagou</span></div><div><b>${B(c[p.id])}</b><span>a parte dele</span></div><div class="${bal>0.5?'rec':bal<-0.5?'dev':''}"><b>${bal>0.5?'+':bal<-0.5?'−':''}${B(Math.abs(bal))}</b><span>${bal>0.5?'recebe':bal<-0.5?'deve':'em dia'}</span></div></div>
+  <div class="ppbig" ${p.id===meOf(g)?'':'style="grid-template-columns:1fr 1fr"'}><div><b>${B(t[p.id])}</b><span>pagou</span></div>${p.id===meOf(g)?`<div><b>${B(c[p.id])}</b><span>a tua parte</span></div>`:''}<div class="${bal>0.5?'rec':bal<-0.5?'dev':''}"><b>${bal>0.5?'+':bal<-0.5?'−':''}${B(Math.abs(bal))}</b><span>${bal>0.5?'recebe':bal<-0.5?'deve':'em dia'}</span></div></div>
   <div class="ppx">${exM==='cons'?(()=>{const cs=g.despesas.filter(d=>d.tipo!=='reemb'&&!hidN(g,d)&&d.div[p.id]>0).sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b.cr||0)-(a.cr||0));return `<h3>Em que entrou</h3>${cs.length?cs.map(d=>it(d,d.div[p.id],(d.data||'')+' · parte de '+fmt(d.total,d.moeda))).join(''):'<p class="small">Ainda não entrou em nenhuma despesa.</p>'}`})():`<h3>O que pagou</h3>${ds.length?ds.map(d=>{const v=d.pag[p.id],sh=Object.keys(d.pag).filter(k=>d.pag[k]>0).length>1;return it(d,v,(d.data||'')+(sh?' · parte de '+fmt(d.total,d.moeda):''))}).join(''):'<p class="small">Ainda não pagou nenhuma despesa.</p>'}`}
   ${rs.length?`<h3>Reembolsos</h3>${rs.map(d=>{const deu=d.pag[p.id]>0;return it(d,deu?d.pag[p.id]:d.div[p.id],(deu?'Deu a ':'Recebeu de ')+Object.keys(deu?d.div:d.pag).map(k=>nome(g,k)).join(', '))}).join('')}`:''}</div>`;
   ov.hidden=false}
@@ -1466,15 +1473,15 @@ var exM='pago',exP='pessoa',exQ='todos';
 const CATC=['#18788c','#c0603a','#b8892a','#1f4a85','#3f8a68','#7a5ea8','#b5506e','#5f8fb4','#4c5d73','#2a9d8f'];
 function exDay(d,long){try{return new Date(d+'T12:00').toLocaleDateString(({en:'en-GB',es:'es-ES'})[LANG]||'pt-PT',long?{weekday:'long',day:'numeric',month:'long'}:{day:'2-digit',month:'2-digit'})}catch(e){return d}}
 function exData(g){const me=meOf(g),out={};let tot=0;const nd=g.despesas.filter(d=>d.tipo!=='reemb'&&!hidN(g,d));
-  nd.forEach(d=>{const src=exM==='pago'?d.pag:d.div;for(const k in src){if(!(src[k]>0))continue;if(exQ==='eu'&&k!==me)continue;if(!g.membros.some(p=>p.id===k))continue;const v=RD(g,d,src[k]);const key=exP==='pessoa'?k:exP==='cat'?catOf(d):(d.data||'?');out[key]=(out[key]||0)+v;tot+=v}});
+  nd.forEach(d=>{if(exM==='pago'&&soloOf(d))return;const src=exM==='pago'?d.pag:d.div;for(const k in src){if(!(src[k]>0))continue;if((exQ==='eu'||exM==='cons')&&k!==me)continue;if(!g.membros.some(p=>p.id===k))continue;const v=RD(g,d,src[k]);const key=exP==='pessoa'?k:exP==='cat'?catOf(d):(d.data||'?');out[key]=(out[key]||0)+v;tot+=v}});
   return {out,tot,nd}}
 function exHTML(g){if(ppOpen)setTimeout(ppDraw,0);if(catOpen)setTimeout(catDraw,0);
-  const me=meOf(g);if(!me&&exQ==='eu')exQ='todos';if(exQ==='eu'&&exP==='pessoa')exP='cat';
+  const me=meOf(g);if(!me&&exQ==='eu')exQ='todos';if(!me&&exM==='cons')exM='pago';if((exQ==='eu'||exM==='cons')&&exP==='pessoa')exP='cat';
   const B=v=>fmt(toCur(g,v,g.base),g.base),{out,tot}=exData(g);
   const sg=(k,v,cur,t,dis)=>`<button type="button" data-ex="${k}:${v}" aria-pressed="${cur===v}" ${dis?'disabled':''}>${t}</button>`;
-  let h=`<div class="card exc"><div class="exctl"><div class="seg">${sg('m','pago',exM,'Pago')}${sg('m','cons',exM,'Consumido')}</div>
-  <div class="seg">${exQ==='eu'?'':sg('p','pessoa',exP,'Pessoa')}${sg('p','cat',exP,'Categoria')}${sg('p','dia',exP,'Dia')}</div>
-  ${me?`<div class="seg">${sg('q','todos',exQ,'Todos')}${sg('q','eu',exQ,'Só eu')}</div>`:''}</div>`;
+  let h=`<div class="card exc"><div class="exctl"><div class="seg">${sg('m','pago',exM,'Pago pelo grupo')}${me?sg('m','cons',exM,'O meu consumo'):''}</div>
+  <div class="seg">${exQ==='eu'||exM==='cons'?'':sg('p','pessoa',exP,'Pessoa')}${sg('p','cat',exP,'Categoria')}${sg('p','dia',exP,'Dia')}</div>
+  ${me&&exM==='pago'?`<div class="seg">${sg('q','todos',exQ,'Todos')}${sg('q','eu',exQ,'Só eu')}</div>`:''}</div>${exM==='cons'?(()=>{let gr=0,so=0;exData(g).nd.forEach(d=>{if(!(d.div[me]>0))return;const v=RD(g,d,d.div[me]);if(soloOf(d))so+=v;else gr+=v});return `<div class="mycons"><span>🔒 Só tu vês isto</span><b>${B(gr+so)}</b><small>gastaste no total · ${B(gr)} no grupo + ${B(so)} só tuas</small></div>`})():''}`;
   const keys=Object.keys(out).filter(k=>out[k]>0.5);
   if(!keys.length)return h+'<p class="small" style="text-align:center;margin:18px 0 6px">Sem valores.</p></div>';
   if(exP==='dia'){const ks=keys.sort(),mx=Math.max(...ks.map(k=>out[k])),av=tot/ks.length;
@@ -1482,11 +1489,39 @@ function exHTML(g){if(ppOpen)setTimeout(ppDraw,0);if(catOpen)setTimeout(catDraw,
   const ord=keys.map(k=>({k,v:out[k]})).sort((a,b)=>b.v-a.v),P=k=>g.membros.find(p=>p.id===k);
   const col=(o,i)=>exP==='pessoa'?colOf(P(o.k)):CATC[i%CATC.length];
   let off=25,arcs='';ord.forEach((o,i)=>{const pc=o.v/tot*100,w=Math.max(pc-0.6,0.4);arcs+=`<circle r="15.915" cx="21" cy="21" stroke="${col(o,i)}" stroke-dasharray="${w} ${100-w}" stroke-dashoffset="${off}" ${exP==='pessoa'?`data-pp="${esc(o.k)}"`:`data-cat="${esc(o.k)}"`}></circle>`;off-=pc});
-  h+=`<div class="ppw"><div class="ppd"><svg viewBox="0 0 42 42">${arcs}</svg><div class="ppt"><b>${B(tot)}</b><span>${exM==='pago'?'pago':'consumido'}${exQ==='eu'?' por ti':''}</span></div></div>
+  h+=`<div class="ppw"><div class="ppd"><svg viewBox="0 0 42 42">${arcs}</svg><div class="ppt"><b>${B(tot)}</b><span>${exM==='pago'?(exQ==='eu'?'pagaste':'pago'):'o teu consumo'}</span></div></div>
   <div class="ppl">${ord.map((o,i)=>{const p=exP==='pessoa'?P(o.k):null;return `<button class="ppr" ${p?`data-pp="${esc(o.k)}"`:`data-cat="${esc(o.k)}"`}>${p?avP(g,p,'sm'):`<i style="background:${col(o,i)}"></i>`}<span class="n">${esc(p?p.nome:o.k)}</span><span class="v">${B(o.v)}</span><span class="p">${Math.round(o.v/tot*100)}%</span></button>`}).join('')}</div></div></div>`;
   return h}
 document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('[data-ex]');if(!t||t.disabled)return;const [k,v]=t.dataset.ex.split(':');if(k==='m')exM=v;else if(k==='p')exP=v;else exQ=v;render()});
-function catDraw(){const g=G(),ov=document.getElementById('ppov');if(!g||!catOpen||!ov)return;
+/* ---------- Resumo: 👤 Eu (só tu) | 👥 Grupo (despesas de grupo) ---------- */
+var rsV=(()=>{try{return localStorage.getItem('ej-rsv')||'eu'}catch(e){return 'eu'}})();
+function rsData(g,v){const me=meOf(g),B={tot:0,so:0,gr:0,cat:{},dia:{},pes:{},list:[]};
+  g.despesas.filter(d=>d.tipo!=='reemb'&&!hidN(g,d)).forEach(d=>{const solo=soloOf(d);let val;
+    if(v==='eu'){if(!me||!(d.div[me]>0))return;val=RD(g,d,d.div[me]);if(solo)B.so+=val;else B.gr+=val}
+    else{if(solo)return;val=RD(g,d,d.total);for(const k in d.pag)if(d.pag[k]>0&&g.membros.some(p=>p.id===k))B.pes[k]=(B.pes[k]||0)+RD(g,d,d.pag[k])}
+    B.tot+=val;const c=catOf(d);B.cat[c]=(B.cat[c]||0)+val;const dd=d.data||'?';B.dia[dd]=(B.dia[dd]||0)+val;B.list.push({d,v:val})});
+  return B}
+function rsHTML(g){const me=meOf(g);if(!me)rsV='grupo';if(ppOpen)setTimeout(ppDraw,0);if(catOpen)setTimeout(catDraw,0);
+  const F=v=>fmt(toCur(g,v,g.base),g.base),S=v=>F(v).replace(/,\d\d(?=\D*$)/,''),D=rsData(g,rsV),dias=Object.keys(D.dia).filter(k=>k!=='?').sort(),nd=Math.max(1,dias.length);
+  let h=`<div class="card rsc">${me?`<div class="seg rsseg"><button type="button" data-rsv="eu" aria-pressed="${rsV==='eu'}">👤 Eu</button><button type="button" data-rsv="grupo" aria-pressed="${rsV==='grupo'}">👥 Grupo</button></div>`:''}`;
+  if(!D.list.length)return h+`<p class="small" style="text-align:center;margin:22px 0 8px">${rsV==='eu'?'Ainda não tens gastos neste grupo.':'Ainda não há despesas de grupo.'}</p></div>`;
+  const bar=(lab,v,max,key,ic)=>`<button type="button" class="rsb" data-cat="${esc(key)}"><span class="rsl">${ic||''}${esc(lab)}</span><span class="rst"><i style="width:${Math.max(2,v/max*100).toFixed(1)}%"></i></span><b>${S(v)}</b><small>${D.tot>0?Math.round(v/D.tot*100):0}%</small></button>`;
+  if(rsV==='eu')h+=`<div class="rshero"><span class="rsp">🔒 Só tu vês isto</span><small>Gastaste na viagem</small><b>${F(D.tot)}</b><div class="rssplit"><i style="width:${D.tot?(D.gr/D.tot*100).toFixed(1):0}%"></i></div><div class="rsleg"><span><em class="c1"></em>No grupo ${S(D.gr)}</span><span><em class="c2"></em>Só tuas ${S(D.so)}</span></div><small>${S(D.tot/nd)} por dia · ${dias.length} dia${dias.length===1?'':'s'}</small></div>`;
+  else h+=`<div class="rshero"><small>O grupo gastou na viagem</small><b>${F(D.tot)}</b><small>${S(D.tot/nd)} por dia · ${S(D.tot/Math.max(1,g.membros.length))} por pessoa · ${D.list.length} despesas</small></div>`;
+  if(rsV==='grupo'){const ps=Object.keys(D.pes).sort((a,b)=>D.pes[b]-D.pes[a]),mx=Math.max(...ps.map(k=>D.pes[k]));
+    h+=`<h4 class="rsh">Quem pagou</h4>${ps.map(k=>{const p=g.membros.find(x=>x.id===k);return `<button type="button" class="rsb" data-pp="${esc(k)}"><span class="rsl">${avP(g,p,'sm')} ${esc(pn(p))}</span><span class="rst"><i style="width:${Math.max(2,D.pes[k]/mx*100).toFixed(1)}%;background:${colOf(p)}"></i></span><b>${S(D.pes[k])}</b><small>${D.tot>0?Math.round(D.pes[k]/D.tot*100):0}%</small></button>`}).join('')}`}
+  const cs=Object.keys(D.cat).sort((a,b)=>D.cat[b]-D.cat[a]),cm=D.cat[cs[0]];
+  h+=`<h4 class="rsh">${rsV==='eu'?'Onde gastaste':'Onde gastámos'}</h4>${cs.map(c=>{const m=c.match(/^(\S+)\s+(.*)$/);return bar(m?m[2]:c,D.cat[c],cm,'R|'+rsV+'|c|'+c,m?`<span class="rse">${m[1]}</span>`:'')}).join('')}`;
+  if(dias.length){const mx=Math.max(...dias.map(k=>D.dia[k])),av=D.tot/nd,top=dias.reduce((a,k)=>D.dia[k]>D.dia[a]?k:a,dias[0]);
+    h+=`<h4 class="rsh">Dia a dia <span>o mais caro: ${esc(exDay(top))} · ${S(D.dia[top])}</span></h4><div class="exbars" style="--avf:${(av/mx).toFixed(3)}">${dias.map(k=>`<button type="button" class="exb ${k===top?'top':''}" data-cat="R|${rsV}|d|${esc(k)}"><span class="exv">${S(D.dia[k])}</span><i style="height:${Math.max(3,D.dia[k]/mx*132).toFixed(1)}px"></i><small>${esc(exDay(k))}</small></button>`).join('')}<span class="exav"></span></div>`}
+  return h+'</div>'}
+document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('[data-rsv]');if(!t)return;rsV=t.dataset.rsv;try{localStorage.setItem('ej-rsv',rsV)}catch(e){}render()});
+function rsDraw(ov){const g=G(),[,v,k,key]=catOpen.split('|'),D=rsData(g,v),F=v2=>fmt(toCur(g,v2,g.base),g.base);
+  const L=D.list.filter(x=>k==='c'?catOf(x.d)===key:(x.d.data||'?')===key).sort((a,b)=>(b.d.data||'').localeCompare(a.d.data||'')||b.v-a.v),tot=L.reduce((a,x)=>a+x.v,0);
+  const m=k==='c'?key.match(/^(\S+)\s+(.*)$/):null,ic=k==='d'?'📅':m?m[1]:'🏷️',nm=k==='d'?exDay(key,1):m?m[2]:key;
+  ov.querySelector('.whobox').innerHTML=`<div class="pph"><span class="e">${esc(ic)}</span><div><h2>${esc(nm)}</h2><p>${v==='eu'?'🔒 Só tu · ':'Grupo · '}${L.length} despesa${L.length===1?'':'s'} · ${F(tot)}</p></div><button class="x" data-ppx="1" aria-label="Fechar">✕</button></div>
+  <div class="ppx">${L.map(x=>{const d=x.d;return `<button class="ppi" data-ppe="${esc(d.id)}"><span class="ic">${esc(dEmo(d))}</span><span class="t"><b>${esc(d.titulo||'Sem título')}</b><small>${esc(d.data||'')}${v==='eu'?(soloOf(d)?' · só tua':' · a tua parte de '+fmt(d.total,d.moeda)):' · '+esc(Object.keys(d.pag).filter(j=>d.pag[j]>0).map(j=>nome(g,j)).join(', '))}</small></span><span class="a">${F(x.v)}</span></button>`}).join('')}</div>`;ov.hidden=false}
+function catDraw(){const g=G(),ov=document.getElementById('ppov');if(!g||!catOpen||!ov)return;if(catOpen.startsWith('R|')){rsDraw(ov);return}
   const B=v=>fmt(toCur(g,v,g.base),g.base),all=g.despesas.filter(d=>d.tipo!=='reemb'&&!hidN(g,d)),isD=catOpen.startsWith('d:'),isP=catOpen==='p:paga',ds=all.filter(d=>isP?pgFull(d):isD?d.data===catOpen.slice(2):catOf(d)===catOpen).sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b.cr||0)-(a.cr||0));
   const tot=ds.reduce((a,d)=>a+RD(g,d,d.total),0),tt=all.reduce((a,d)=>a+RD(g,d,d.total),0)||1;
   const m=isD||isP?null:catOpen.match(/^(\S+)\s+(.*)$/),ic=isP?'✓':isD?'📅':m?m[1]:'🏷️',nm=isP?'Já pagas':isD?exDay(catOpen.slice(2),1):m?m[2]:catOpen;
