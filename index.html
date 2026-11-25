@@ -395,11 +395,18 @@ p.dayh{display:flex;justify-content:space-between;align-items:baseline}.dayh .da
 .l2r{margin-top:4px;font-size:15px}.l2s{font-size:13.5px;color:var(--mut);margin-top:2px}.l2bar{height:8px;border-radius:5px;background:rgba(127,127,127,.18);overflow:hidden;margin:8px 0 4px}.l2bar i{display:block;height:100%;background:var(--lavd);border-radius:5px}
 .l2u{display:flex;justify-content:space-between;font-size:14px}.ldone .l2v,.ldone .l2r,.ldone .l2s,.ldone .l2u span:first-child{text-decoration:line-through;opacity:.6}.ldone .l2bar i{background:var(--mut)}.l2end{color:#2a8a5a;font-weight:600}
 .plevs{margin-top:10px;display:grid;gap:8px}.plev{display:grid;gap:4px}.plev>span{font-size:13.5px;color:var(--mut);display:flex;align-items:center;gap:6px}.plev select{min-height:44px}
+.convbtn{right:92px!important;font-size:20px}.cvx{padding-top:6px}.cvr{display:grid;grid-template-columns:118px 1fr;gap:8px}.cvr select{min-height:56px}.cvr input{min-height:56px;font-size:24px;font-weight:600;text-align:right}
+.cvsw{display:block;margin:8px auto;width:44px;height:44px;min-height:0;padding:0;border-radius:50%;font-size:20px}.cvq{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}.cvq button{min-height:36px;padding:0 12px;font-size:13.5px;border-radius:18px}
+.cvinfo{text-align:center;margin:14px 0 6px;font-weight:600}.cvinfo small{font-weight:400;color:var(--mut)}.cvlev{display:grid;gap:4px;margin-top:10px}.cvlev span{font-size:13px;color:var(--mut)}
+.plev1{margin:-4px 0 10px 44px}.plev1 select{min-height:40px;font-size:14px;padding:6px 10px;width:auto;max-width:100%}.pagwrap.col .prow:has(input[type=checkbox]:not(:checked))+.plev1{display:none}
+.pay1{margin:-4px 0 10px 44px;border:1px solid var(--line);border-radius:14px;padding:0 12px}.pay1 summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;cursor:pointer;font-weight:600;font-size:14.5px}.pay1 summary::-webkit-details-marker{display:none}.pay1 summary small{font-weight:400;color:var(--mut);font-size:12.5px}.pay1 summary small::after{content:' ›'}.pay1[open] summary small::after{content:' ⌄'}
+.pay1b{padding-bottom:10px}.pay1b .chips{margin:2px 0 6px}.pay1b select{min-height:44px}.pay1b .fx-l{margin-top:8px}
+.pnm{font-weight:600}html[data-theme=dark] .pnm{filter:brightness(1.35) saturate(1.1)}
 </style>
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <button id="back" class="ghost" hidden>‹ Todos os grupos</button><button id="sync" class="ghost morebtn syncbtn" hidden aria-label="Atualizar despesas" title="Atualizar">↻</button><button id="more" class="ghost morebtn" hidden aria-label="Definições do grupo" title="Definições do grupo">⋮</button><button id="avatar" class="avbtn" hidden aria-label="O teu perfil"></button>
+  <button id="back" class="ghost" hidden>‹ Todos os grupos</button><button id="conv" class="ghost morebtn convbtn" hidden aria-label="Conversor de moedas" title="Conversor">💱</button><button id="sync" class="ghost morebtn syncbtn" hidden aria-label="Atualizar despesas" title="Atualizar">↻</button><button id="more" class="ghost morebtn" hidden aria-label="Definições do grupo" title="Definições do grupo">⋮</button><button id="avatar" class="avbtn" hidden aria-label="O teu perfil"></button>
   <h1 id="title">EvenJohn</h1>
   <p id="sub">Divide despesas, mesmo quando várias pessoas pagam a mesma conta.</p>
   <div id="hero"></div>
@@ -503,7 +510,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-25a';
+const APPV='2026-11-25e';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -869,7 +876,7 @@ const allOpts=sel=>`<optgroup label="Mais usadas">${TOPC.map(m=>`<option value="
 
 function render(){if(typeof cur!=='undefined'&&cur&&!autoTried[cur+today()]&&groups[cur]){autoTried[cur+today()]=1;setTimeout(()=>ensureIds(groups[cur]),800);setTimeout(()=>autoRates(groups[cur]),1500);setTimeout(()=>backupDay(cur),4000)}gateUpd();
   if(cur&&!groups[cur]){if(pendingOpen===cur){$('#back').hidden=false;$('#title').textContent='A abrir o grupo…';$('#sub').textContent='';$('#hero').innerHTML='';app.innerHTML='<p class="empty">A carregar…</p>';return}cur=null}
-  $('#back').hidden=!cur;{const av=$('#avatar');const sh=!cur&&!!user;av.hidden=!sh;if(sh){av.textContent=avL();av.style.background=(prof&&prof.cor)||''}}$('#more').hidden=!cur||(!!G()&&!meOf(G())&&G().membros.length>0);$('#more').classList.toggle('on',tab==='conf');if(tab==='conf')$('#more').hidden=true;$('#sync').hidden=$('#more').hidden;$('#back').textContent=cur&&tab==='conf'?'‹ Voltar ao grupo':'‹ Todos os grupos';
+  $('#back').hidden=!cur;{const av=$('#avatar');const sh=!cur&&!!user;av.hidden=!sh;if(sh){av.textContent=avL();av.style.background=(prof&&prof.cor)||''}}$('#more').hidden=!cur||(!!G()&&!meOf(G())&&G().membros.length>0);$('#more').classList.toggle('on',tab==='conf');if(tab==='conf')$('#more').hidden=true;$('#sync').hidden=$('#more').hidden;$('#conv').hidden=$('#more').hidden;$('#back').textContent=cur&&tab==='conf'?'‹ Voltar ao grupo':'‹ Todos os grupos';
   if(cur)document.querySelector('.top').classList.remove('home');
   if(!cur){
     document.querySelector('.top').classList.add('home');
@@ -912,7 +919,7 @@ function render(){if(typeof cur!=='undefined'&&cur&&!autoTried[cur+today()]&&gro
     {const me=meOf(g);if(me)h+=walletHTML(g,me)}
     h+=`${ro(g)?'':'<div class="addrow"><button class="primary fab" id="add" aria-label="Nova despesa" title="Nova despesa">+</button></div>'}${searchHTML(g)}<div class="list">${ds.length?dayGroup(ds.filter(d=>matchQ(g,d)&&mineOk(g,d)&&!hidN(g,d)),d=>{
       const pags=Object.keys(d.pag).filter(k=>d.pag[k]>0).map(k=>nome(g,k));
-      return `<button class="item card ${(()=>{const me=meOf(g);return (me&&!inMine(g,d,me)?'notme':'')+(pgFull(d)?' pdone':'')+(justSaved===d.id?' jsaved':'')})()}" data-edit="${esc(d.id)}"><span class="ic">${esc(dEmo(d))}</span><h3>${esc(d.titulo||'Sem título')}${d.foto?' <span class="clip">📎</span>':''}${dupTag(g,d)?' <span class="pgtag dupt">⚠️ repetida?</span>':''}${soloOf(d)&&soloOf(d)===meOf(g)?' <span class="pgtag solo">🔒 só tua</span>':''}${pgFull(d)?' <span class="pgtag pgok">✓ Pago</span>':pgN(d)?(()=>{const me=meOf(g),falta=me&&d.div[me]>0&&!(d.pag[me]>0)&&!(d.pg&&d.pg[me]);return falta?' <span class="pgtag falta">⚠️ Falta pagares '+fmt(d.div[me],d.moeda)+'</span>':' <span class="pgtag">✓ '+pgN(d)+' já pago'+(pgN(d)>1?'s':'')+'</span>'})():''}</h3><small>${d.tipo==='reemb'?'Reembolso: '+esc(pags.join(', '))+' → '+esc(Object.keys(d.div).map(k=>nome(g,k)).join(', ')):esc(pags.join(' e '))+(pags.length>1?' pagaram':' pagou')}</small><span class="amt">${fmt(d.total,d.moeda)}${d.moeda!==g.base?`<br><small style="font:400 13px Inter,sans-serif;color:var(--mut)">${fmt(toCur(g,RD(g,d,d.total),g.base),g.base)}</small>`:''}</span></button>`}):'<p class="empty">Sem despesas. Toca em “Nova despesa” para começar.</p>'}</div>`}
+      return `<button class="item card ${(()=>{const me=meOf(g);return (me&&!inMine(g,d,me)?'notme':'')+(pgFull(d)?' pdone':'')+(justSaved===d.id?' jsaved':'')})()}" data-edit="${esc(d.id)}"><span class="ic">${esc(dEmo(d))}</span><h3>${esc(d.titulo||'Sem título')}${d.foto?' <span class="clip">📎</span>':''}${dupTag(g,d)?' <span class="pgtag dupt">⚠️ repetida?</span>':''}${soloOf(d)&&soloOf(d)===meOf(g)?' <span class="pgtag solo">🔒 só tua</span>':''}${pgFull(d)?' <span class="pgtag pgok">✓ Pago</span>':pgN(d)?(()=>{const me=meOf(g),falta=me&&d.div[me]>0&&!(d.pag[me]>0)&&!(d.pg&&d.pg[me]);return falta?' <span class="pgtag falta">⚠️ Falta pagares '+fmt(d.div[me],d.moeda)+'</span>':' <span class="pgtag">✓ '+pgN(d)+' já pago'+(pgN(d)>1?'s':'')+'</span>'})():''}</h3><small>${d.tipo==='reemb'?'Reembolso: '+esc(pags.join(', '))+' → '+esc(Object.keys(d.div).map(k=>nome(g,k)).join(', ')):Object.keys(d.pag).filter(k=>d.pag[k]>0).map(k=>{const p=g.membros.find(x=>x.id===k);return `<b class="pnm" style="color:${p?colOf(p):'inherit'}">${esc(nome(g,k))}</b>`}).join(' e ')+(pags.length>1?' pagaram':' pagou')}</small><span class="amt">${fmt(d.total,d.moeda)}${d.moeda!==g.base?`<br><small style="font:400 13px Inter,sans-serif;color:var(--mut)">${fmt(toCur(g,RD(g,d,d.total),g.base),g.base)}</small>`:''}</span></button>`}):'<p class="empty">Sem despesas. Toca em “Nova despesa” para começar.</p>'}</div>`}
   if(tab==='res'){const nd=g.despesas.filter(d=>d.tipo!=='reemb'&&!hidN(g,d)),dias=new Set(nd.map(d=>d.data).filter(Boolean)).size,tt=gasto(g),B=v=>fmt(toCur(g,v,g.base),g.base);
     h+=nd.length?`${(()=>{const pg=nd.filter(d=>pgFull(d));if(!pg.length)return '';const v=pg.reduce((a,d)=>a+RD(g,d,d.total),0);return `<button type="button" class="card pagbox" data-cat="p:paga"><span class="pbi">✓</span><span class="pbt"><b>Já pagas</b><small>${pg.length} despesa${pg.length===1?'':'s'} fora dos saldos</small></span><b class="pbv">${B(v)} ›</b></button>`})()}${rsHTML(g)}`:'<p class="empty">Ainda não há despesas para resumir.</p>';h+=histHTML(g)}
   if(tab==='sald'){
@@ -976,23 +983,74 @@ function check(side){const g=G(),rows=edit[side],on=order(g,rows),s=on.reduce((a
 function openEditor(d){if(modal.hidden)navPush('ed');const g=G();confirmDel=null;
   const mk=(src,fx,isPag,first)=>{const o={};g.membros.forEach((p,i)=>{const has=src?(p.id in src):(isPag?(meOf(g)?p.id===meOf(g):i===0):false);
     o[p.id]={on:has&&(!src||!isPag||src[p.id]>0),v:src&&src[p.id]||0,fix:!!(fx&&fx.includes(p.id)),p:(d&&d.partes&&d.partes[p.id])||1}});return o};
-  edit=d?{lev:d.lev||'',lvs:d.lv?val(d.lv):'',levs:d&&d.levs?{...d.levs}:{},pm:d.pe?d.pe.m:'',pv:d.pe?val(d.pe.v-(d.pe.f||0)):'',pf:d.pe&&d.pe.f?val(d.pe.f):'',pvNote:d.pe&&d.pe.s||'',tx:d.tx||null,itens:clean(d.itens||[]),id:d.id,emoji:dEmo(d),emoFix:!!d.emoji,titulo:d.titulo,moeda:d.moeda,total:d.total,data:d.data,tipo:d.tipo||'desp',modo:d.modo||'valor',cr:d.cr,pag:mk(d.pag,d.fixP,true),div:mk(d.div,d.fixD,false)}
+  edit=d?{pay:payLoad(G(),d),lev:d.lev||'',lvs:d.lv?val(d.lv):'',levs:d&&d.levs?{...d.levs}:{},pm:d.pe?d.pe.m:'',pv:d.pe?val(d.pe.v-(d.pe.f||0)):'',pf:d.pe&&d.pe.f?val(d.pe.f):'',pvNote:d.pe&&d.pe.s||'',tx:d.tx||null,itens:clean(d.itens||[]),id:d.id,emoji:dEmo(d),emoFix:!!d.emoji,titulo:d.titulo,moeda:d.moeda,total:d.total,data:d.data,tipo:d.tipo||'desp',modo:d.modo||'valor',cr:d.cr,pag:mk(d.pag,d.fixP,true),div:mk(d.div,d.fixD,false)}
         :{itens:[],id:null,emoji:'💸',emoFix:false,titulo:'',moeda:g.base,total:0,data:today(),tipo:'desp',modo:'valor',pag:mk(null,null,true),div:mk(null,null,false)};
   if(!d){rebal('pag');rebal('div')}
   edit.hasFoto=!!(d&&d.foto);edit.fotoN=(d&&d.fotos)||0;edit.fotoX=[];edit.priv=!!(d&&d.priv);edit.by=(d&&d.by)||meOf(G());edit.paga=false;edit.pg={...((d&&d.pg)||{})};if(d&&d.paga)Object.keys(d.div).forEach(k=>{if(d.div[k]>0&&!(d.pag[k]>0))edit.pg[k]=1});edit.fotoNew=null;edit.fotoRm=false;drawEditor();modal.hidden=false;setTimeout(()=>{if(edit&&!edit.snap)edit.snap=edSig()},400);setTimeout(()=>{const t=$('#e-t');if(t&&!d)t.focus()},50)}
+function plevFor(k){const g=G(),e=edit,me=meOf(g);if(!e||e.tipo==='reemb'||!e.pag[k]||!e.pag[k].on||k===me)return '';const ls=levsOf(g,k).filter(l=>l.m===e.moeda).map(l=>({l,rest:l.v-levUsed(g,k,l,e.id)})).filter(x=>x.rest>0||(e.levs||{})[k]===x.l.id);if(!ls.length)return '';
+  const cur=(e.levs||{})[k]||'';return `<div class="plev1"><select data-plev="${esc(k)}" aria-label="Como pagou ${esc(nome(g,k))}"><option value="">💳 Cartão</option>${ls.map(x=>`<option value="${esc(x.l.id)}" ${cur===x.l.id?'selected':''}>💵 Levantamento ${esc(new Date(x.l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}))} · sobram ${fmt(x.rest,x.l.m)}</option>`).join('')}</select></div>`}
+/* ---------- Como pagou cada pessoa (cartão ou levantamento), com as mesmas opções para todos ---------- */
+function payOf(k){edit.pay=edit.pay||{};return edit.pay[k]=edit.pay[k]||{}}
+function cardDef(g){let c='';try{c=localStorage.getItem('ej-cardm')||''}catch(x){}return (c&&(g.taxas[c]||c===g.base))?c:g.base}
+const pfFee=p=>{const t=String(p.pf||'').trim();if(!t)return 0;if(/%$/.test(t)){const pc=parseFloat(t.replace('%','').replace(',','.'))||0;return Math.round(parse(p.pv||'')*pc/100)}return parse(t)>0?parse(t):0};
+const pvTot=p=>{const v=parse(p.pv||'');return v>0?v+pfFee(p):0};
+function mktRx(){const r=parseFloat(String(edit.rx||'').replace(',','.'));return r>0?r:null}
+function myAmt(){const e=edit,g=G(),me=meOf(g);return me&&e.pag&&e.pag[me]&&e.pag[me].on&&e.pag[me].v>0?e.pag[me].v:e.total}
+function myBase(g){const e=edit,me=meOf(g),a=(e.pag[me]&&e.pag[me].on)?e.pag[me].v:0;if(!(a>0))return 0;if(e.moeda===g.base&&!e.lev)return a;const mr=mktRx();
+  if(e.lev){const l=levsOf(g,me).find(x=>x.id===e.lev);if(l&&l.r){if(l.m===e.moeda)return a/l.r;const lv=parse(e.lvs||'');if(lv>0)return lv/l.r}}
+  if(e.moeda===g.base)return a;if(!e.lev&&e.pm&&e.pm!==e.moeda&&pvT(e)>0){if(e.pm===g.base)return pvT(e);const rp=rBase(g,e.pm);if(rp)return pvT(e)/rp}return mr?a/mr:0}
+function payBase(g,k){const e=edit;if(k===meOf(g))return myBase(g);const a=(e.pag[k]&&e.pag[k].on)?e.pag[k].v:0;if(!(a>0))return 0;if(e.moeda===g.base&&!(e.pay&&e.pay[k]&&e.pay[k].lev))return a;const p=(e.pay||{})[k]||{},mr=mktRx();
+  if(p.lev){const l=levsOf(g,k).find(x=>x.id===p.lev);if(l&&l.r){if(l.m===e.moeda)return a/l.r;const lv=parse(p.lvs||'');if(lv>0)return lv/l.r}}
+  if(e.moeda===g.base)return a;
+  if(!p.lev){const pm=p.pm||cardDef(g),pv=pvTot(p);if(pv>0){if(pm===g.base)return pv;if(pm===e.moeda)return mr?a/mr:0;const rp=rBase(g,pm);if(rp)return pv/rp}}
+  return mr?a/mr:0}
+function payTotal(g){const e=edit;let b=0;for(const k in e.pag)if(e.pag[k].on)b+=payBase(g,k);return Math.round(b)}
+function payMixed(){const e=edit,me=meOf(G());for(const k in e.pag){if(!e.pag[k].on||k===me)continue;const p=(e.pay||{})[k]||{};if(p.lev||pvTot(p)>0)return true}return false}
+function payLevs(g,k){const e=edit,p=(e.pay||{})[k]||{};return levsOf(g,k).map(l=>({l,rest:l.v-levUsed(g,k,l,e.id)})).filter(x=>x.rest>0||p.lev===x.l.id)}
+function paySum(g,k){const e=edit,p=(e.pay||{})[k]||{};if(p.lev){const l=levsOf(g,k).find(x=>x.id===p.lev);return '💵 Levantamento'+(l?' '+new Date(l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}):'')}
+  if(e.moeda===g.base)return '💳 Cartão';const pm=p.pm||cardDef(g),pv=pvTot(p);if(pv>0&&pm!==e.moeda)return '💳 '+fmt(pv,pm);const b=payBase(g,k);if(!(b>0))return '💳 Cartão';
+  return '💳 ≈ '+fmt(pm===g.base?Math.round(b):Math.round(b*(rBase(g,pm)||1)),pm)}
+function payHint(g,k){const e=edit,p=(e.pay||{})[k]||{},a=e.pag[k]?e.pag[k].v:0;if(p.lev){const l=levsOf(g,k).find(x=>x.id===p.lev);if(!l)return '';return l.m===e.moeda?`taxa do levantamento: 1 ${esc(g.base)} = ${fmtRate(l.r)} ${esc(l.m)} · ≈ ${fmt(Math.round(payBase(g,k)),g.base)}`:(parse(p.lvs||'')>0?`≈ ${fmt(Math.round(payBase(g,k)),g.base)}`:`Escreve quanto saiu do levantamento em ${esc(l.m)}.`)}
+  const pm=p.pm||cardDef(g),pv=parse(p.pv||''),fe=pfFee(p);if(pv>0&&pm!==e.moeda)return `${fe?`${fmt(pv,pm)} + ${fmt(fe,pm)} de taxas extra = `:''}✓ <b>${fmt(pv+fe,pm)}</b> por ${fmt(a,e.moeda)}${a>0?` · 1 ${esc(pm)} = ${fmtRate(a/(pv+fe))} ${esc(e.moeda)}`:''}`;
+  const b=payBase(g,k);return b>0?`≈ ${fmt(pm===g.base?Math.round(b):Math.round(b*(rBase(g,pm)||1)),pm)} pela ${esc((rxNote()||'📈 taxa do dia').replace(/^\S+\s/,''))} · escreve o valor do banco para ficar exato`:''}
+function payFor(k){const g=G(),e=edit;if(!e||e.tipo==='reemb'||!e.pag[k]||!e.pag[k].on||k===meOf(g))return '';const ls=payLevs(g,k);if(e.moeda===g.base&&!ls.length)return '';const p=payOf(k),card=!p.lev,pm=p.pm||cardDef(g);
+  let h=`<details class="pay1" ${p.open?'open':''} data-pko="${esc(k)}"><summary><span data-ps="${esc(k)}">${esc(paySum(g,k))}</span><small>Como pagou?</small></summary><div class="pay1b">`;
+  h+=`<div class="chips">${ls.map(x=>`<button type="button" class="pchip ${p.lev===x.l.id?'on':''}" data-plv="${esc(k)}|${esc(x.l.id)}">💵 Levantamento ${esc(new Date(x.l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}))} · sobram ${fmt(x.rest,x.l.m)}</button>`).join('')}<button type="button" class="pchip ${card?'on':''}" data-plv="${esc(k)}|">💳 Cartão</button></div>`;
+  if(p.lev){const l=levsOf(g,k).find(x=>x.id===p.lev);if(l&&l.m!==e.moeda)h+=`<label class="fx-l">Quanto saiu do levantamento</label><div class="inline" style="margin:0"><input data-pk="${esc(k)}" data-pf="lvs" inputmode="decimal" placeholder="0,00" value="${esc(p.lvs||'')}"><span>${flag(l.m)} ${esc(l.m)}</span></div>`}
+  else if(e.moeda!==g.base){h+=`<label class="fx-l">Moeda do cartão</label><select data-pk="${esc(k)}" data-pf="pm">${allOpts(pm)}</select>`;
+    if(pm!==e.moeda)h+=`<label class="fx-l">Montante convertido <small class="fxsrc">(como aparece no banco)</small></label><div class="inline" style="margin:0"><input data-pk="${esc(k)}" data-pf="pv" inputmode="decimal" placeholder="0,00" value="${esc(p.pv||'')}"><span>${flag(pm)} ${esc(pm)}</span></div>
+      <label class="fx-l">Taxas extra do banco <small class="fxsrc">(se houver, em valor ou %)</small></label><div class="inline" style="margin:0"><input data-pk="${esc(k)}" data-pf="pf" inputmode="decimal" placeholder="0,00" value="${esc(p.pf||'')}"><span>${flag(pm)} ${esc(pm)}</span></div>
+      <label class="fx-l">Taxa de câmbio <small class="fxsrc">(ou escreve a taxa do banco)</small></label><div class="inline" style="margin:0"><span>1 ${esc(pm)} =</span><input data-pk="${esc(k)}" data-pf="pr" inputmode="decimal" placeholder="taxa" value="${esc(p.pr||'')}"><span>${esc(e.moeda)}</span></div>`}
+  return h+`<p class="hint" data-ph="${esc(k)}">${payHint(g,k)}</p></div></details>`}
+function payRefresh(){const g=G();if(!g||!edit)return;sheet.querySelectorAll('[data-ph]').forEach(x=>x.innerHTML=payHint(g,x.dataset.ph));sheet.querySelectorAll('[data-ps]').forEach(x=>x.textContent=paySum(g,x.dataset.ps));const f=document.getElementById('e-fxs');if(f)f.innerHTML=fxSum2()}
+function fxSum2(){const g=G(),e=edit;if(!(e.total>0))return 'Escreve o total para ver quanto dá em '+esc(g.base)+'.';const b=payTotal(g);if(payMixed()&&b>0)return `≈ <b>${fmt(b,g.base)}</b> <small>(soma do que cada um pagou)</small>`;return fxSum()}
+sheet.addEventListener('input',ev=>{const t=ev.target;if(!edit||t.dataset.pf==null||t.tagName==='SELECT')return;const g=G(),k=t.dataset.pk,p=payOf(k),f=t.dataset.pf;p[f]=t.value;
+  if(f==='pr'){const r=parseFloat(String(t.value).replace(',','.')),a=edit.pag[k]?edit.pag[k].v:0;if(r>0&&a>0){p.pv=val(Math.round(a/r));p.pf='';const i=sheet.querySelector(`[data-pk="${k}"][data-pf="pv"]`);if(i)i.value=p.pv;const j=sheet.querySelector(`[data-pk="${k}"][data-pf="pf"]`);if(j)j.value=''}p.src='taxa'}
+  else if(f==='pv'||f==='pf')p.src='manual';payRefresh()});
+sheet.addEventListener('change',ev=>{const t=ev.target;if(!edit||t.dataset.pf!=='pm')return;const p=payOf(t.dataset.pk);p.pm=t.value;p.pv='';p.pf='';p.pr='';p.open=true;try{localStorage.setItem('ej-cardm',t.value)}catch(x){}$('#r-pag').innerHTML=rowsHTML('pag');payRefresh()});
+sheet.addEventListener('toggle',ev=>{const t=ev.target;if(t.dataset&&t.dataset.pko&&edit)payOf(t.dataset.pko).open=t.open},true);
+sheet.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('[data-plv]');if(!t||!edit)return;const [k,id]=t.dataset.plv.split('|'),p=payOf(k);p.lev=id||'';p.lvs='';p.open=true;$('#r-pag').innerHTML=rowsHTML('pag');payRefresh()});
+function paySave(g,e){const out={},me=meOf(g);for(const k in e.pag){if(!e.pag[k].on||e.tipo==='reemb'||k===me)continue;const p=(e.pay||{})[k];if(!p)continue;
+    if(p.lev){out[k]={lev:p.lev,...(parse(p.lvs||'')>0?{lv:parse(p.lvs)}:{})};continue}
+    const pm=p.pm||cardDef(g),pv=pvTot(p);if(e.moeda!==g.base&&pm!==e.moeda&&pv>0)out[k]={pm,pv,...(pfFee(p)>0?{f:pfFee(p)}:{}),s:p.src==='scan'?'📷 valor do print/recibo':p.src==='taxa'?'✍️ taxa que escreveste':'✍️ valor que escreveste'}}
+  return out}
+function payLoad(g,d){const pay={};if(!d)return pay;
+  if(d.pays){for(const k in d.pays){if(k===meOf(g))continue;const x=d.pays[k];pay[k]=x.lev?{lev:x.lev,lvs:x.lv?val(x.lv):''}:{pm:x.pm,pv:val(x.pv-(x.f||0)),pf:x.f?val(x.f):'',src:'old'}}return pay}
+  const me=meOf(g);if(d.levs)for(const k in d.levs)if(k!==me)pay[k]={lev:d.levs[k]};
+  return pay}
 function plevHTML(){const g=G(),e=edit,me=meOf(g);if(!e||e.tipo==='reemb')return '';const out=[];
   for(const k in e.pag){if(!e.pag[k].on||k===me)continue;const ls=levsOf(g,k).filter(l=>l.m===e.moeda).map(l=>({l,rest:l.v-levUsed(g,k,l,e.id)})).filter(x=>x.rest>0||(e.levs||{})[k]===x.l.id);if(!ls.length)continue;
     const cur=(e.levs||{})[k]||'';out.push(`<div class="plev"><span>${avP(g,g.membros.find(x=>x.id===k),'sm')} ${esc(nome(g,k))} pagou com</span><select data-plev="${esc(k)}"><option value="">💳 cartão / outro</option>${ls.map(x=>`<option value="${esc(x.l.id)}" ${cur===x.l.id?'selected':''}>💵 levantamento ${esc(new Date(x.l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}))} · sobram ${fmt(x.rest,x.l.m)}</option>`).join('')}</select></div>`)}
   return out.length?`<div class="plevs">${out.join('')}</div>`:''}
 function rowsHTML(side){if(side!=='pag')return rowsHTML0(side);const on=Object.values(edit.pag).filter(r=>r.on).length,col=!edit.pagOpen&&on>0;
-  return `<div class="pagwrap ${col?'col':''}">${rowsHTML0(side)}</div>${plevHTML()}<button type="button" class="linkbtn pagmore" id="pagmore">${col?'✏️ Mudar quem pagou':'Fechar lista'}</button>`}
+  return `<div class="pagwrap ${col?'col':''}">${rowsHTML0(side)}</div><button type="button" class="linkbtn pagmore" id="pagmore">${col?'✏️ Mudar quem pagou':'Fechar lista'}</button>`}
 document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('#pagmore');if(!t||!edit)return;edit.pagOpen=!edit.pagOpen;const r=document.getElementById('r-pag');if(r)r.innerHTML=rowsHTML('pag')});
 function rowsHTML0(side){const g=G(),rows=edit[side],partes=side==='div'&&edit.modo==='partes',art=side==='div'&&edit.modo==='artigos';
   if(art)return g.membros.map(p=>{const r=rows[p.id];return `<div class="prow"><label class="chk"><input type="checkbox" data-side="div" data-k="${esc(p.id)}" ${r.on?'checked':''}><span>${avP(g,p,'sm')} ${esc(p.nome)}</span></label><div class="vwrap">${(()=>{const sp=r.on&&!(edit.pag[p.id]&&edit.pag[p.id].on),pd=sp&&edit.pg&&edit.pg[p.id];return sp?`<button type="button" class="pgo ${pd?'on':''}" data-pg="${esc(p.id)}" aria-pressed="${!!pd}" aria-label="${esc(p.nome)} já pagou"></button>`:'<span class="pgo-sp"></span>'})()}<span class="calc" data-calc="${esc(p.id)}" style="${r.on&&!(edit.pag[p.id]&&edit.pag[p.id].on)&&edit.pg&&edit.pg[p.id]?'text-decoration:line-through;opacity:.6':''}">${r.on?val(r.v):''}</span></div><span></span></div>`}).join('');
   return g.membros.map(p=>{const r=rows[p.id],sp=side==='div'&&edit.tipo!=='reemb'&&r.on&&!(edit.pag[p.id]&&edit.pag[p.id].on),pd=sp&&edit.pg&&edit.pg[p.id];return `<div class="prow ${pd?'pgd':''}"><div class="pcell"><label class="chk"><input type="checkbox" data-side="${side}" data-k="${esc(p.id)}" ${r.on?'checked':''}><span>${avP(g,p,'sm')} ${esc(p.nome)}</span></label></div>
   <div class="vwrap">${side==='div'&&edit.tipo!=='reemb'?(sp?`<button type="button" class="pgo ${pd?'on':''}" data-pg="${esc(p.id)}" aria-pressed="${!!pd}" aria-label="${esc(p.nome)} já pagou" title="Já pagou"></button>`:'<span class="pgo-sp"></span>'):''}${partes?`<span class="pt"><input class="v" inputmode="numeric" data-part="${esc(p.id)}" value="${r.on?r.p:''}" ${r.on?'':'disabled'} aria-label="Partes de ${esc(p.nome)}"></span>`
           :`<input class="v" inputmode="decimal" data-amt="${side}" data-k="${esc(p.id)}" value="${r.on?val(r.v):''}" ${r.on?'':'disabled'} aria-label="Valor de ${esc(p.nome)}">`}</div>
-  ${partes?`<span class="calc" data-calc="${esc(p.id)}">${r.on?val(r.v):''}</span>`:`<button class="auto" data-auto="${side}" data-k="${esc(p.id)}" ${r.fix&&r.on?'':'hidden'} title="Voltar a calcular automaticamente">auto</button>`}</div>`}).join('')}
+  ${partes?`<span class="calc" data-calc="${esc(p.id)}">${r.on?val(r.v):''}</span>`:`<button class="auto" data-auto="${side}" data-k="${esc(p.id)}" ${r.fix&&r.on?'':'hidden'} title="Voltar a calcular automaticamente">auto</button>`}</div>${side==='pag'?payFor(p.id):''}`}).join('')}
 function privSee(g,e){return !e.priv||!e.by||e.by===meOf(g)}
 function itemsHTML(){const g=G(),e=edit;if(!e.itens||!e.itens.length||e.tipo==='reemb')return '';
   if(!privSee(g,e))return `<p class="privn">🔒 Artigos privados · só ${esc(nome(g,e.by))} os vê</p>`;
@@ -1008,10 +1066,10 @@ const rateOf=(g,c)=>c===g.base?1:((edit&&dayRate(g,c,edit.data||today()))||(type
 /* "Pagaste em": quando a conta é numa moeda e pagaste noutra (ex.: conta em colones, pago com cartão em euros) */
 function pfV(e){const t=String(e.pf||'').trim();if(!t)return 0;if(/%$/.test(t)){const pc=parseFloat(t.replace('%','').replace(',','.'))||0;return Math.round(parse(e.pv||'')*pc/100)}return parse(t)>0?parse(t):0}
 function pvT(e){const v=parse(e.pv||'');return v>0?v+pfV(e):0}
-function pvCalc(){const g=G(),e=edit;if(!e.pm||e.pm===e.moeda)return null;const v=pvT(e);const rp=rateOf(g,e.pm);if(!(v>0)||!rp||!(e.total>0))return null;
-  const baseAmt=v/rp;return e.total/baseAmt}
-function setPm(c){edit.pm=c;if(edit.pm===edit.moeda){edit.pv='';if(edit.rxSrc==='pago'){edit.rx='';edit.rxSrc=''}}else{edit.pv='';const g=G(),r=parseFloat(String(edit.rx||'').replace(',','.')),rp=rateOf(g,edit.pm);if(r>0&&rp&&edit.total>0){edit.pv=val(Math.round(edit.total/r*rp));edit.pvSrc='auto'}}$('#e-rate').innerHTML=rateRow();refresh();const i=$('#e-pv');if(i)i.focus()}
-function prOf(){const e=edit,v=parse(e.pv||'');if(v>0&&e.total>0)return fmtRate(e.total/v);const r=parseFloat(String(e.rx||'').replace(',','.')),rp=rateOf(G(),e.pm);return r>0&&rp?fmtRate(r/rp):''}
+function pvCalc(){const g=G(),e=edit;if(!e.pm||e.pm===e.moeda)return null;const v=pvT(e);const rp=rateOf(g,e.pm),a=myAmt();if(!(v>0)||!rp||!(a>0))return null;
+  const baseAmt=v/rp;return a/baseAmt}
+function setPm(c){edit.pm=c;if(edit.pm===edit.moeda){edit.pv='';if(edit.rxSrc==='pago'){edit.rx='';edit.rxSrc=''}}else{edit.pv='';const g=G(),r=parseFloat(String(edit.rx||'').replace(',','.')),rp=rateOf(g,edit.pm);if(r>0&&rp&&myAmt()>0){edit.pv=val(Math.round(myAmt()/r*rp));edit.pvSrc='auto'}}$('#e-rate').innerHTML=rateRow();refresh();const i=$('#e-pv');if(i)i.focus()}
+function prOf(){const e=edit,v=parse(e.pv||'');if(v>0&&myAmt()>0)return fmtRate(myAmt()/v);const r=parseFloat(String(e.rx||'').replace(',','.')),rp=rateOf(G(),e.pm);return r>0&&rp?fmtRate(r/rp):''}
 function fxSum(){const g=G(),e=edit,r=parseFloat(String(e.rx||'').replace(',','.'));if(!(r>0)||!(e.total>0))return 'Escreve o total para ver quanto dá em '+esc(g.base)+'.';
   const sd=e.rxSrc==='dia'?' <small>(mercado de '+esc(new Date((e.data||today())+'T12:00').toLocaleDateString('pt-PT'))+')</small>':e.rxSrc==='manual'||e.rxSrc==='pago'?' <small>(a tua taxa)</small>':' <small>(taxa do grupo'+(gUpd(g)?' de '+esc(gUpd(g)):'')+')</small>';
   return `≈ <b>${fmt(Math.round(e.total/r),g.base)}</b> · 1 ${esc(g.base)} = ${esc(e.rx)} ${esc(e.moeda)}${sd}`}
@@ -1022,7 +1080,7 @@ function srcNote(){const g=G(),e=edit,dt=x=>new Date((x||today())+'T12:00').toLo
   return e.pvNote||''}
 function rxNote(){const g=G(),e=edit,dt=x=>new Date((x||today())+'T12:00').toLocaleDateString('pt-PT');const k=e.rxSrc;if(k==='dia')return '📈 taxa de mercado de '+dt(e.data);if(k==='mercado')return '📈 taxa de mercado de hoje';if(k==='manual'||k==='pago')return '✍️ a tua taxa';if(k==='gravada')return '📌 taxa guardada desta despesa';if(k==='grupo')return '📈 taxa do grupo'+(gUpd(g)?' de '+gUpd(g):'');return ''}
 function pvHint(){const g=G(),e=edit,r=pvCalc();if(!r){const rx=parseFloat(String(e.rx||'').replace(',','.'));if(e.total>0&&rx>0&&e.pm){const b=Math.round(e.total/rx),v=e.pm===g.base?b:toCur(g,b/100,e.pm)*1;return `≈ ${fmt(e.pm===g.base?b:Math.round(b*(g.taxas[e.pm]||1)/(g.taxas[g.base]||1)),e.pm)} <small class="fxsrc">estimativa pela ${esc(rxNote().replace(/^\S+\s/,''))||'taxa do dia'} · escreve o montante do banco para ficar exato</small>`}return `Escreve o montante convertido que aparece no banco.`}
-  const sn=srcNote(),fe=pfV(e);return `${fe?`${fmt(parse(e.pv),e.pm)} + ${fmt(fe,e.pm)} de taxas extra<br>`:''}✓ <b>O teu total: ${fmt(pvT(e),e.pm)}</b> <small class="fxsrc">(${fmt(e.total,e.moeda)})</small>${sn?`<br><small class="fxsrc">${esc(sn)}</small>`:''}`}
+  const sn=srcNote(),fe=pfV(e);return `${fe?`${fmt(parse(e.pv),e.pm)} + ${fmt(fe,e.pm)} de taxas extra<br>`:''}✓ <b>O teu total: ${fmt(pvT(e),e.pm)}</b> <small class="fxsrc">(${fmt(myAmt(),e.moeda)})</small>${sn?`<br><small class="fxsrc">${esc(sn)}</small>`:''}`}
 function rateRow(){const r=rateRow0();if(!r)return '';const e=edit,m=e.moeda,pm=e.pm||m,pv=pvT(e);
   const t=e.lev?'💵 Dinheiro':pm!==m?(pv>0?'💳 '+fmt(pv,pm):'💳 ≈ '+(()=>{const g=G(),r=parseFloat(String(e.rx||'').replace(',','.'));if(!(r>0&&e.total>0))return pm;const b=Math.round(e.total/r);return fmt(pm===g.base?b:Math.round(b*(g.taxas[pm]||1)/(g.taxas[g.base]||1)),pm)})()):(()=>{const r=parseFloat(String(e.rx||'').replace(',','.'));return r>0&&e.total>0?'≈ '+fmt(Math.round(e.total/r),G().base):'Taxa'})();
   const sn=e.lev?'':pm!==m?(pv>0?srcNote():''):rxNote();return `<details class="fxd" ${e.fxOpen?'open':''}><summary><span>Como pagaste?${sn?`<small class="fxsrc">${esc(sn)}</small>`:''}</span><b>${esc(t)}</b></summary>${r}</details>`}
@@ -1073,7 +1131,7 @@ function refresh(){const g=G(),act=document.activeElement;
     el.textContent=!c.n?(side==='pag'?'Falta escolher quem pagou':'Falta escolher quem divide'):c.ok?`${fmt(c.s,edit.moeda)} de ${fmt(edit.total,edit.moeda)} ✓`:
       `${fmt(c.s,edit.moeda)} de ${fmt(edit.total,edit.moeda)} — ${diff>0?'faltam '+fmt(diff,edit.moeda):'sobram '+fmt(-diff,edit.moeda)}`}
   if(edit.moeda!==G().base&&!(parseFloat(String(edit.rx||'').replace(',','.'))>0))all=false;
-  $('#e-ok').disabled=!all}
+  $('#e-ok').disabled=!all;try{payRefresh()}catch(x){}}
 const scanPrompt=g=>`Estás a ler a fotografia de um recibo, talão ou fatura para uma app que divide despesas entre amigos.
 Responde APENAS com um objeto JSON, sem mais texto, com esta forma:
 {"tipo": "recibo", "descricao": "descrição curta em português, ex. Jantar no Restaurante Sol", "total": 0.00, "moeda": "EUR", "data": "AAAA-MM-DD", "emoji": "🍽️", "itens": [{"nome": "Bife da casa", "quantidade": 1, "preco": 12.50}], "valor_pago": null, "moeda_paga": null, "taxa": null, "comissao": null}
@@ -1118,9 +1176,9 @@ function saveEditor(){const g=G(),e=edit;if(ro(g)){note('🔒 O grupo está fech
   if(e.lostFoto&&e.tipo!=='reemb'){const o=dupOf(g,e,e.id);if(o){const img=e.fotoNew||fotoC[g.id+'-f-'+e.lostFoto],nk=g.id+'-f-'+o.id;if(img&&!o.foto){fotoC[nk]=img;fotoPut(nk,img).catch(()=>{});o.foto=1;o.u=Date.now()}lostHide[e.lostFoto]=1;lsSet('ej-losthide',lostHide);fotoDel(g.id+'-f-'+e.lostFoto);closeEditor();save(g);note('Já estava nas despesas: “'+(o.titulo||'Despesa')+'”'+(img?' — juntei-lhe a foto.':'.'),5000);return}}
   if(!e.id&&!e.dupOk&&e.tipo!=='reemb'){const o=dupOf(g,e,null);if(o){e.dupOk=true;const b=$('#e-ok');if(b)b.textContent='Guardar na mesma';
     const w=document.getElementById('e-dupw')||document.createElement('p');w.id='e-dupw';w.className='dupw';w.textContent=`⚠️ Parece repetida: “${o.titulo||'Sem título'}” · ${fmt(o.total,o.moeda)} · ${o.data||''} · ${Object.keys(o.pag).filter(k=>o.pag[k]>0).map(k=>nome(g,k)).join(', ')} pagou.`;
-    if(b&&!w.parentNode)b.closest('.actions').before(w);return}}if(e.pm&&e.pm!==e.moeda&&pvT(e)>0&&!e.lev){const rr=pvCalc();if(rr)e.rx=String(rr)}let tx=null;if(e.moeda!==g.base){const x=parseFloat(String(e.rx||'').replace(',','.'));if(x>0){tx={b:g.base,m:e.moeda,r:x};g.taxas[e.moeda]=x*g.taxas[g.base]}}const pick=(rows)=>{const o={};order(g,rows).forEach(k=>o[k]=rows[k].v);return o};
+    if(b&&!w.parentNode)b.closest('.actions').before(w);return}}if(e.pm&&e.pm!==e.moeda&&pvT(e)>0&&!e.lev){const rr=pvCalc();if(rr)e.rx=String(rr)}let tx=null;const pays=paySave(g,e);if(e.moeda!==g.base){let x=parseFloat(String(e.rx||'').replace(',','.'));const mixed=payMixed(),B=payTotal(g);if(mixed&&B>0&&e.total>0)x=e.total/B;if(x>0){tx={b:g.base,m:e.moeda,r:x};if(!mixed)g.taxas[e.moeda]=x*g.taxas[g.base]}}const pick=(rows)=>{const o={};order(g,rows).forEach(k=>o[k]=rows[k].v);return o};
   const pe=e.pm&&e.pm!==e.moeda&&parse(e.pv||'')>0?{m:e.pm,v:pvT(e),...(pfV(e)>0?{f:pfV(e)}:{}),...(srcNote()?{s:srcNote()}:{})}:null;
-  const lvs={};for(const k in (e.levs||{}))if(e.pag[k]&&e.pag[k].on&&e.tipo!=='reemb')lvs[k]=e.levs[k];const d={id:e.id||uid(),tx,pe,lev:e.lev||null,...(Object.keys(lvs).length?{levs:lvs}:{}),lv:e.lev&&parse(e.lvs||'')>0?parse(e.lvs):null,emoji:e.emoji,itens:e.itens||[],titulo:e.titulo.trim()||(e.tipo==='reemb'?'Reembolso':'Despesa'),moeda:e.moeda,total:e.total,data:e.data||today(),tipo:e.tipo,modo:e.modo,cr:e.cr||Date.now(),
+  const lvs={};for(const k in pays)if(pays[k].lev)lvs[k]=pays[k].lev;const d={id:e.id||uid(),tx,pe,lev:e.lev||null,...(Object.keys(lvs).length?{levs:lvs}:{}),...(Object.keys(pays).length?{pays}:{}),lv:e.lev&&parse(e.lvs||'')>0?parse(e.lvs):null,emoji:e.emoji,itens:e.itens||[],titulo:e.titulo.trim()||(e.tipo==='reemb'?'Reembolso':'Despesa'),moeda:e.moeda,total:e.total,data:e.data||today(),tipo:e.tipo,modo:e.modo,cr:e.cr||Date.now(),
     pag:pick(e.pag),div:pick(e.div),fixP:order(g,e.pag).filter(k=>e.pag[k].fix),fixD:e.modo==='valor'?order(g,e.div).filter(k=>e.div[k].fix):[],
     partes:e.modo==='partes'?Object.fromEntries(order(g,e.div).map(k=>[k,+e.div[k].p||0])):{}};
   {const keep=e.hasFoto&&!e.fotoRm,nx=(e.fotoX||[]).length;if(e.fotoNew||keep||nx)d.foto=1;const ext=(keep?(e.fotoN||0):0)+nx+((!keep&&!e.fotoNew&&nx)?-1:0);if(ext>0)d.fotos=ext;else delete d.fotos}d.by=e.by||meOf(g);if(e.priv&&(e.itens||[]).length)d.priv=1;delete d.paga;{const pg={};for(const k in (e.pg||{}))if(e.pg[k]&&d.div[k]>0&&!(d.pag[k]>0))pg[k]=1;if(e.tipo!=='reemb'&&Object.keys(pg).length)d.pg=pg;else delete d.pg}const i=g.despesas.findIndex(x=>x.id===d.id);{const od=i>=0?g.despesas[i]:null,opg=(od&&od.pg)||{},npg=d.pg||{},T={...((od&&od.pgT)||{})},now=Date.now();new Set([...Object.keys(opg),...Object.keys(npg)]).forEach(k=>{if(!!opg[k]!==!!npg[k])T[k]=now});if(Object.keys(T).length)d.pgT=T;else delete d.pgT}{const dx=i>=0?diffD(g,g.despesas[i],d):'';if(i<0||dx)logH(g,i>=0?'mudou':'criou',d,dx)}if(i>=0)g.despesas[i]=d;else g.despesas.push(d);
@@ -1135,7 +1193,7 @@ sheet.addEventListener('input',ev=>{const t=ev.target;if(!edit)return;
   else if(t.id==='e-dat'){edit.data=t.value;if(!edit.rx||['mercado','grupo','dia'].includes(edit.rxSrc)){edit.rx='';const pvWas=edit.pm&&edit.pm!==edit.moeda;const er=$('#e-rate');if(er){er.innerHTML=rateRow();refresh()}}}
   else if(t.id==='e-rx'){edit.rx=t.value;edit.rxSrc='manual';const f=$('#e-fxs');if(f)f.innerHTML=fxSum();refresh()}
   else if(t.id==='e-lv'){edit.lvs=t.value;lvApply();const h=$('#e-lvh');if(h)h.innerHTML=lvHint();refresh()}
-  else if(t.id==='e-pr'){const pr=parseFloat(String(t.value).replace(',','.'));if(pr>0&&edit.total>0){edit.pv=val(Math.round(edit.total/pr));edit.pvSrc='taxa';const pv=$('#e-pv');if(pv)pv.value=edit.pv;const rp=rateOf(G(),edit.pm);if(rp){edit.rx=fmtRate(pr*rp);edit.rxSrc='pago'}const h=$('#e-pvh');if(h)h.innerHTML=pvHint()}refresh()}
+  else if(t.id==='e-pr'){const pr=parseFloat(String(t.value).replace(',','.'));if(pr>0&&myAmt()>0){edit.pv=val(Math.round(myAmt()/pr));edit.pvSrc='taxa';const pv=$('#e-pv');if(pv)pv.value=edit.pv;const rp=rateOf(G(),edit.pm);if(rp){edit.rx=fmtRate(pr*rp);edit.rxSrc='pago'}const h=$('#e-pvh');if(h)h.innerHTML=pvHint()}refresh()}
   else if(t.id==='e-pf'){edit.pf=t.value;const h=$('#e-pvh');if(h)h.innerHTML=pvHint();const r=pvCalc();if(r){edit.rx=String(r)}refresh();return}
   else if(t.id==='e-pv'){edit.pv=t.value;edit.pvSrc='manual';const r=pvCalc();if(r){edit.rx=String(r);edit.rxSrc='pago';const x=$('#e-rx');if(x)x.value=fmtRate(r)}{const q=$('#e-pr');if(q)q.value=prOf()}const h=$('#e-pvh');if(h)h.innerHTML=pvHint();refresh()}
   else if(t.id==='e-tot'){edit.total=Math.max(0,parse(t.value));rebal('pag');rebal('div');if(edit.lev&&edit.lvs){lvApply();const h=$('#e-lvh');if(h)h.innerHTML=lvHint()}const r=pvCalc();if(r){edit.rx=fmtRate(r);edit.rxSrc='pago';const x=$('#e-rx');if(x)x.value=edit.rx;const h=$('#e-pvh');if(h)h.innerHTML=pvHint();const q=$('#e-pr');if(q)q.value=prOf()}const f=$('#e-fxs');if(f)f.innerHTML=fxSum();refresh()}
@@ -1144,7 +1202,7 @@ sheet.addEventListener('input',ev=>{const t=ev.target;if(!edit)return;
 sheet.addEventListener('change',ev=>{const t=ev.target;if(!edit)return;
   if(t.dataset.plev!=null){edit.levs={...(edit.levs||{})};if(t.value)edit.levs[t.dataset.plev]=t.value;else delete edit.levs[t.dataset.plev];return}
   if(t.id==='e-pm'){try{localStorage.setItem('ej-cardm',t.value)}catch(x){}setPm(t.value);return}
-  if(t.id==='e-cur'){edit.moeda=t.value;edit.rx='';edit.pm='';edit.pv='';edit.lev='';$('#e-rate').innerHTML=rateRow();$('#e-items').innerHTML=itemsHTML();refresh()}
+  if(t.id==='e-cur'){edit.moeda=t.value;edit.rx='';edit.pm='';edit.pv='';edit.lev='';edit.pay={};const rp=$('#r-pag');if(rp)rp.innerHTML=rowsHTML('pag');$('#e-rate').innerHTML=rateRow();$('#e-items').innerHTML=itemsHTML();refresh()}
   else if(t.type==='checkbox'&&t.dataset.side){const r=edit[t.dataset.side][t.dataset.k];r.on=t.checked;if(!r.on){r.fix=false;r.v=0}rebal(t.dataset.side);
     $('#r-'+t.dataset.side).innerHTML=rowsHTML(t.dataset.side);if(t.dataset.side==='div')$('#e-items').innerHTML=itemsHTML();refresh()}
   else if(t.dataset.foto){const fs=[...(t.files||[])];t.value='';if(t.dataset.merge&&edit)edit.mergeNext=true;if(fs.length>1)scanMany(fs);else scan(fs[0])}});
@@ -1154,7 +1212,7 @@ sheet.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t||!
   if(t.dataset&&t.dataset.lev!=null&&t.closest('#e-rate')){setLev(t.dataset.lev);return}
   if(t.id==='e-rxed'){edit.rxOpen=true;$('#e-rate').innerHTML=rateRow();const i=$('#e-rx');if(i)i.focus();return}
   if(t.dataset&&t.dataset.pm){setPm(t.dataset.pm);return}
-  if(false){if(edit.pm===edit.moeda){edit.pv='';if(edit.rxSrc==='pago'){edit.rx='';edit.rxSrc=''}}else if(!edit.pv){const g=G(),r=parseFloat(String(edit.rx||'').replace(',','.')),rp=rateOf(g,edit.pm);if(r>0&&rp&&edit.total>0){edit.pv=val(Math.round(edit.total/r*rp));edit.pvSrc='auto'}}$('#e-rate').innerHTML=rateRow();refresh();const i=$('#e-pv');if(i)i.focus();return}
+  if(false){if(edit.pm===edit.moeda){edit.pv='';if(edit.rxSrc==='pago'){edit.rx='';edit.rxSrc=''}}else if(!edit.pv){const g=G(),r=parseFloat(String(edit.rx||'').replace(',','.')),rp=rateOf(g,edit.pm);if(r>0&&rp&&myAmt()>0){edit.pv=val(Math.round(myAmt()/r*rp));edit.pvSrc='auto'}}$('#e-rate').innerHTML=rateRow();refresh();const i=$('#e-pv');if(i)i.focus();return}
   if(t.id==='e-rxm'){const mk=liveRate(G(),edit.moeda);if(mk){edit.rx=fmtRate(mk);edit.rxSrc='mercado';$('#e-rate').innerHTML=rateRow();refresh()}return}
   if(t.id==='e-emo-more'){$('#e-emos').hidden=!$('#e-emos').hidden;return}
   if(t.dataset.emo==='exp'){setEmo('exp',t.dataset.e,t.parentNode);return}
@@ -1599,7 +1657,33 @@ document.addEventListener('click',async ev=>{const t=ev.target.closest&&ev.targe
   if(t.id==='fim-pdf'){fimPDF(g);return}
   if(t.id==='fim-close'){if(!t.dataset.ok){t.dataset.ok=1;t.textContent='Toca outra vez para fechar';return}g.fechado={t:Date.now(),q:nome(g,meOf(g))||''};g.log=[{t:Date.now(),q:nome(g,meOf(g))||'Alguém',a:'fechou o grupo',ti:'',e:'🔒'},...(g.log||[])].slice(0,80);save(g);fimDraw();render();note('🔒 Grupo fechado. Só leitura.',3000);return}
   if(t.id==='fim-reopen'){g.fechado=null;g.log=[{t:Date.now(),q:nome(g,meOf(g))||'Alguém',a:'reabriu o grupo',ti:'',e:'🔓'},...(g.log||[])].slice(0,80);save(g);fimDraw();render();note('🔓 Grupo reaberto.',3000)}},true);
-function catDraw(){const g=G(),ov=document.getElementById('ppov');if(!g||!catOpen||!ov)return;if(catOpen==='FIM'){fimDraw();return}if(catOpen.startsWith('R|')){rsDraw(ov);return}
+/* ---------- 💱 calculadora de câmbio ---------- */
+var cvA=null,cvB=null,cvLev='',cvX='',cvY='';
+function cvRate(g,c){if(c===g.base)return 1;if(cvLev){const l=levsOf(g,meOf(g)).find(x=>x.id===cvLev);if(l&&l.m===c&&l.r)return l.r}return (typeof liveRate==='function'&&liveRate(g,c))||(g.taxas[c]&&g.taxas[g.base]?g.taxas[c]/g.taxas[g.base]:null)}
+function cvInit(g){const cs=Object.keys(g.taxas||{}).filter(c=>c!==g.base);if(!cvA||!(cvA===g.base||g.taxas[cvA])){const cnt={};g.despesas.forEach(d=>{if(d.moeda!==g.base)cnt[d.moeda]=(cnt[d.moeda]||0)+1});cvA=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]||cs[0]||g.base}if(!cvB||!(cvB===g.base||g.taxas[cvB]))cvB=g.base;if(cvA===cvB)cvB=cs.find(c=>c!==cvA)||g.base}
+function cvConv(g,v,a,b){const ra=cvRate(g,a),rb=cvRate(g,b);return ra&&rb?v/ra*rb:null}
+const cvFmt=(v,c)=>v==null||!isFinite(v)?'':(Math.round(v*100)/100).toLocaleString('pt-PT',{minimumFractionDigits:NODEC.test(c)?0:2,maximumFractionDigits:NODEC.test(c)?0:2}).replace(/\s/g,' ');
+const cvNum=t=>{const x=parseFloat(String(t||'').replace(/\s/g,'').replace(/\./g,'').replace(',','.'));return isFinite(x)?x:null};
+function convDraw(){const g=G(),ov=document.getElementById('ppov');if(!g||!ov)return;cvInit(g);const curs=[g.base,...Object.keys(g.taxas||{}).filter(c=>c!==g.base)];
+  const sel=(id,v)=>`<select id="${id}">${curs.map(c=>`<option value="${esc(c)}" ${c===v?'selected':''}>${flag(c)} ${esc(c)}</option>`).join('')}</select>`;
+  const ra=cvRate(g,cvA),rb=cvRate(g,cvB),r=ra&&rb?rb/ra:null,u=g.taxasUpd?new Date(isNaN(+g.taxasUpd)?g.taxasUpd:+g.taxasUpd):null;
+  const quick=(NODEC.test(cvA)?[1000,5000,10000,20000]:[1,5,10,20,50]);const ls=meOf(g)?levsOf(g,meOf(g)).filter(l=>l.m===cvA||l.m===cvB):[];
+  ov.querySelector('.whobox').innerHTML=`<div class="pph"><span class="e">💱</span><div><h2>Conversor</h2><p>com as taxas do grupo</p></div><button class="x" data-ppx="1" aria-label="Fechar">✕</button></div>
+  <div class="ppx cvx"><div class="cvr">${sel('cv-a',cvA)}<input id="cv-x" inputmode="decimal" placeholder="0" value="${esc(cvX)}" autocomplete="off"></div>
+  <button type="button" class="cvsw" id="cv-sw" aria-label="Trocar moedas">⇅</button>
+  <div class="cvr">${sel('cv-b',cvB)}<input id="cv-y" inputmode="decimal" placeholder="0" value="${esc(cvY)}" autocomplete="off"></div>
+  <div class="cvq">${quick.map(q=>`<button type="button" data-cvq="${q}">${q.toLocaleString('pt-PT')} ${esc(cvA)}</button>`).join('')}</div>
+  <p class="cvinfo">${r?`1 ${esc(cvA)} = ${fmtRate(r)} ${esc(cvB)} · 1 ${esc(cvB)} = ${fmtRate(1/r)} ${esc(cvA)}`:'Sem taxa para esta moeda.'}<br><small>${cvLev?'💵 taxa do teu levantamento':'📈 taxas'+(u&&!isNaN(u)?' de '+u.toLocaleDateString('pt-PT'):'')}</small></p>
+  ${ls.length?`<label class="cvlev"><span>Taxa a usar</span><select id="cv-l"><option value="">📈 Taxa do grupo</option>${ls.map(l=>`<option value="${esc(l.id)}" ${cvLev===l.id?'selected':''}>💵 O meu levantamento ${esc(new Date(l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}))} (1 ${esc(g.base)} = ${fmtRate(l.r)} ${esc(l.m)})</option>`).join('')}</select></label>`:''}</div>`;ov.hidden=false}
+function cvUpd(from){const g=G();if(!g)return;const x=document.getElementById('cv-x'),y=document.getElementById('cv-y');if(!x||!y)return;
+  if(from==='x'){cvX=x.value;const v=cvNum(cvX);cvY=v==null?'':cvFmt(cvConv(g,v,cvA,cvB),cvB);y.value=cvY}else{cvY=y.value;const v=cvNum(cvY);cvX=v==null?'':cvFmt(cvConv(g,v,cvB,cvA),cvA);x.value=cvX}}
+document.addEventListener('input',ev=>{const t=ev.target;if(t.id==='cv-x')cvUpd('x');else if(t.id==='cv-y')cvUpd('y')});
+document.addEventListener('change',ev=>{const t=ev.target;if(t.id==='cv-a'){cvA=t.value;if(cvA===cvB)cvB=G().base===cvA?(Object.keys(G().taxas).find(c=>c!==cvA)||cvA):G().base;convDraw();cvUpd('x')}else if(t.id==='cv-b'){cvB=t.value;convDraw();cvUpd('x')}else if(t.id==='cv-l'){cvLev=t.value;convDraw();cvUpd('x')}});
+document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('#conv,#cv-sw,[data-cvq]');if(!t)return;const g=G();if(!g)return;
+  if(t.id==='conv'){if(!ppOpen&&!catOpen)navPush('pp');ppOpen=null;catOpen='CONV';convDraw();setTimeout(()=>{const x=document.getElementById('cv-x');if(x&&!cvX)x.focus()},150);return}
+  if(t.id==='cv-sw'){[cvA,cvB]=[cvB,cvA];[cvX,cvY]=[cvY,cvX];convDraw();return}
+  if(t.dataset.cvq){cvX=Number(t.dataset.cvq).toLocaleString('pt-PT');convDraw();cvUpd('x')}});
+function catDraw(){const g=G(),ov=document.getElementById('ppov');if(!g||!catOpen||!ov)return;if(catOpen==='FIM'){fimDraw();return}if(catOpen==='CONV'){convDraw();return}if(catOpen.startsWith('R|')){rsDraw(ov);return}
   const B=v=>fmt(toCur(g,v,g.base),g.base),all=g.despesas.filter(d=>d.tipo!=='reemb'&&!hidN(g,d)),isD=catOpen.startsWith('d:'),isP=catOpen==='p:paga',ds=all.filter(d=>isP?pgFull(d):isD?d.data===catOpen.slice(2):catOf(d)===catOpen).sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b.cr||0)-(a.cr||0));
   const tot=ds.reduce((a,d)=>a+RD(g,d,d.total),0),tt=all.reduce((a,d)=>a+RD(g,d,d.total),0)||1;
   const m=isD||isP?null:catOpen.match(/^(\S+)\s+(.*)$/),ic=isP?'✓':isD?'📅':m?m[1]:'🏷️',nm=isP?'Já pagas':isD?exDay(catOpen.slice(2),1):m?m[2]:catOpen;
@@ -1656,7 +1740,7 @@ document.addEventListener('change',ev=>{const t=ev.target;if(t&&t.id==='w-pm'){c
 let wOpen=false,wForm=false,wDelAsk=null,wTipo='cash',wFeeU='%',wPre={},wScanMsg='';
 const rBase=(g,c)=>c===g.base?1:((typeof liveRate==='function'&&liveRate(g,c))||(g.taxas[c]&&g.taxas[c]/g.taxas[g.base])||null);
 const levsOf=(g,mid)=>((g.cart||{})[mid]||[]).filter(l=>l.tipo!=='conta');
-function levUsed(g,mid,l,skip){return g.despesas.filter(d=>(d.lev===l.id||(d.levs&&Object.values(d.levs).includes(l.id)))&&d.id!==skip).reduce((s,d)=>s+(d.moeda===l.m?(d.pag[mid]||0):Math.round((d.lv||0)*(d.pag[mid]||0)/(d.total||1))),0)}
+function levUsed(g,mid,l,skip){return g.despesas.filter(d=>(d.lev===l.id||(d.levs&&Object.values(d.levs).includes(l.id)))&&d.id!==skip).reduce((s,d)=>{const pp=d.pays&&d.pays[mid];if(pp&&pp.lev===l.id)return s+(d.moeda===l.m?(d.pag[mid]||0):(pp.lv||0));return s+(d.moeda===l.m?(d.pag[mid]||0):Math.round((d.lv||0)*(d.pag[mid]||0)/(d.total||1)))},0)}
 const levIc=l=>l.tipo==='conta'?'🏦':'💵';
 const levName=l=>l.tipo==='conta'?'Conta '+l.m:'Levantamento';
 const levRate=l=>l.r;
@@ -1685,7 +1769,7 @@ var wEdit=null;function walletHTML(g,me){const ls=levsOf(g,me);
 function levOpts(){const g=G(),me=meOf(g);if(!me||!edit)return [];return levsOf(g,me).map(l=>({l,rest:l.v-levUsed(g,me,l,edit.id)})).filter(x=>x.rest>0||x.l.id===edit.lev)}
 function lvHint(){const g=G(),e=edit,l=levsOf(g,meOf(g)).find(x=>x.id===e.lev),v=parse(e.lvs||'');if(!l||!(v>0))return 'Valor do extrato.';
   return `✓ ${fmt(e.total,e.moeda)} = ${fmt(v,l.m)} ≈ ${fmt(Math.round(v/l.r),g.base)}`}
-function lvApply(){const g=G(),e=edit,l=levsOf(g,meOf(g)).find(x=>x.id===e.lev),v=parse(e.lvs||'');if(l&&v>0&&e.total>0){e.rx=String(e.total/(v/l.r));e.rxSrc='lev'}}
+function lvApply(){const g=G(),e=edit,l=levsOf(g,meOf(g)).find(x=>x.id===e.lev),v=parse(e.lvs||'');if(l&&v>0&&myAmt()>0){e.rx=String(myAmt()/(v/l.r));e.rxSrc='lev'}}
 function setLev(id){const g=G();edit.lev=id||'';edit.lvs='';if(id){const l=levsOf(g,meOf(g)).find(x=>x.id===id);if(l){edit.pm='';edit.pv='';
   if(l.m===edit.moeda){edit.rx=fmtRate(l.r);edit.rxSrc='lev'}else{const r=parseFloat(String(edit.rx||'').replace(',','.')),rl=rBase(g,l.m);if(r>0&&rl&&edit.total>0)edit.lvs=val(Math.round(edit.total/r*rl));lvApply()}}}else if(edit.rxSrc==='lev'){edit.rx='';edit.rxSrc=''}
   $('#e-rate').innerHTML=rateRow();refresh()}
