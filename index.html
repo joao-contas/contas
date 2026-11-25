@@ -390,6 +390,7 @@ p.dayh{display:flex;justify-content:space-between;align-items:baseline}.dayh .da
 .att-l{display:flex;align-items:center;gap:8px;flex:1;min-width:0;overflow-x:auto}.att-l .att-th{flex:0 0 auto;padding:0}.att-c{white-space:nowrap;opacity:.85;margin-left:4px}
 .att-add{flex:0 0 auto;width:52px;height:52px;min-height:0;padding:0;border-radius:10px;font-size:22px;border:1.5px dashed var(--line)!important;background:none!important;box-shadow:none;color:var(--mut)}
 .txupd{margin:-4px 2px 10px;font-size:13px;color:var(--mut)}
+.levb{display:flex;gap:2px;align-items:center;flex:0 0 auto}
 </style>
 </head>
 <body>
@@ -498,7 +499,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-24u';
+const APPV='2026-11-24v';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -1186,8 +1187,9 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
   if(t.dataset.wfim){const pv=parse(($('#w-p')||{}).value||'');if(!(pv>0)){note('Escreve primeiro quanto te saiu da conta.',3000);return}const f=$('#w-f');if(f)f.value=val(Math.round(pv*(+t.dataset.wfim)/100));return}
   if(t.dataset.wfu){wFeeU=t.dataset.wfu==='%'?'%':'v';sheetW();document.querySelectorAll('[data-wfu]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.wfu===t.dataset.wfu));const f=$('#w-f');if(f)f.placeholder=wFeeU==='%'?'ex.: 1':'0,00';wEff();return}
   if(t.dataset.wtipo){wTipo=t.dataset.wtipo;render();return}
-  if(t.id==='wadd'){wForm=true;wTipo='cash';wPman=false;wPre={};wScanMsg='';render();setTimeout(()=>{const i=$('#w-v');if(i)i.focus()},50);return}
-  if(t.id==='wcancel'){wForm=false;wPre={};wScanMsg='';render();return}
+  if(t.id==='wadd'){wEdit=null;wForm=true;wTipo='cash';wPman=false;wPre={};wScanMsg='';render();setTimeout(()=>{const i=$('#w-v');if(i)i.focus()},50);return}
+  if(t.id==='wcancel'){wForm=false;wEdit=null;wPre={};wScanMsg='';render();return}
+  if(t.dataset.wedit){const g=G(),me=meOf(g),l=levsOf(g,me).find(x=>x.id===t.dataset.wedit);if(!l)return;wEdit=l.id;wForm=true;wTipo=l.tipo||'cash';wFeeU='v';wPre={v:val(l.v),m:l.m,pv:val(l.pv),pm:l.pm,f:l.fee?val(l.fee):'',d:l.data};wScanMsg='';render();setTimeout(()=>{const f=$('#wform');if(f)f.scrollIntoView({block:'center',behavior:'smooth'})},60);return}
   if(t.dataset.wexp&&!t.dataset.wdel){wExp[t.dataset.wexp]=!wExp[t.dataset.wexp];render();return}
   if(t.dataset.wdel){const g=G(),me=meOf(g);if(wDelAsk!==t.dataset.wdel){wDelAsk=t.dataset.wdel;render();return}wDelAsk=null;g.cart[me]=levsOf(g,me).filter(l=>l.id!==t.dataset.wdel);save(g);return}
   if(t.dataset.open){navPush('g');cur=t.dataset.open;tab='desp';showCur=null;rowCur={};render();scrollTo(0,0)}
@@ -1249,7 +1251,7 @@ app.addEventListener('change',async ev=>{const t=ev.target;if(t.id!=='impfile')r
 app.addEventListener('submit',ev=>{ev.preventDefault();const f=ev.target,g=G();
   if(f.id==='wform'){const me=meOf(g);if(!me)return;const v=parse($('#w-v').value),pv=parse($('#w-p').value),m=$('#w-m').value,pm=$('#w-pm').value;
     if(!(v>0)||!(pv>0)){note('Escreve o valor levantado e quanto te saiu da conta.',4000);return}const rb=rBase(g,pm);if(!rb){note('Não sei a taxa de '+pm+'. Junta essa moeda ao grupo primeiro.',5000);return}
-    const fv=($('#w-f')||{}).value||'';const fee=wFeeU==='%'?Math.round(pv*(parseFloat(String(fv).replace(',','.'))||0)/100):parse(fv);const r=v/((pv+(fee>0?fee:0))/rb);g.cart=g.cart||{};g.cart[me]=[...levsOf(g,me),{id:uid(),tipo:wTipo,data:$('#w-d').value||today(),m,v,pm,pv,fee:fee>0?fee:0,r}];if(!g.taxas[m]){g.taxas[m]=r*g.taxas[g.base]}wForm=false;wPre={};wScanMsg='';save(g);note((wTipo==='conta'?'Conta guardada':'Levantamento guardado')+': 1 '+g.base+' = '+fmtRate(r)+' '+m+'.',4000);return}
+    const fv=($('#w-f')||{}).value||'';const fee=wFeeU==='%'?Math.round(pv*(parseFloat(String(fv).replace(',','.'))||0)/100):parse(fv);const r=v/((pv+(fee>0?fee:0))/rb);g.cart=g.cart||{};const nl={id:wEdit||uid(),tipo:wTipo,data:$('#w-d').value||today(),m,v,pm,pv,fee:fee>0?fee:0,r};g.cart[me]=wEdit&&levsOf(g,me).some(x=>x.id===wEdit)?levsOf(g,me).map(x=>x.id===wEdit?nl:x):[...levsOf(g,me),nl];const wasEdit=!!wEdit;wEdit=null;if(!g.taxas[m]){g.taxas[m]=r*g.taxas[g.base]}wForm=false;wPre={};wScanMsg='';save(g);note((wasEdit?'Levantamento alterado':wTipo==='conta'?'Conta guardada':'Levantamento guardado')+': 1 '+g.base+' = '+fmtRate(r)+' '+m+'.',4000);return}
   if(f.id==='newg'){if(newOpen)navPop('new');newOpen=false;addPending();const n=$('#ng-n').value.trim(),ps=newPeople;
     if(!n){note('Dá um nome ao grupo.',3000);return}if(!ps.length){note('Junta pelo menos uma pessoa.',3000);$('#ng-p').focus();return}const id=gid();cur=id;tab='desp';const ge=newGE;newPeople=[];newName='';newGE='✈️';
     save({id,nome:n,base:$('#ng-m').value,taxas:(()=>{const bm=$('#ng-m').value,t=DEF_RATES[bm]?{...DEF_RATES}:{[bm]:1};if(live){for(const m in t)if(live.rates[m])t[m]=live.rates[m];if(live.rates[bm])t[bm]=live.rates[bm]}return t})(),emoji:ge,membros:ps.map(q=>({id:uid(),nome:q.nome,emoji:q.emoji})),despesas:[],criador:myKey(),upd:Date.now()})}
@@ -1647,12 +1649,12 @@ const levRate=l=>l.r;
 var wExp={};
 function gStat(g){try{const b=saldos(g),has=g.despesas.some(d=>d.tipo!=='reemb'),done=has&&transf(g,b).length===0,m=meOf(g);return {done,me:m&&m in b?b[m]:null}}catch(e){return {done:false,me:null}}}
 app.addEventListener('click',ev=>{if(ev.target.closest('button'))return;const x=ev.target.closest('.levx[data-wexp]');if(x){wExp[x.dataset.wexp]=false;render()}});
-function walletHTML(g,me){const ls=levsOf(g,me);
+var wEdit=null;function walletHTML(g,me){const ls=levsOf(g,me);
   let h=`<div class="card wal"><button class="wal-h" id="wopen"><span>💵 Levantamentos</span><small>${(()=>{const at=ls.filter(l=>l.v-levUsed(g,me,l)>0);return !ls.length?'Regista um levantamento':at.length?'sobram '+at.map(l=>fmt(l.v-levUsed(g,me,l),l.m)).join(' · '):'tudo gasto'})()}</small><span class="pf-go">${wOpen?'⌃':'›'}</span></button>`;
   if(!wOpen)return h+`</div>`;
   h+=ls.map(l=>{const u=levUsed(g,me,l),rest=l.v-u;const dd=new Date(l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'});
     if(rest<=0&&!wExp[l.id])return `<button class="lev levd" data-wexp="${esc(l.id)}"><s>${levIc(l)} ${fmt(l.v,l.m)} · ${esc(dd)}</s><span class="esg">gasto</span></button>`;
-    return `<div class="lev ${rest<=0?'levx':''}" ${rest<=0?`data-wexp="${esc(l.id)}"`:''}><div>${levIc(l)} <b>${esc(levName(l))} · ${esc(new Date(l.data+'T12:00').toLocaleDateString('pt-PT'))}</b> · ${fmt(l.v,l.m)} <small>(${fmt(l.pv,l.pm)}${l.fee?' + '+fmt(l.fee,l.pm)+' comissões':''})</small><div class="small">Taxa 1 ${esc(g.base)} = ${fmtRate(l.r)} ${esc(l.m)} · gasto ${fmt(u,l.m)} · <b>sobram ${fmt(rest,l.m)}</b></div></div><button class="x" data-wdel="${esc(l.id)}" aria-label="Apagar levantamento">${wDelAsk===l.id?'✓?':'×'}</button></div>`}).join('');
+    return `<div class="lev ${rest<=0?'levx':''}" ${rest<=0?`data-wexp="${esc(l.id)}"`:''}><div>${levIc(l)} <b>${esc(levName(l))} · ${esc(new Date(l.data+'T12:00').toLocaleDateString('pt-PT'))}</b> · ${fmt(l.v,l.m)} <small>(${fmt(l.pv,l.pm)}${l.fee?' + '+fmt(l.fee,l.pm)+' comissões':''})</small><div class="small">Taxa 1 ${esc(g.base)} = ${fmtRate(l.r)} ${esc(l.m)} · gasto ${fmt(u,l.m)} · <b>sobram ${fmt(rest,l.m)}</b></div></div><span class="levb"><button class="x" data-wedit="${esc(l.id)}" aria-label="Alterar levantamento">✏️</button><button class="x" data-wdel="${esc(l.id)}" aria-label="Apagar levantamento">${wDelAsk===l.id?'✓?':'×'}</button></span></div>`}).join('');
   if(wForm){const lastNB=[...g.despesas].filter(d=>d.moeda!==g.base).sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b.cr||0)-(a.cr||0))[0];const mc=(levsOf(g,me).slice(-1)[0]||{}).m||(lastNB&&lastNB.moeda)||Object.keys(g.taxas).find(c=>c!==g.base)||'USD';
     const cta=false;wTipo='cash';
     h+=`<form id="wform" class="wform"><label class="scan alt" style="margin:10px 0 4px"><input type="file" accept="image/*" data-wfoto="1" hidden>📷 Ler talão do multibanco</label><p class="hint" id="w-scan" role="status">${wScanMsg?esc(wScanMsg):''}</p><label>${cta?'Quanto ficou na conta?':'Quanto levantaste?'}</label><div class="inline" style="margin:0"><input id="w-v" inputmode="decimal" placeholder="50000" required value="${esc(wPre.v||'')}"><select id="w-m">${allOpts(wPre.m||mc)}</select></div>
@@ -1660,7 +1662,7 @@ function walletHTML(g,me){const ls=levsOf(g,me);
     <label>Comissões${ii('Normal: 0,5–3 %. Deixa vazio se já está no total.')}</label><div class="inline" style="margin:0"><input id="w-f" inputmode="decimal" placeholder="${wFeeU==='%'?'ex.: 1':'0,00'}" value="${esc(wPre.f||'')}"><div class="seg" role="group" style="margin:0"><button type="button" data-wfu="%" aria-pressed="${wFeeU==='%'}">%</button><button type="button" data-wfu="v" aria-pressed="${wFeeU!=='%'}" id="w-fc">${esc(g.base)}</button></div></div>
     <p class="small" id="w-eff" style="margin:6px 0 0"></p>
     <label>Data<input type="date" id="w-d" value="${esc(wPre.d||today())}"></label>
-    <div class="actions"><button type="button" class="linkbtn" id="wcancel">Cancelar</button><button class="primary">Guardar</button></div></form>`}
+    <div class="actions"><button type="button" class="linkbtn" id="wcancel">Cancelar</button><button class="primary">${wEdit?'Guardar alteração':'Guardar'}</button></div></form>`}
   else h+=`<div class="actions" style="margin-top:8px"><button id="wadd">＋ Levantamento</button></div>`;
   return h+`<div class="iirow">${ii('Não entra nas contas. Usa-o em “Como pagaste?” ao criar uma despesa.')}</div></div>`}
 function levOpts(){const g=G(),me=meOf(g);if(!me||!edit)return [];return levsOf(g,me).map(l=>({l,rest:l.v-levUsed(g,me,l,edit.id)})).filter(x=>x.rest>0||x.l.id===edit.lev)}
