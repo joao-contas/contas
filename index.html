@@ -409,7 +409,7 @@ p.dayh{display:flex;justify-content:space-between;align-items:baseline}.dayh .da
 .prow.merow{background:rgba(42,159,180,.10);border-radius:14px;margin:0 -8px;padding-left:8px;padding-right:8px}.tu{font-style:normal;font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--lavd);color:#fff;vertical-align:middle}
 body.offline #sync::after{content:'';position:absolute;top:6px;right:6px;width:11px;height:11px;border-radius:50%;background:#e8912d;box-shadow:0 0 0 2px var(--bg)}
 #conv svg,#sync svg,#more svg{display:block;margin:auto}#conv,#sync,#more{color:var(--ink)!important;box-shadow:inset 0 0 0 2.5px var(--line),inset 0 0 0 4.5px #fff,var(--shadow)!important}#more.on{color:#fff!important}html[data-theme=dark] #conv,html[data-theme=dark] #more,html[data-theme=dark] #sync{box-shadow:inset 0 0 0 2.5px #2a3e57,inset 0 0 0 4.5px rgba(255,255,255,.35),var(--shadow)!important}body.offline #sync{background:#e8912d!important;color:#fff!important;box-shadow:inset 0 0 0 2.5px #e8912d,inset 0 0 0 4.5px #fff,var(--shadow)!important}body.offline #sync::after{display:none}
-</style>
+#ppov{padding-bottom:var(--kb,0px)!important;transition:padding-bottom .15s}#ppov .whobox{max-height:min(86vh,calc(var(--vvh,100vh) - 24px))!important;overflow:auto}body.kbopen #ppov .pph .e{display:none}body.kbopen #ppov .whobox{padding-top:14px}.cvic{width:52px;height:52px;border-radius:50%;background:var(--line);color:var(--ink);display:flex;align-items:center;justify-content:center;flex:0 0 52px}</style>
 </head>
 <body>
 <div id="offbar" class="offbar" hidden title="Sem rede: tudo fica guardado e é enviado quando houver rede">📴 Sem rede · fica guardado</div>
@@ -517,7 +517,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-25o';
+const APPV='2026-11-25p';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -1672,6 +1672,10 @@ document.addEventListener('click',async ev=>{const t=ev.target.closest&&ev.targe
   if(t.id==='fim-pdf'){fimPDF(g);return}
   if(t.id==='fim-close'){if(!t.dataset.ok){t.dataset.ok=1;t.textContent='Toca outra vez para fechar';return}g.fechado={t:Date.now(),q:nome(g,meOf(g))||''};g.log=[{t:Date.now(),q:nome(g,meOf(g))||'Alguém',a:'fechou o grupo',ti:'',e:'🔒'},...(g.log||[])].slice(0,80);save(g);fimDraw();render();note('🔒 Grupo fechado. Só leitura.',3000);return}
   if(t.id==='fim-reopen'){g.fechado=null;g.log=[{t:Date.now(),q:nome(g,meOf(g))||'Alguém',a:'reabriu o grupo',ti:'',e:'🔓'},...(g.log||[])].slice(0,80);save(g);fimDraw();render();note('🔓 Grupo reaberto.',3000)}},true);
+
+/* ---------- teclado: pop-ups ficam por cima do teclado ---------- */
+function kbFit(){const vv=window.visualViewport;if(!vv)return;const kb=Math.max(0,Math.round(innerHeight-vv.height-vv.offsetTop)),r=document.documentElement.style;r.setProperty('--kb',kb+'px');r.setProperty('--vvh',Math.round(vv.height)+'px');document.body.classList.toggle('kbopen',kb>120);if(kb>120){const a=document.activeElement,b=a&&a.closest&&a.closest('#ppov .whobox');if(b)setTimeout(()=>a.scrollIntoView({block:'nearest'}),60)}}
+if(window.visualViewport){visualViewport.addEventListener('resize',kbFit);visualViewport.addEventListener('scroll',kbFit)}
 /* ---------- 💱 calculadora de câmbio ---------- */
 var cvA=null,cvB=null,cvLev='',cvX='',cvY='';
 function cvRate(g,c){if(c===g.base)return 1;if(cvLev){const l=levsOf(g,meOf(g)).find(x=>x.id===cvLev);if(l&&l.m===c&&l.r)return l.r}return (typeof liveRate==='function'&&liveRate(g,c))||(g.taxas[c]&&g.taxas[g.base]?g.taxas[c]/g.taxas[g.base]:null)}
@@ -1683,7 +1687,7 @@ function convDraw(){const g=G(),ov=document.getElementById('ppov');if(!g||!ov)re
   const sel=(id,v)=>`<select id="${id}">${curs.map(c=>`<option value="${esc(c)}" ${c===v?'selected':''}>${flag(c)} ${esc(c)}</option>`).join('')}</select>`;
   const ra=cvRate(g,cvA),rb=cvRate(g,cvB),r=ra&&rb?rb/ra:null,u=g.taxasUpd?new Date(isNaN(+g.taxasUpd)?g.taxasUpd:+g.taxasUpd):null;
   const quick=(NODEC.test(cvA)?[1000,5000,10000,20000]:[1,5,10,20,50]);const ls=meOf(g)?levsOf(g,meOf(g)).filter(l=>l.m===cvA||l.m===cvB):[];
-  ov.querySelector('.whobox').innerHTML=`<div class="pph"><span class="e">💱</span><div><h2>Conversor</h2><p>com as taxas do grupo</p></div><button class="x" data-ppx="1" aria-label="Fechar">✕</button></div>
+  ov.querySelector('.whobox').innerHTML=`<div class="pph"><span class="e cvic"><svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h14l-4-4"/><path d="M20 16H6l4 4"/></svg></span><div><h2>Conversor</h2><p>com as taxas do grupo</p></div><button class="x" data-ppx="1" aria-label="Fechar">✕</button></div>
   <div class="ppx cvx"><div class="cvr">${sel('cv-a',cvA)}<input id="cv-x" inputmode="decimal" placeholder="0" value="${esc(cvX)}" autocomplete="off"></div>
   <button type="button" class="cvsw" id="cv-sw" aria-label="Trocar moedas">⇅</button>
   <div class="cvr">${sel('cv-b',cvB)}<input id="cv-y" inputmode="decimal" placeholder="0" value="${esc(cvY)}" autocomplete="off"></div>
