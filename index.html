@@ -389,6 +389,7 @@ p.dayh{display:flex;justify-content:space-between;align-items:baseline}.dayh .da
 @media (prefers-reduced-motion:reduce){.item.card.jsaved,.pgo.on{animation:none}}
 .att-l{display:flex;align-items:center;gap:8px;flex:1;min-width:0;overflow-x:auto}.att-l .att-th{flex:0 0 auto;padding:0}.att-c{white-space:nowrap;opacity:.85;margin-left:4px}
 .att-add{flex:0 0 auto;width:52px;height:52px;min-height:0;padding:0;border-radius:10px;font-size:22px;border:1.5px dashed var(--line)!important;background:none!important;box-shadow:none;color:var(--mut)}
+.txupd{margin:-4px 2px 10px;font-size:13px;color:var(--mut)}
 </style>
 </head>
 <body>
@@ -497,7 +498,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-24r';
+const APPV='2026-11-24s';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -609,7 +610,7 @@ const dayRate=(g,m,date)=>{const d=dayRates(date);return d&&d[m]&&d[g.base]?d[m]
 const liveRate=(g,m)=>live&&live.rates[m]&&live.rates[g.base]?live.rates[m]/live.rates[g.base]:null;
 async function updateRates(g){const L=await fetchRates(true);if(!L){note('Sem ligação para atualizar as taxas.',4000);return}
   freezeTx(g);let n=0;for(const m in g.taxas){if(L.rates[m]){g.taxas[m]=L.rates[m];n++}}
-  g.taxasUpd=L.upd||'';save(g);note(n+' taxas atualizadas.',3000)}
+  g.taxasUpd=L.upd||'';g.taxasDia=today();save(g);note(n+' taxas atualizadas.',3000)}
 const G=()=>groups[cur];
 const pn=p=>p.nome;
 const nome=(g,k)=>{const p=g.membros.find(p=>p.id===k);return p?pn(p):'?'};
@@ -689,7 +690,7 @@ document.addEventListener('click',async ev=>{const t=ev.target.closest&&ev.targe
   if(img){try{const b=await (await fetch(img)).blob();scan(new File([b],'recibo.jpg',{type:'image/jpeg'}))}catch(e){}}
   note('Confirma quem pagou e a divisão e carrega em Guardar.',5000)});
 var autoTried={};
-async function autoRates(g){if(!g||g.taxasDia===today()||!meOf(g))return;const L=await fetchRates(true);if(!L||!L.rates)return;freezeTx(g);let n=0;for(const m in g.taxas){if(L.rates[m]){g.taxas[m]=L.rates[m];n++}}g.taxasUpd=L.upd||'';g.taxasDia=today();save(g)}
+async function autoRates(g0){let g=g0;if(!g||g.taxasDia===today()||!meOf(g))return;const L=await fetchRates(true);if(!L||!L.rates)return;g=groups[g0.id]||g0;if(g.taxasDia===today())return;freezeTx(g);let n=0;for(const m in g.taxas){if(L.rates[m]){g.taxas[m]=L.rates[m];n++}}g.taxasUpd=L.upd||'';g.taxasDia=today();save(g)}
 var meAsk=false,pickC=null;
 document.addEventListener('click',ev=>{const b=ev.target.closest&&ev.target.closest('#e-privb');if(!b||!edit)return;edit.priv=!edit.priv;b.classList.toggle('on',edit.priv);b.setAttribute('aria-pressed',edit.priv);b.textContent=edit.priv?'🔒 Privado':'🔓 Visível a todos'});
 app.addEventListener('click',ev=>{const t=ev.target.closest('#meswap');if(!t)return;const g=G();if(!g)return;if(gLocked(g)&&!isOwner(g))return;if(!meAsk){meAsk=true;render();setTimeout(()=>{if(meAsk){meAsk=false;render()}},4000);return}meAsk=false;if(tab==='conf'){navPop('conf');tab=confPrev||'desp'}claim(g,null);setMe(g.id,null);skipMe[g.id]=false;noAuto[g.id]=true;bkOpen=false;render()});
@@ -861,7 +862,7 @@ function enhanceCur(root){root.querySelectorAll('select:not([data-enh])').forEac
 new MutationObserver(()=>enhanceCur(document.body)).observe(document.body,{childList:true,subtree:true});
 const allOpts=sel=>`<optgroup label="Mais usadas">${TOPC.map(m=>`<option value="${m}" ${m===sel?'selected':''}>${esc(curLabel(m))}</option>`).join('')}</optgroup><optgroup label="Todas as moedas">${ALLC.filter(m=>!TOPC.includes(m)).sort(byName).map(m=>`<option value="${m}">${esc(curLabel(m))}</option>`).join('')}</optgroup>`;
 
-function render(){if(typeof cur!=='undefined'&&cur&&!autoTried[cur]&&groups[cur]){autoTried[cur]=1;setTimeout(()=>ensureIds(groups[cur]),800);setTimeout(()=>autoRates(groups[cur]),1500);setTimeout(()=>backupDay(cur),4000)}gateUpd();
+function render(){if(typeof cur!=='undefined'&&cur&&!autoTried[cur+today()]&&groups[cur]){autoTried[cur+today()]=1;setTimeout(()=>ensureIds(groups[cur]),800);setTimeout(()=>autoRates(groups[cur]),1500);setTimeout(()=>backupDay(cur),4000)}gateUpd();
   if(cur&&!groups[cur]){if(pendingOpen===cur){$('#back').hidden=false;$('#title').textContent='A abrir o grupo…';$('#sub').textContent='';$('#hero').innerHTML='';app.innerHTML='<p class="empty">A carregar…</p>';return}cur=null}
   $('#back').hidden=!cur;{const av=$('#avatar');const sh=!cur&&!!user;av.hidden=!sh;if(sh){av.textContent=avL();av.style.background=(prof&&prof.cor)||''}}$('#more').hidden=!cur||(!!G()&&!meOf(G())&&G().membros.length>0);$('#more').classList.toggle('on',tab==='conf');if(tab==='conf')$('#more').hidden=true;$('#sync').hidden=$('#more').hidden;$('#back').textContent=cur&&tab==='conf'?'‹ Voltar ao grupo':'‹ Todos os grupos';
   if(cur)document.querySelector('.top').classList.remove('home');
@@ -936,7 +937,8 @@ function render(){if(typeof cur!=='undefined'&&cur&&!autoTried[cur]&&groups[cur]
     h+=`${(()=>{const mp=g.membros.find(x=>x.id===meOf(g));return mp?`<h2 class="sec" style="margin-top:4px">Tu</h2><div class="card mecard"><span class="mechip">${avP(g,mp)}${esc(mp.nome)}</span>${gLocked(g)&&!isOwner(g)?`<span class="lockt">🔒 Fechado${ii('Todos já escolheram quem são e já há despesas, por isso os nomes ficaram fechados. Se houver um engano, pede a quem criou o grupo.')}</span>`:`<button id="meswap" class="${meAsk?'danger':''}">${meAsk?'Confirmar troca':'⇄ Trocar de pessoa'}</button>`}</div>`:''})()}<h2 class="sec">Grupo</h2><div class="card"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="g-emo" data-ein="grp" value="${esc(g.emoji||'💸')}" data-cur="${esc(g.emoji||'💸')}" aria-label="Emoji do grupo: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" id="g-emo-more" aria-label="Ver lista de emojis"></button></span><input id="g-nome" value="${esc(g.nome)}" aria-label="Nome do grupo" enterkeyhint="done"></div><div id="g-emos" hidden>${secPicker(g.emoji,'grp')}</div></div>
     <h2 class="sec">Participantes${ii(isOwner(g)?'Toca na bola para mudar a cor ou no nome para o mudar.':'Podes mudar o teu nome e cor. 🔒 Só '+esc(nome(g,ownerOf(g)))+' (quem criou o grupo) junta ou tira pessoas.')}</h2><div class="card">${g.membros.map(p=>`<div class="mrow"><button type="button" class="avpick" data-cpick="${esc(p.id)}" ${canEdit(g,p.id)?'':'disabled'} aria-label="Cor de ${esc(p.nome)}">${avP(g,p,'lg')}</button><input data-ren="${esc(p.id)}" value="${esc(p.nome)}" aria-label="Nome" enterkeyhint="done" ${canRen(g,p.id)?'':'disabled'}>${usados.has(p.id)||!isOwner(g)?'<span></span>':`<button class="x" data-rm="${esc(p.id)}" aria-label="Remover ${esc(p.nome)}">×</button>`}</div>${pickC===p.id?`<div class="cpal">${AVC.map(c=>{const tk=colTaken(g,c,p.id);return `<button type="button" data-col="${c}" data-colp="${esc(p.id)}" style="background:${c}" class="${colOf(p)===c?'on':''} ${tk?'taken':''}" aria-label="${tk?'Cor de '+esc(tk.nome):'Cor'}">${tk?esc(iniMap(g)[tk.id]||''):''}</button>`}).join('')}</div>`:''}`).join('')}
     ${isOwner(g)?'<form id="addm" class="mrow" style="grid-template-columns:minmax(0,1fr) 48px"><input id="am" placeholder="Juntar pessoa…" enterkeyhint="enter" autocomplete="off"><button class="plus" aria-label="Adicionar">+</button></form>':''}</div>
-    <h2 class="sec">Moedas e taxas${ii('Taxas de referência do mercado'+(g.taxasUpd?' (atualizadas: '+esc(new Date(g.taxasUpd).toLocaleDateString('pt-PT'))+')':'')+'. Fonte: <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">ExchangeRate-API</a>')}</h2>
+    <h2 class="sec">Moedas e taxas${ii('Taxas de referência do mercado, atualizadas sozinhas uma vez por dia quando alguém abre o grupo. Cada despesa guarda a taxa do seu dia e não muda. Fonte: <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">ExchangeRate-API</a>')}</h2>
+    <p class="txupd">${(()=>{const u=g.taxasUpd?new Date(isNaN(+g.taxasUpd)?g.taxasUpd:+g.taxasUpd):null;const ok=u&&!isNaN(u);return ok?`📈 Taxas de ${u.toLocaleDateString('pt-PT')} às ${u.toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}${g.taxasDia===today()?' · ✓ atualizadas hoje':''}`:'📈 Taxas ainda não atualizadas'})()}</p>
     <button id="rates" style="margin-bottom:10px">↻ Atualizar taxas</button>
     <div class="card"><label>Moeda principal<select id="basecur">${curOpts(g,g.base)}</select></label>
     ${Object.keys(g.taxas).filter(m=>m!==g.base).map(m=>`<div class="inline"><span style="white-space:nowrap">1 ${flag(g.base)} ${esc(g.base)} =</span><input inputmode="decimal" data-rate="${esc(m)}" value="${String(+(g.taxas[m]/g.taxas[g.base]).toFixed(4)).replace('.',',')}"><span style="white-space:nowrap" title="${esc(curName(m))}">${flag(m)} ${esc(m)}</span></div>`).join('')}
