@@ -74,7 +74,7 @@ label input,label select{margin-top:6px;color:var(--ink)}
 .gi{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center}
 .gmore{width:44px;min-height:44px;padding:0;border-radius:50%;background:transparent;color:var(--mut);font-size:24px;line-height:1}
 .gmenu{display:flex;flex-direction:column;gap:8px;margin:-2px 0 6px}.gmenu p{margin:0 0 2px}
-.offbar{position:fixed;top:calc(8px + env(safe-area-inset-top));right:10px;z-index:60;background:#162d50;color:#fff;font-size:12px;padding:5px 10px;border-radius:999px;opacity:.9;pointer-events:none}.offbar[hidden]{display:none}
+.offbar{position:sticky;top:0;z-index:60;display:block;width:100%;box-sizing:border-box;text-align:center;background:#162d50;color:#fff;font-size:12.5px;padding:calc(4px + env(safe-area-inset-top)) 10px 5px;pointer-events:none}.offbar[hidden]{display:none}
 .fx{background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:12px 14px;margin-top:12px}
 .fx-q{display:block;margin:0 0 6px;font-weight:600;color:var(--ink)}.fx-l{display:block;margin:10px 0 6px;font-weight:500}
 .fx-sum{margin:10px 0 4px;font-size:16px}.fx-sum b{font:600 18px Outfit,sans-serif}
@@ -147,7 +147,7 @@ input[disabled]{opacity:.7;background:transparent}
 .actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:22px}
 .actions .danger{margin-right:auto}
 .empty{color:var(--mut);text-align:center;padding:28px 10px}
-.note{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;max-width:92vw}
+.note{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:18px;font-size:14px;max-width:92vw;z-index:70}
 .note:empty{display:none}
 .inline{display:flex;gap:8px;align-items:center;margin:8px 0}
 .inline input{flex:1}
@@ -407,9 +407,11 @@ p.dayh{display:flex;justify-content:space-between;align-items:baseline}.dayh .da
 .uch{display:grid;gap:6px;margin:6px 0 2px}.urow{display:grid;grid-template-columns:1fr 40px 34px 40px;align-items:center;gap:6px;padding:4px 8px;border-radius:12px;background:rgba(127,127,127,.08)}.urow.on{background:rgba(42,159,180,.14)}
 .urow button{min-height:36px;padding:0;border-radius:10px;font-size:18px}.urow b{text-align:center;font-size:17px}.uinfo{font-size:13px;color:#c0603a;margin:4px 0 0}.uinfo.ok{color:#2a8a5a}.uinfo .linkbtn{font-size:13px;margin-left:6px}.uswitch{font-size:13.5px;margin-top:4px}
 .prow.merow{background:rgba(42,159,180,.10);border-radius:14px;margin:0 -8px;padding-left:8px;padding-right:8px}.tu{font-style:normal;font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--lavd);color:#fff;vertical-align:middle}
+body.offline #sync::after{content:'';position:absolute;top:6px;right:6px;width:11px;height:11px;border-radius:50%;background:#e8912d;box-shadow:0 0 0 2px var(--bg)}
 </style>
 </head>
 <body>
+<div id="offbar" class="offbar" hidden title="Sem rede: tudo fica guardado e é enviado quando houver rede">📴 Sem rede · fica guardado</div>
 <header class="top"><div class="wrap">
   <button id="back" class="ghost" hidden>‹ Todos os grupos</button><button id="conv" class="ghost morebtn convbtn" hidden aria-label="Conversor de moedas" title="Conversor">💱</button><button id="sync" class="ghost morebtn syncbtn" hidden aria-label="Atualizar despesas" title="Atualizar">↻</button><button id="more" class="ghost morebtn" hidden aria-label="Definições do grupo" title="Definições do grupo">⋮</button><button id="avatar" class="avbtn" hidden aria-label="O teu perfil"></button>
   <h1 id="title">EvenJohn</h1>
@@ -417,7 +419,6 @@ p.dayh{display:flex;justify-content:space-between;align-items:baseline}.dayh .da
   <div id="hero"></div>
 </div></header>
 <main><div class="wrap" id="app"></div></main>
-<div id="offbar" class="offbar" hidden title="Sem rede: tudo fica guardado e é enviado quando houver rede">📴 Sem rede · fica guardado</div>
 <div id="modal" class="modal" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <div class="note" id="note" role="status"></div>
 <script type="module">
@@ -515,7 +516,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-25i';
+const APPV='2026-11-25k';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -565,7 +566,7 @@ function sub(id){if(!fs||subs[id])return;
     if(prof&&groups[id]&&!busy[id])setTimeout(()=>propagate(id),0);
     cache();if(!edit)render();else renderSoft()},
   e=>{note('Sem acesso a este grupo ('+(e.code||'erro')+').',6000);delete subs[id]})}
-function netNote(){const off=!navigator.onLine;if(off&&!document.body.classList.contains('offline'))note('Sem rede: podes continuar, tudo fica guardado e é enviado quando houver rede.',4000);document.body.classList.toggle('offline',off);const el=document.getElementById('offbar');if(el)el.hidden=!off}
+function netNote(){const off=!navigator.onLine;document.body.classList.toggle('offline',off);const el=document.getElementById('offbar');if(el)el.hidden=true;const sb=document.getElementById('sync');if(sb){sb.title=off?'Sem internet: o que fizeres é enviado quando a rede voltar':'Atualizar';sb.setAttribute('aria-label',sb.title)}}
 addEventListener('online',()=>{netNote();note('De volta à rede: as alterações feitas sem rede foram enviadas.',4000)});addEventListener('offline',netNote);
 function renderSoft(){const sy=scrollY;render();scrollTo(0,sy)}
 async function save(g){if(updBlk){showUpd();return}g.upd=Date.now();stampG(g,srvC[g.id]);groups[g.id]=g;if(!mine.includes(g.id))mine.push(g.id);cache();render();
@@ -676,7 +677,7 @@ async function doSync(){const id=cur,b=$('#sync');if(!id||b.classList.contains('
     if(S){const B=srvC[id];srvC[id]=JSON.parse(JSON.stringify(S));groups[id]=pend[id]&&groups[id]?mergeG(S,groups[id],B):S;cache();render();note('Atualizado ✓',1800)}}
   catch(e){note(navigator.onLine?'Não consegui atualizar agora. Tenta outra vez.':'Sem rede: mostra o que está guardado no telemóvel.',3500)}
   finally{setTimeout(()=>b.classList.remove('spin'),400)}}
-document.addEventListener('click',ev=>{if(ev.target.closest&&ev.target.closest('#sync'))doSync()});
+document.addEventListener('click',ev=>{if(ev.target.closest&&ev.target.closest('#sync')){if(!navigator.onLine){note('📴 Sem internet. O que fizeres fica no telemóvel e é enviado quando a rede voltar.',4500);return}doSync()}});
 document.addEventListener('click',ev=>{const b=ev.target.closest&&ev.target.closest('#e-scan2');if(!b||!edit)return;edit.mergeNext=true;const c=document.getElementById('camb');if(c)c.click()});
 function mergeR(a,b){if(!a)return b;if(!b)return a;const bk=x=>x.tipo==='banco',n=x=>parseFloat(x)||0,U=x=>String(x||'').toUpperCase().trim();
   const rec=!bk(a)?a:!bk(b)?b:null,bank=bk(a)?a:bk(b)?b:null;
