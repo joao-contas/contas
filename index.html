@@ -402,6 +402,8 @@ p.dayh{display:flex;justify-content:space-between;align-items:baseline}.dayh .da
 .pay1{margin:-4px 0 10px 44px;border:1px solid var(--line);border-radius:14px;padding:0 12px}.pay1 summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;cursor:pointer;font-weight:600;font-size:14.5px}.pay1 summary::-webkit-details-marker{display:none}.pay1 summary small{font-weight:400;color:var(--mut);font-size:12.5px}.pay1 summary small::after{content:' ›'}.pay1[open] summary small::after{content:' ⌄'}
 .pay1b{padding-bottom:10px}.pay1b .chips{margin:2px 0 6px}.pay1b select{min-height:44px}.pay1b .fx-l{margin-top:8px}
 .pnm{font-weight:600}html[data-theme=dark] .pnm{filter:brightness(1.35) saturate(1.1)}
+.payw{margin:-4px 0 10px 44px}.payw .pay1{margin:6px 0 0}.paych{margin:0 0 4px}.paych .pchip{font-size:13.5px;min-height:36px}.payw>.hint{margin:4px 0 0}
+.pchip:has(.lvr){border-radius:14px;text-align:left;padding:8px 14px}.pchip .lvr{display:block;font-size:12px;font-weight:500;opacity:.75;margin-top:1px}
 </style>
 </head>
 <body>
@@ -510,7 +512,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-25e';
+const APPV='2026-11-25g';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -585,7 +587,8 @@ function pgMerge(w,a,b){const pa=a.pg||{},pb=b.pg||{},ta=a.pgT||{},tb=b.pgT||{},
   new Set([...Object.keys(pa),...Object.keys(pb),...Object.keys(ta),...Object.keys(tb)]).forEach(k=>{const A=ta[k]||0,B=tb[k]||0;const on=A!==B?(A>B?!!pa[k]:!!pb[k]):(!!pa[k]||!!pb[k]);if(on)pg[k]=1;if(A||B)T[k]=Math.max(A,B)});
   const r={...w};if(Object.keys(pg).length)r.pg=pg;else delete r.pg;if(Object.keys(T).length)r.pgT=T;else delete r.pgT;return r}
 function mergeG(S,L,B){if(!S)return L;if(!L)return S;const J=x=>JSON.stringify(x),M={...S};
-  for(const k of ['nome','emoji','base','taxas','taxasUpd','taxasDia','peRev','cart','claims','criador','ownerMid','iaKey','fechado'])if(J(L[k])!==J(B?B[k]:undefined)){if(L[k]===undefined)delete M[k];else M[k]=L[k]}
+  for(const k of ['nome','emoji','base','taxas','taxasUpd','taxasDia','peRev','criador','ownerMid','iaKey','fechado'])if(J(L[k])!==J(B?B[k]:undefined)){if(L[k]===undefined)delete M[k];else M[k]=L[k]}
+  for(const k of ['cart','claims']){const lo=L[k]||{},bo=(B&&B[k])||{},o={...(S[k]||{})};let ch=false;for(const sk of new Set([...Object.keys(lo),...Object.keys(bo)]))if(J(lo[sk])!==J(bo[sk])){ch=true;if(lo[sk]===undefined)delete o[sk];else o[sk]=lo[sk]}if(ch||S[k])M[k]=o;if(!Object.keys(o).length&&!S[k])delete M[k]}
   const mx=(a,b)=>{const o={...(a||{})};for(const k in (b||{}))o[k]=Math.max(o[k]||0,b[k]);const e=Object.entries(o).sort((x,y)=>y[1]-x[1]).slice(0,300);return Object.fromEntries(e)};
   const mg=(sa,la,del)=>{const m=new Map();(sa||[]).forEach(x=>m.set(x.id,x));(la||[]).forEach(x=>{const s=m.get(x.id);if(!s){m.set(x.id,x);return}const w=(x.u||0)>(s.u||0)?x:s;m.set(x.id,(x.pg||s.pg||x.pgT||s.pgT)?pgMerge(w,s,x):w)});return [...m.values()].filter(x=>!del[x.id]||(x.u||0)>del[x.id])};
   M.del=mx(S.del,L.del);{const ok=new Set([...(S.lixo||[]),...(L.lixo||[])].map(d=>d.id));[...(S.log||[]),...(L.log||[])].forEach(h=>{if(h.i&&/apagou|anulou/.test(h.a))ok.add(h.i)});for(const k in M.del)if(!ok.has(k))delete M.del[k]}M.mdel=mx(S.mdel,L.mdel);M.despesas=mg(S.despesas,L.despesas,M.del);M.membros=mg(S.membros,L.membros,M.mdel);
@@ -1014,14 +1017,15 @@ function payHint(g,k){const e=edit,p=(e.pay||{})[k]||{},a=e.pag[k]?e.pag[k].v:0;
   const pm=p.pm||cardDef(g),pv=parse(p.pv||''),fe=pfFee(p);if(pv>0&&pm!==e.moeda)return `${fe?`${fmt(pv,pm)} + ${fmt(fe,pm)} de taxas extra = `:''}✓ <b>${fmt(pv+fe,pm)}</b> por ${fmt(a,e.moeda)}${a>0?` · 1 ${esc(pm)} = ${fmtRate(a/(pv+fe))} ${esc(e.moeda)}`:''}`;
   const b=payBase(g,k);return b>0?`≈ ${fmt(pm===g.base?Math.round(b):Math.round(b*(rBase(g,pm)||1)),pm)} pela ${esc((rxNote()||'📈 taxa do dia').replace(/^\S+\s/,''))} · escreve o valor do banco para ficar exato`:''}
 function payFor(k){const g=G(),e=edit;if(!e||e.tipo==='reemb'||!e.pag[k]||!e.pag[k].on||k===meOf(g))return '';const ls=payLevs(g,k);if(e.moeda===g.base&&!ls.length)return '';const p=payOf(k),card=!p.lev,pm=p.pm||cardDef(g);
-  let h=`<details class="pay1" ${p.open?'open':''} data-pko="${esc(k)}"><summary><span data-ps="${esc(k)}">${esc(paySum(g,k))}</span><small>Como pagou?</small></summary><div class="pay1b">`;
-  h+=`<div class="chips">${ls.map(x=>`<button type="button" class="pchip ${p.lev===x.l.id?'on':''}" data-plv="${esc(k)}|${esc(x.l.id)}">💵 Levantamento ${esc(new Date(x.l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}))} · sobram ${fmt(x.rest,x.l.m)}</button>`).join('')}<button type="button" class="pchip ${card?'on':''}" data-plv="${esc(k)}|">💳 Cartão</button></div>`;
+  const chips=ls.length?`<div class="chips paych">${ls.map(x=>`<button type="button" class="pchip ${p.lev===x.l.id?'on':''}" data-plv="${esc(k)}|${esc(x.l.id)}">💵 Levantamento ${esc(new Date(x.l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}))} · sobram ${fmt(x.rest,x.l.m)}<small class="lvr">1 ${esc(g.base)} = ${fmtRate(x.l.r)} ${esc(x.l.m)}${p.lev===x.l.id&&x.l.m===e.moeda&&payBase(g,k)>0?' · ≈ '+fmt(Math.round(payBase(g,k)),g.base):''}</small></button>`).join('')}<button type="button" class="pchip ${card?'on':''}" data-plv="${esc(k)}|">💳 Cartão</button></div>`:'';
+  let h=`<div class="payw">${chips}`;const det=(p.lev&&(levsOf(g,k).find(x=>x.id===p.lev)||{}).m!==e.moeda)||(!p.lev&&e.moeda!==g.base);
+  if(det)h+=`<details class="pay1" ${p.open?'open':''} data-pko="${esc(k)}"><summary><span data-ps="${esc(k)}">${esc(paySum(g,k))}</span><small>${p.lev?'Quanto usou?':'Moeda e valor do banco'}</small></summary><div class="pay1b">`;
   if(p.lev){const l=levsOf(g,k).find(x=>x.id===p.lev);if(l&&l.m!==e.moeda)h+=`<label class="fx-l">Quanto saiu do levantamento</label><div class="inline" style="margin:0"><input data-pk="${esc(k)}" data-pf="lvs" inputmode="decimal" placeholder="0,00" value="${esc(p.lvs||'')}"><span>${flag(l.m)} ${esc(l.m)}</span></div>`}
   else if(e.moeda!==g.base){h+=`<label class="fx-l">Moeda do cartão</label><select data-pk="${esc(k)}" data-pf="pm">${allOpts(pm)}</select>`;
     if(pm!==e.moeda)h+=`<label class="fx-l">Montante convertido <small class="fxsrc">(como aparece no banco)</small></label><div class="inline" style="margin:0"><input data-pk="${esc(k)}" data-pf="pv" inputmode="decimal" placeholder="0,00" value="${esc(p.pv||'')}"><span>${flag(pm)} ${esc(pm)}</span></div>
       <label class="fx-l">Taxas extra do banco <small class="fxsrc">(se houver, em valor ou %)</small></label><div class="inline" style="margin:0"><input data-pk="${esc(k)}" data-pf="pf" inputmode="decimal" placeholder="0,00" value="${esc(p.pf||'')}"><span>${flag(pm)} ${esc(pm)}</span></div>
       <label class="fx-l">Taxa de câmbio <small class="fxsrc">(ou escreve a taxa do banco)</small></label><div class="inline" style="margin:0"><span>1 ${esc(pm)} =</span><input data-pk="${esc(k)}" data-pf="pr" inputmode="decimal" placeholder="taxa" value="${esc(p.pr||'')}"><span>${esc(e.moeda)}</span></div>`}
-  return h+`<p class="hint" data-ph="${esc(k)}">${payHint(g,k)}</p></div></details>`}
+  return h+(det?`<p class="hint" data-ph="${esc(k)}">${payHint(g,k)}</p></div></details>`:'')+'</div>'}
 function payRefresh(){const g=G();if(!g||!edit)return;sheet.querySelectorAll('[data-ph]').forEach(x=>x.innerHTML=payHint(g,x.dataset.ph));sheet.querySelectorAll('[data-ps]').forEach(x=>x.textContent=paySum(g,x.dataset.ps));const f=document.getElementById('e-fxs');if(f)f.innerHTML=fxSum2()}
 function fxSum2(){const g=G(),e=edit;if(!(e.total>0))return 'Escreve o total para ver quanto dá em '+esc(g.base)+'.';const b=payTotal(g);if(payMixed()&&b>0)return `≈ <b>${fmt(b,g.base)}</b> <small>(soma do que cada um pagou)</small>`;return fxSum()}
 sheet.addEventListener('input',ev=>{const t=ev.target;if(!edit||t.dataset.pf==null||t.tagName==='SELECT')return;const g=G(),k=t.dataset.pk,p=payOf(k),f=t.dataset.pf;p[f]=t.value;
@@ -1070,7 +1074,7 @@ function pvCalc(){const g=G(),e=edit;if(!e.pm||e.pm===e.moeda)return null;const 
   const baseAmt=v/rp;return a/baseAmt}
 function setPm(c){edit.pm=c;if(edit.pm===edit.moeda){edit.pv='';if(edit.rxSrc==='pago'){edit.rx='';edit.rxSrc=''}}else{edit.pv='';const g=G(),r=parseFloat(String(edit.rx||'').replace(',','.')),rp=rateOf(g,edit.pm);if(r>0&&rp&&myAmt()>0){edit.pv=val(Math.round(myAmt()/r*rp));edit.pvSrc='auto'}}$('#e-rate').innerHTML=rateRow();refresh();const i=$('#e-pv');if(i)i.focus()}
 function prOf(){const e=edit,v=parse(e.pv||'');if(v>0&&myAmt()>0)return fmtRate(myAmt()/v);const r=parseFloat(String(e.rx||'').replace(',','.')),rp=rateOf(G(),e.pm);return r>0&&rp?fmtRate(r/rp):''}
-function fxSum(){const g=G(),e=edit,r=parseFloat(String(e.rx||'').replace(',','.'));if(!(r>0)||!(e.total>0))return 'Escreve o total para ver quanto dá em '+esc(g.base)+'.';
+function fxSum(){const g=G(),e=edit,r=parseFloat(String(e.rx||'').replace(',','.'));if(!(r>0)||!(e.total>0))return 'Escreve o total para ver quanto dá em '+esc(g.base)+'.';if(e.lev&&e.rxSrc==='lev')return `≈ <b>${fmt(Math.round(e.total/r),g.base)}</b>`;
   const sd=e.rxSrc==='dia'?' <small>(mercado de '+esc(new Date((e.data||today())+'T12:00').toLocaleDateString('pt-PT'))+')</small>':e.rxSrc==='manual'||e.rxSrc==='pago'?' <small>(a tua taxa)</small>':' <small>(taxa do grupo'+(gUpd(g)?' de '+esc(gUpd(g)):'')+')</small>';
   return `≈ <b>${fmt(Math.round(e.total/r),g.base)}</b> · 1 ${esc(g.base)} = ${esc(e.rx)} ${esc(e.moeda)}${sd}`}
 function gUpd(g){const u=g.taxasUpd;if(!u)return '';const d=new Date(isNaN(+u)?u:+u);return isNaN(d)?'':d.toLocaleDateString('pt-PT')}
@@ -1091,10 +1095,10 @@ function rateRow0(){const g=G(),e=edit,m=e.moeda;if(m===g.base)return '';
   if(!e.pm&&!e.lev){let c='';try{c=localStorage.getItem('ej-cardm')||''}catch(x){}e.pm=(c&&(g.taxas[c]||c===g.base))?c:g.base}
   const pm=e.pm||m,d=mktDate();
   const lo=levOpts();let h=`<div class="fx">`;
-  {h+=`<div class="chips levc" style="margin-top:4px">${lo.map(x=>`<button type="button" class="pchip ${e.lev===x.l.id?'on':''}" data-lev="${esc(x.l.id)}">${levIc(x.l)} ${esc(levName(x.l))} ${esc(new Date(x.l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}))} · sobram ${fmt(x.rest,x.l.m)}</button>`).join('')}<button type="button" class="pchip ${e.lev?'':'on'}" data-lev="">💳 Cartão</button>${lo.length?'':'<span class="fxsrc" style="align-self:center">💵 Para pagar em dinheiro, regista primeiro um levantamento</span>'}</div>`}
+  {h+=`<div class="chips levc" style="margin-top:4px">${lo.map(x=>`<button type="button" class="pchip ${e.lev===x.l.id?'on':''}" data-lev="${esc(x.l.id)}">${levIc(x.l)} ${esc(levName(x.l))} ${esc(new Date(x.l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}))} · sobram ${fmt(x.rest,x.l.m)}<small class="lvr">1 ${esc(g.base)} = ${fmtRate(x.l.r)} ${esc(x.l.m)}</small></button>`).join('')}<button type="button" class="pchip ${e.lev?'':'on'}" data-lev="">💳 Cartão</button>${lo.length?'':'<span class="fxsrc" style="align-self:center">💵 Para pagar em dinheiro, regista primeiro um levantamento</span>'}</div>`}
   if(e.lev){const x=lo.find(y=>y.l.id===e.lev);if(x&&x.l.m!==m){
       return h+`<label class="fx-l" for="e-lv">Quanto saiu da conta ${esc(x.l.m)}?</label><div class="inline" style="margin:0"><input id="e-lv" inputmode="decimal" placeholder="0,00" value="${esc(e.lvs||'')}"><span style="white-space:nowrap">${flag(x.l.m)} ${esc(x.l.m)}</span></div><p class="hint" id="e-lvh">${lvHint()}</p></div>`}
-    return h+`<p class="fx-sum">${fxSum()} <small>(taxa do levantamento)</small></p>${x&&e.total>x.rest?`<p class="hint">⚠️ Esta despesa é maior do que o dinheiro que te sobra.</p>`:''}</div>`}
+    return h+`<p class="fx-sum">${fxSum()}</p>${x&&e.total>x.rest?`<p class="hint">⚠️ Esta despesa é maior do que o dinheiro que te sobra.</p>`:''}</div>`}
   h+=`<label class="fx-q" for="e-pm">Moeda do cartão</label><select id="e-pm">${allOpts(pm)}</select>`;
   if(pm!==m){
     h+=`<label class="fx-l" for="e-pv">Montante convertido <small class="fxsrc">(como aparece na app do banco)</small></label><div class="inline" style="margin:0"><input id="e-pv" inputmode="decimal" placeholder="0,00" value="${esc(e.pv||'')}"><span style="white-space:nowrap">${flag(pm)} ${esc(pm)}</span></div>
