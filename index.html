@@ -404,6 +404,9 @@ p.dayh{display:flex;justify-content:space-between;align-items:baseline}.dayh .da
 .pnm{font-weight:600}html[data-theme=dark] .pnm{filter:brightness(1.35) saturate(1.1)}
 .payw{margin:-4px 0 10px 44px}.payw .pay1{margin:6px 0 0}.paych{margin:0 0 4px}.paych .pchip{font-size:13.5px;min-height:36px}.payw>.hint{margin:4px 0 0}
 .pchip:has(.lvr){border-radius:14px;text-align:left;padding:8px 14px}.pchip .lvr{display:block;font-size:12px;font-weight:500;opacity:.75;margin-top:1px}
+.uch{display:grid;gap:6px;margin:6px 0 2px}.urow{display:grid;grid-template-columns:1fr 40px 34px 40px;align-items:center;gap:6px;padding:4px 8px;border-radius:12px;background:rgba(127,127,127,.08)}.urow.on{background:rgba(42,159,180,.14)}
+.urow button{min-height:36px;padding:0;border-radius:10px;font-size:18px}.urow b{text-align:center;font-size:17px}.uinfo{font-size:13px;color:#c0603a;margin:4px 0 0}.uinfo.ok{color:#2a8a5a}.uinfo .linkbtn{font-size:13px;margin-left:6px}.uswitch{font-size:13.5px;margin-top:4px}
+.prow.merow{background:rgba(42,159,180,.10);border-radius:14px;margin:0 -8px;padding-left:8px;padding-right:8px}.tu{font-style:normal;font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--lavd);color:#fff;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -512,7 +515,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-25g';
+const APPV='2026-11-25i';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -970,7 +973,7 @@ function gMenuHTML(g){return `<div class="card gmenu"><p><b>Apagar “${esc(g.no
 const order=(g,rows)=>g.membros.map(p=>p.id).filter(k=>rows[k]&&rows[k].on);
 function rebal(side){const g=G(),rows=edit[side],T=edit.total,on=order(g,rows);
   if(side==='div'&&edit.modo==='artigos'){const sh={};on.forEach(k=>sh[k]=0);
-    (edit.itens||[]).forEach(it=>{const who=(it.who&&it.who.length?it.who:on).filter(k=>on.includes(k));if(!who.length)return;
+    (edit.itens||[]).forEach(it=>{if(it.u){const ks=on.filter(k=>(it.u[k]||0)>0),U=ks.reduce((a,k)=>a+it.u[k],0);if(U>0){let acc=0;ks.forEach(k=>{const v=Math.floor(it.v*it.u[k]/U);sh[k]+=v;acc+=v});let r=it.v-acc;for(const k of ks){if(r<=0)break;sh[k]++;r--}return}}const who=(it.who&&it.who.length?it.who:on).filter(k=>on.includes(k));if(!who.length)return;
       const b=Math.floor(it.v/who.length);let r=it.v-b*who.length;who.forEach(k=>{sh[k]+=b+(r>0?1:0);if(r>0)r--})});
     const S=on.reduce((a,k)=>a+sh[k],0);let acc=0;
     on.forEach(k=>{const v=S?Math.floor(T*sh[k]/S):Math.floor(T/on.length);rows[k].v=v;acc+=v});
@@ -998,17 +1001,17 @@ function cardDef(g){let c='';try{c=localStorage.getItem('ej-cardm')||''}catch(x)
 const pfFee=p=>{const t=String(p.pf||'').trim();if(!t)return 0;if(/%$/.test(t)){const pc=parseFloat(t.replace('%','').replace(',','.'))||0;return Math.round(parse(p.pv||'')*pc/100)}return parse(t)>0?parse(t):0};
 const pvTot=p=>{const v=parse(p.pv||'');return v>0?v+pfFee(p):0};
 function mktRx(){const r=parseFloat(String(edit.rx||'').replace(',','.'));return r>0?r:null}
-function myAmt(){const e=edit,g=G(),me=meOf(g);return me&&e.pag&&e.pag[me]&&e.pag[me].on&&e.pag[me].v>0?e.pag[me].v:e.total}
-function myBase(g){const e=edit,me=meOf(g),a=(e.pag[me]&&e.pag[me].on)?e.pag[me].v:0;if(!(a>0))return 0;if(e.moeda===g.base&&!e.lev)return a;const mr=mktRx();
+function myAmt(){const e=edit,g=G(),me=topPayer();return me&&e.pag&&e.pag[me]&&e.pag[me].on&&e.pag[me].v>0?e.pag[me].v:e.total}
+function myBase(g){const e=edit,me=topPayer(),a=(e.pag[me]&&e.pag[me].on)?e.pag[me].v:0;if(!(a>0))return 0;if(e.moeda===g.base&&!e.lev)return a;const mr=mktRx();
   if(e.lev){const l=levsOf(g,me).find(x=>x.id===e.lev);if(l&&l.r){if(l.m===e.moeda)return a/l.r;const lv=parse(e.lvs||'');if(lv>0)return lv/l.r}}
   if(e.moeda===g.base)return a;if(!e.lev&&e.pm&&e.pm!==e.moeda&&pvT(e)>0){if(e.pm===g.base)return pvT(e);const rp=rBase(g,e.pm);if(rp)return pvT(e)/rp}return mr?a/mr:0}
-function payBase(g,k){const e=edit;if(k===meOf(g))return myBase(g);const a=(e.pag[k]&&e.pag[k].on)?e.pag[k].v:0;if(!(a>0))return 0;if(e.moeda===g.base&&!(e.pay&&e.pay[k]&&e.pay[k].lev))return a;const p=(e.pay||{})[k]||{},mr=mktRx();
+function payBase(g,k){const e=edit;if(k===topPayer())return myBase(g);const a=(e.pag[k]&&e.pag[k].on)?e.pag[k].v:0;if(!(a>0))return 0;if(e.moeda===g.base&&!(e.pay&&e.pay[k]&&e.pay[k].lev))return a;const p=(e.pay||{})[k]||{},mr=mktRx();
   if(p.lev){const l=levsOf(g,k).find(x=>x.id===p.lev);if(l&&l.r){if(l.m===e.moeda)return a/l.r;const lv=parse(p.lvs||'');if(lv>0)return lv/l.r}}
   if(e.moeda===g.base)return a;
   if(!p.lev){const pm=p.pm||cardDef(g),pv=pvTot(p);if(pv>0){if(pm===g.base)return pv;if(pm===e.moeda)return mr?a/mr:0;const rp=rBase(g,pm);if(rp)return pv/rp}}
   return mr?a/mr:0}
 function payTotal(g){const e=edit;let b=0;for(const k in e.pag)if(e.pag[k].on)b+=payBase(g,k);return Math.round(b)}
-function payMixed(){const e=edit,me=meOf(G());for(const k in e.pag){if(!e.pag[k].on||k===me)continue;const p=(e.pay||{})[k]||{};if(p.lev||pvTot(p)>0)return true}return false}
+function payMixed(){const e=edit,me=topPayer();for(const k in e.pag){if(!e.pag[k].on||k===me)continue;const p=(e.pay||{})[k]||{};if(p.lev||pvTot(p)>0)return true}return false}
 function payLevs(g,k){const e=edit,p=(e.pay||{})[k]||{};return levsOf(g,k).map(l=>({l,rest:l.v-levUsed(g,k,l,e.id)})).filter(x=>x.rest>0||p.lev===x.l.id)}
 function paySum(g,k){const e=edit,p=(e.pay||{})[k]||{};if(p.lev){const l=levsOf(g,k).find(x=>x.id===p.lev);return '💵 Levantamento'+(l?' '+new Date(l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}):'')}
   if(e.moeda===g.base)return '💳 Cartão';const pm=p.pm||cardDef(g),pv=pvTot(p);if(pv>0&&pm!==e.moeda)return '💳 '+fmt(pv,pm);const b=payBase(g,k);if(!(b>0))return '💳 Cartão';
@@ -1016,7 +1019,7 @@ function paySum(g,k){const e=edit,p=(e.pay||{})[k]||{};if(p.lev){const l=levsOf(
 function payHint(g,k){const e=edit,p=(e.pay||{})[k]||{},a=e.pag[k]?e.pag[k].v:0;if(p.lev){const l=levsOf(g,k).find(x=>x.id===p.lev);if(!l)return '';return l.m===e.moeda?`taxa do levantamento: 1 ${esc(g.base)} = ${fmtRate(l.r)} ${esc(l.m)} · ≈ ${fmt(Math.round(payBase(g,k)),g.base)}`:(parse(p.lvs||'')>0?`≈ ${fmt(Math.round(payBase(g,k)),g.base)}`:`Escreve quanto saiu do levantamento em ${esc(l.m)}.`)}
   const pm=p.pm||cardDef(g),pv=parse(p.pv||''),fe=pfFee(p);if(pv>0&&pm!==e.moeda)return `${fe?`${fmt(pv,pm)} + ${fmt(fe,pm)} de taxas extra = `:''}✓ <b>${fmt(pv+fe,pm)}</b> por ${fmt(a,e.moeda)}${a>0?` · 1 ${esc(pm)} = ${fmtRate(a/(pv+fe))} ${esc(e.moeda)}`:''}`;
   const b=payBase(g,k);return b>0?`≈ ${fmt(pm===g.base?Math.round(b):Math.round(b*(rBase(g,pm)||1)),pm)} pela ${esc((rxNote()||'📈 taxa do dia').replace(/^\S+\s/,''))} · escreve o valor do banco para ficar exato`:''}
-function payFor(k){const g=G(),e=edit;if(!e||e.tipo==='reemb'||!e.pag[k]||!e.pag[k].on||k===meOf(g))return '';const ls=payLevs(g,k);if(e.moeda===g.base&&!ls.length)return '';const p=payOf(k),card=!p.lev,pm=p.pm||cardDef(g);
+function payFor(k){const g=G(),e=edit;if(!e||e.tipo==='reemb'||!e.pag[k]||!e.pag[k].on||k===topPayer()||Object.values(e.pag).filter(r=>r.on).length<2)return '';const ls=payLevs(g,k);if(e.moeda===g.base&&!ls.length)return '';const p=payOf(k),card=!p.lev,pm=p.pm||cardDef(g);
   const chips=ls.length?`<div class="chips paych">${ls.map(x=>`<button type="button" class="pchip ${p.lev===x.l.id?'on':''}" data-plv="${esc(k)}|${esc(x.l.id)}">💵 Levantamento ${esc(new Date(x.l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}))} · sobram ${fmt(x.rest,x.l.m)}<small class="lvr">1 ${esc(g.base)} = ${fmtRate(x.l.r)} ${esc(x.l.m)}${p.lev===x.l.id&&x.l.m===e.moeda&&payBase(g,k)>0?' · ≈ '+fmt(Math.round(payBase(g,k)),g.base):''}</small></button>`).join('')}<button type="button" class="pchip ${card?'on':''}" data-plv="${esc(k)}|">💳 Cartão</button></div>`:'';
   let h=`<div class="payw">${chips}`;const det=(p.lev&&(levsOf(g,k).find(x=>x.id===p.lev)||{}).m!==e.moeda)||(!p.lev&&e.moeda!==g.base);
   if(det)h+=`<details class="pay1" ${p.open?'open':''} data-pko="${esc(k)}"><summary><span data-ps="${esc(k)}">${esc(paySum(g,k))}</span><small>${p.lev?'Quanto usou?':'Moeda e valor do banco'}</small></summary><div class="pay1b">`;
@@ -1034,7 +1037,7 @@ sheet.addEventListener('input',ev=>{const t=ev.target;if(!edit||t.dataset.pf==nu
 sheet.addEventListener('change',ev=>{const t=ev.target;if(!edit||t.dataset.pf!=='pm')return;const p=payOf(t.dataset.pk);p.pm=t.value;p.pv='';p.pf='';p.pr='';p.open=true;try{localStorage.setItem('ej-cardm',t.value)}catch(x){}$('#r-pag').innerHTML=rowsHTML('pag');payRefresh()});
 sheet.addEventListener('toggle',ev=>{const t=ev.target;if(t.dataset&&t.dataset.pko&&edit)payOf(t.dataset.pko).open=t.open},true);
 sheet.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('[data-plv]');if(!t||!edit)return;const [k,id]=t.dataset.plv.split('|'),p=payOf(k);p.lev=id||'';p.lvs='';p.open=true;$('#r-pag').innerHTML=rowsHTML('pag');payRefresh()});
-function paySave(g,e){const out={},me=meOf(g);for(const k in e.pag){if(!e.pag[k].on||e.tipo==='reemb'||k===me)continue;const p=(e.pay||{})[k];if(!p)continue;
+function paySave(g,e){const out={},me=topPayer();for(const k in e.pag){if(!e.pag[k].on||e.tipo==='reemb'||k===me)continue;const p=(e.pay||{})[k];if(!p)continue;
     if(p.lev){out[k]={lev:p.lev,...(parse(p.lvs||'')>0?{lv:parse(p.lvs)}:{})};continue}
     const pm=p.pm||cardDef(g),pv=pvTot(p);if(e.moeda!==g.base&&pm!==e.moeda&&pv>0)out[k]={pm,pv,...(pfFee(p)>0?{f:pfFee(p)}:{}),s:p.src==='scan'?'📷 valor do print/recibo':p.src==='taxa'?'✍️ taxa que escreveste':'✍️ valor que escreveste'}}
   return out}
@@ -1051,7 +1054,7 @@ function rowsHTML(side){if(side!=='pag')return rowsHTML0(side);const on=Object.v
 document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('#pagmore');if(!t||!edit)return;edit.pagOpen=!edit.pagOpen;const r=document.getElementById('r-pag');if(r)r.innerHTML=rowsHTML('pag')});
 function rowsHTML0(side){const g=G(),rows=edit[side],partes=side==='div'&&edit.modo==='partes',art=side==='div'&&edit.modo==='artigos';
   if(art)return g.membros.map(p=>{const r=rows[p.id];return `<div class="prow"><label class="chk"><input type="checkbox" data-side="div" data-k="${esc(p.id)}" ${r.on?'checked':''}><span>${avP(g,p,'sm')} ${esc(p.nome)}</span></label><div class="vwrap">${(()=>{const sp=r.on&&!(edit.pag[p.id]&&edit.pag[p.id].on),pd=sp&&edit.pg&&edit.pg[p.id];return sp?`<button type="button" class="pgo ${pd?'on':''}" data-pg="${esc(p.id)}" aria-pressed="${!!pd}" aria-label="${esc(p.nome)} já pagou"></button>`:'<span class="pgo-sp"></span>'})()}<span class="calc" data-calc="${esc(p.id)}" style="${r.on&&!(edit.pag[p.id]&&edit.pag[p.id].on)&&edit.pg&&edit.pg[p.id]?'text-decoration:line-through;opacity:.6':''}">${r.on?val(r.v):''}</span></div><span></span></div>`}).join('');
-  return g.membros.map(p=>{const r=rows[p.id],sp=side==='div'&&edit.tipo!=='reemb'&&r.on&&!(edit.pag[p.id]&&edit.pag[p.id].on),pd=sp&&edit.pg&&edit.pg[p.id];return `<div class="prow ${pd?'pgd':''}"><div class="pcell"><label class="chk"><input type="checkbox" data-side="${side}" data-k="${esc(p.id)}" ${r.on?'checked':''}><span>${avP(g,p,'sm')} ${esc(p.nome)}</span></label></div>
+  return g.membros.map(p=>{const r=rows[p.id],sp=side==='div'&&edit.tipo!=='reemb'&&r.on&&!(edit.pag[p.id]&&edit.pag[p.id].on),pd=sp&&edit.pg&&edit.pg[p.id];return `<div class="prow ${pd?'pgd':''} ${p.id===meOf(g)?'merow':''}"><div class="pcell"><label class="chk"><input type="checkbox" data-side="${side}" data-k="${esc(p.id)}" ${r.on?'checked':''}><span>${avP(g,p,'sm')} ${esc(p.nome)}${p.id===meOf(g)?' <em class="tu">tu</em>':''}</span></label></div>
   <div class="vwrap">${side==='div'&&edit.tipo!=='reemb'?(sp?`<button type="button" class="pgo ${pd?'on':''}" data-pg="${esc(p.id)}" aria-pressed="${!!pd}" aria-label="${esc(p.nome)} já pagou" title="Já pagou"></button>`:'<span class="pgo-sp"></span>'):''}${partes?`<span class="pt"><input class="v" inputmode="numeric" data-part="${esc(p.id)}" value="${r.on?r.p:''}" ${r.on?'':'disabled'} aria-label="Partes de ${esc(p.nome)}"></span>`
           :`<input class="v" inputmode="decimal" data-amt="${side}" data-k="${esc(p.id)}" value="${r.on?val(r.v):''}" ${r.on?'':'disabled'} aria-label="Valor de ${esc(p.nome)}">`}</div>
   ${partes?`<span class="calc" data-calc="${esc(p.id)}">${r.on?val(r.v):''}</span>`:`<button class="auto" data-auto="${side}" data-k="${esc(p.id)}" ${r.fix&&r.on?'':'hidden'} title="Voltar a calcular automaticamente">auto</button>`}</div>${side==='pag'?payFor(p.id):''}`}).join('')}
@@ -1063,7 +1066,11 @@ function itemsHTML(){const g=G(),e=edit;if(!e.itens||!e.itens.length||e.tipo==='
   return tg+itemsHTML2()}
 function itemsHTML2(){const g=G(),e=edit;
   const on=g.membros.filter(p=>e.div[p.id].on);
-  return e.itens.map((it,i)=>`<div class="it"><div class="ith"><span>${it.q>1?esc(it.q)+'× ':''}${esc(it.n)}</span><b>${fmt(it.v,e.moeda)}</b></div><div class="pch">${on.map(p=>`<button type="button" class="pchip ${it.who.includes(p.id)?'on':''}" data-it="${i}" data-k="${esc(p.id)}">${esc(pn(p))}</button>`).join('')}</div></div>`).join('')}
+  return e.itens.map((it,i)=>{const q=Math.max(1,Math.round(+it.q||1));let body;
+    if(it.u){const U=on.reduce((a,p)=>a+(it.u[p.id]||0),0),un=fmt(Math.round(it.v/q),e.moeda);
+      body=`<div class="uch">${on.map(p=>`<div class="urow ${(it.u[p.id]||0)>0?'on':''}"><span>${esc(pn(p))}</span><button type="button" data-iu="${i}|${esc(p.id)}|-1" aria-label="Menos">−</button><b>${it.u[p.id]||0}</b><button type="button" data-iu="${i}|${esc(p.id)}|1" aria-label="Mais">+</button></div>`).join('')}</div><p class="uinfo ${U===q?'ok':''}">${U===q?'✓':'⚠️'} ${U} de ${q} unidades · ${un} cada <button type="button" class="linkbtn" data-iunits="${i}">voltar a dividir por igual</button></p>`}
+    else body=`<div class="pch">${on.map(p=>`<button type="button" class="pchip ${it.who.includes(p.id)?'on':''}" data-it="${i}" data-k="${esc(p.id)}">${esc(pn(p))}</button>`).join('')}</div>${q>1?`<button type="button" class="linkbtn uswitch" data-iunits="${i}">🔢 Dividir por unidades (${q})</button>`:''}`;
+    return `<div class="it"><div class="ith"><span>${q>1?esc(q)+'× ':''}${esc(it.n)}</span><b>${fmt(it.v,e.moeda)}</b></div>${body}</div>`}).join('')}
 function mktDate(){const u=(typeof live!=='undefined'&&live&&live.upd)||(typeof market!=='undefined'&&market&&market.upd)||'';try{return u?new Date(u).toLocaleDateString('pt-PT'):''}catch(e){return ''}}
 const fmtRate=r=>String(+r.toFixed(r<10?4:2)).replace('.',',');
 const rateOf=(g,c)=>c===g.base?1:((edit&&dayRate(g,c,edit.data||today()))||(typeof liveRate==='function'&&liveRate(g,c))||(g.taxas[c]&&g.taxas[c]/g.taxas[g.base])||null);
@@ -1087,8 +1094,8 @@ function pvHint(){const g=G(),e=edit,r=pvCalc();if(!r){const rx=parseFloat(Strin
   const sn=srcNote(),fe=pfV(e);return `${fe?`${fmt(parse(e.pv),e.pm)} + ${fmt(fe,e.pm)} de taxas extra<br>`:''}✓ <b>O teu total: ${fmt(pvT(e),e.pm)}</b> <small class="fxsrc">(${fmt(myAmt(),e.moeda)})</small>${sn?`<br><small class="fxsrc">${esc(sn)}</small>`:''}`}
 function rateRow(){const r=rateRow0();if(!r)return '';const e=edit,m=e.moeda,pm=e.pm||m,pv=pvT(e);
   const t=e.lev?'💵 Dinheiro':pm!==m?(pv>0?'💳 '+fmt(pv,pm):'💳 ≈ '+(()=>{const g=G(),r=parseFloat(String(e.rx||'').replace(',','.'));if(!(r>0&&e.total>0))return pm;const b=Math.round(e.total/r);return fmt(pm===g.base?b:Math.round(b*(g.taxas[pm]||1)/(g.taxas[g.base]||1)),pm)})()):(()=>{const r=parseFloat(String(e.rx||'').replace(',','.'));return r>0&&e.total>0?'≈ '+fmt(Math.round(e.total/r),G().base):'Taxa'})();
-  const sn=e.lev?'':pm!==m?(pv>0?srcNote():''):rxNote();return `<details class="fxd" ${e.fxOpen?'open':''}><summary><span>Como pagaste?${sn?`<small class="fxsrc">${esc(sn)}</small>`:''}</span><b>${esc(t)}</b></summary>${r}</details>`}
-function rateRow0(){const g=G(),e=edit,m=e.moeda;if(m===g.base)return '';
+  const sn=e.lev?'':pm!==m?(pv>0?srcNote():''):rxNote();return `<details class="fxd" ${e.fxOpen?'open':''}><summary><span>${(()=>{const g=G(),tp=topPayer();return tp&&tp!==meOf(g)?'Como pagou '+esc(nome(g,tp))+'?':'Como pagaste?'})()}${sn?`<small class="fxsrc">${esc(sn)}</small>`:''}</span><b>${esc(t)}</b></summary>${r}</details>`}
+function rateRow0(){if(edit&&edit.lev){const g0=G();if(!levsOf(g0,topPayer()).some(l=>l.id===edit.lev)){edit.lev='';edit.lvs='';if(edit.rxSrc==='lev'){edit.rx='';edit.rxSrc=''}}}const g=G(),e=edit,m=e.moeda;if(m===g.base)return '';
   const dk=dayRate(g,m,e.data||today()),mk=dk||(typeof liveRate==='function'?liveRate(g,m):null);
   if(!e.rx){let r=null,src='';if(e.tx&&e.tx.b===g.base&&e.tx.m===m){r=e.tx.r;src='gravada'}else if(dk){r=dk;src='dia'}else if(mk){r=mk;src='mercado'}else if(g.taxas[m]){r=g.taxas[m]/g.taxas[g.base];src='grupo'}
     if(r){e.rx=fmtRate(r);e.rxSrc=src}}
@@ -1208,9 +1215,11 @@ sheet.addEventListener('change',ev=>{const t=ev.target;if(!edit)return;
   if(t.id==='e-pm'){try{localStorage.setItem('ej-cardm',t.value)}catch(x){}setPm(t.value);return}
   if(t.id==='e-cur'){edit.moeda=t.value;edit.rx='';edit.pm='';edit.pv='';edit.lev='';edit.pay={};const rp=$('#r-pag');if(rp)rp.innerHTML=rowsHTML('pag');$('#e-rate').innerHTML=rateRow();$('#e-items').innerHTML=itemsHTML();refresh()}
   else if(t.type==='checkbox'&&t.dataset.side){const r=edit[t.dataset.side][t.dataset.k];r.on=t.checked;if(!r.on){r.fix=false;r.v=0}rebal(t.dataset.side);
-    $('#r-'+t.dataset.side).innerHTML=rowsHTML(t.dataset.side);if(t.dataset.side==='div')$('#e-items').innerHTML=itemsHTML();refresh()}
+    $('#r-'+t.dataset.side).innerHTML=rowsHTML(t.dataset.side);if(t.dataset.side==='div')$('#e-items').innerHTML=itemsHTML();if(t.dataset.side==='pag'){const er=$('#e-rate');if(er)er.innerHTML=rateRow()}refresh()}
   else if(t.dataset.foto){const fs=[...(t.files||[])];t.value='';if(t.dataset.merge&&edit)edit.mergeNext=true;if(fs.length>1)scanMany(fs);else scan(fs[0])}});
 sheet.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t||!edit)return;
+  if(t.dataset.iunits!=null){const it=edit.itens[+t.dataset.iunits],q=Math.max(1,Math.round(+it.q||1));if(it.u){delete it.u}else{const on=G().membros.filter(p=>edit.div[p.id].on).map(p=>p.id),who=(it.who&&it.who.length?it.who:on).filter(k=>on.includes(k)),u={};who.forEach((k,j)=>u[k]=Math.floor(q/who.length)+(j<q%who.length?1:0));it.u=u}rebal('div');$('#e-items').innerHTML=itemsHTML();refresh();return}
+  if(t.dataset.iu){const [i,k,d]=t.dataset.iu.split('|'),it=edit.itens[+i],q=Math.max(1,Math.round(+it.q||1)),cur=it.u[k]||0,U=Object.values(it.u).reduce((a,b)=>a+b,0);let n=cur+(+d);if(n<0)n=0;if(+d>0&&U>=q)return note('Já estão as '+q+' unidades distribuídas. Tira uma a outra pessoa primeiro.',2500);it.u={...it.u,[k]:n};it.who=Object.keys(it.u).filter(x=>it.u[x]>0);rebal('div');$('#e-items').innerHTML=itemsHTML();refresh();return}
   if(t.dataset.it!=null&&t.dataset.k){const it=edit.itens[+t.dataset.it],k=t.dataset.k;it.who=it.who.includes(k)?it.who.filter(x=>x!==k):[...it.who,k];rebal('div');$('#e-items').innerHTML=itemsHTML();refresh();return}
   if(t.dataset.all){const side=t.dataset.all,rows=edit[side];G().membros.forEach(p=>{rows[p.id].on=true;rows[p.id].fix=false});rebal(side);$('#r-'+side).innerHTML=rowsHTML(side);$('#e-items').innerHTML=itemsHTML();refresh();return}
   if(t.dataset&&t.dataset.lev!=null&&t.closest('#e-rate')){setLev(t.dataset.lev);return}
@@ -1770,11 +1779,12 @@ var wEdit=null;function walletHTML(g,me){const ls=levsOf(g,me);
     <div class="actions"><button type="button" class="linkbtn" id="wcancel">Cancelar</button><button class="primary">${wEdit?'Guardar alteração':'Guardar'}</button></div></form>`}
   else h+=`<div class="actions" style="margin-top:8px"><button id="wadd">＋ Levantamento</button></div>`;
   return h+`<div class="iirow">${ii('Não entra nas contas. Usa-o em “Como pagaste?” ao criar uma despesa.')}</div></div>`}
-function levOpts(){const g=G(),me=meOf(g);if(!me||!edit)return [];return levsOf(g,me).map(l=>({l,rest:l.v-levUsed(g,me,l,edit.id)})).filter(x=>x.rest>0||x.l.id===edit.lev)}
-function lvHint(){const g=G(),e=edit,l=levsOf(g,meOf(g)).find(x=>x.id===e.lev),v=parse(e.lvs||'');if(!l||!(v>0))return 'Valor do extrato.';
+function topPayer(){const g=G(),me=meOf(g),e=edit;if(!e||!e.pag)return me;const on=Object.keys(e.pag).filter(k=>e.pag[k].on);return on.includes(me)||!on.length?me:on[0]}
+function levOpts(){const g=G(),me=topPayer();if(!me||!edit)return [];return levsOf(g,me).map(l=>({l,rest:l.v-levUsed(g,me,l,edit.id)})).filter(x=>x.rest>0||x.l.id===edit.lev)}
+function lvHint(){const g=G(),e=edit,l=levsOf(g,topPayer()).find(x=>x.id===e.lev),v=parse(e.lvs||'');if(!l||!(v>0))return 'Valor do extrato.';
   return `✓ ${fmt(e.total,e.moeda)} = ${fmt(v,l.m)} ≈ ${fmt(Math.round(v/l.r),g.base)}`}
-function lvApply(){const g=G(),e=edit,l=levsOf(g,meOf(g)).find(x=>x.id===e.lev),v=parse(e.lvs||'');if(l&&v>0&&myAmt()>0){e.rx=String(myAmt()/(v/l.r));e.rxSrc='lev'}}
-function setLev(id){const g=G();edit.lev=id||'';edit.lvs='';if(id){const l=levsOf(g,meOf(g)).find(x=>x.id===id);if(l){edit.pm='';edit.pv='';
+function lvApply(){const g=G(),e=edit,l=levsOf(g,topPayer()).find(x=>x.id===e.lev),v=parse(e.lvs||'');if(l&&v>0&&myAmt()>0){e.rx=String(myAmt()/(v/l.r));e.rxSrc='lev'}}
+function setLev(id){const g=G();edit.lev=id||'';edit.lvs='';if(id){const l=levsOf(g,topPayer()).find(x=>x.id===id);if(l){edit.pm='';edit.pv='';
   if(l.m===edit.moeda){edit.rx=fmtRate(l.r);edit.rxSrc='lev'}else{const r=parseFloat(String(edit.rx||'').replace(',','.')),rl=rBase(g,l.m);if(r>0&&rl&&edit.total>0)edit.lvs=val(Math.round(edit.total/r*rl));lvApply()}}}else if(edit.rxSrc==='lev'){edit.rx='';edit.rxSrc=''}
   $('#e-rate').innerHTML=rateRow();refresh()}
 
