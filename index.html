@@ -391,6 +391,9 @@ p.dayh{display:flex;justify-content:space-between;align-items:baseline}.dayh .da
 .att-add{flex:0 0 auto;width:52px;height:52px;min-height:0;padding:0;border-radius:10px;font-size:22px;border:1.5px dashed var(--line)!important;background:none!important;box-shadow:none;color:var(--mut)}
 .txupd{margin:-4px 2px 10px;font-size:13px;color:var(--mut)}
 .levb{display:flex;gap:2px;align-items:center;flex:0 0 auto}
+.lev2{padding:12px 2px;border-top:1px solid var(--line)}.lev2:first-of-type{border-top:0}.l2t{display:flex;align-items:center;gap:8px}.l2v{font-weight:700;font-size:17px}.l2d{color:var(--mut);font-size:14px;flex:1}
+.l2r{margin-top:4px;font-size:15px}.l2s{font-size:13.5px;color:var(--mut);margin-top:2px}.l2bar{height:8px;border-radius:5px;background:rgba(127,127,127,.18);overflow:hidden;margin:8px 0 4px}.l2bar i{display:block;height:100%;background:var(--lavd);border-radius:5px}
+.l2u{display:flex;justify-content:space-between;font-size:14px}.ldone .l2v,.ldone .l2r,.ldone .l2s,.ldone .l2u span:first-child{text-decoration:line-through;opacity:.6}.ldone .l2bar i{background:var(--mut)}.l2end{color:#2a8a5a;font-weight:600}
 </style>
 </head>
 <body>
@@ -499,7 +502,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-24v';
+const APPV='2026-11-24x';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -1011,25 +1014,26 @@ function srcNote(){const g=G(),e=edit,dt=x=>new Date((x||today())+'T12:00').toLo
   if(e.pvSrc==='auto')return rxNote();
   return e.pvNote||''}
 function rxNote(){const g=G(),e=edit,dt=x=>new Date((x||today())+'T12:00').toLocaleDateString('pt-PT');const k=e.rxSrc;if(k==='dia')return '📈 taxa de mercado de '+dt(e.data);if(k==='mercado')return '📈 taxa de mercado de hoje';if(k==='manual'||k==='pago')return '✍️ a tua taxa';if(k==='gravada')return '📌 taxa guardada desta despesa';if(k==='grupo')return '📈 taxa do grupo'+(gUpd(g)?' de '+gUpd(g):'');return ''}
-function pvHint(){const g=G(),e=edit,r=pvCalc();if(!r)return `Valor do talão ou extrato.`;
+function pvHint(){const g=G(),e=edit,r=pvCalc();if(!r){const rx=parseFloat(String(e.rx||'').replace(',','.'));if(e.total>0&&rx>0&&e.pm){const b=Math.round(e.total/rx),v=e.pm===g.base?b:toCur(g,b/100,e.pm)*1;return `≈ ${fmt(e.pm===g.base?b:Math.round(b*(g.taxas[e.pm]||1)/(g.taxas[g.base]||1)),e.pm)} <small class="fxsrc">estimativa pela ${esc(rxNote().replace(/^\S+\s/,''))||'taxa do dia'} · escreve o montante do banco para ficar exato</small>`}return `Escreve o montante convertido que aparece no banco.`}
   const sn=srcNote();return `✓ ${fmt(e.total,e.moeda)} = ${fmt(parse(e.pv),e.pm)}${sn?`<br><small class="fxsrc">${esc(sn)}</small>`:''}`}
 function rateRow(){const r=rateRow0();if(!r)return '';const e=edit,m=e.moeda,pm=e.pm||m,pv=parse(e.pv||'');
-  const t=e.lev?'💵 Levantamento':pm!==m?(pv>0?'💳 '+fmt(pv,pm):'💳 em '+pm):(()=>{const r=parseFloat(String(e.rx||'').replace(',','.'));return r>0&&e.total>0?'≈ '+fmt(Math.round(e.total/r),G().base):'Taxa'})();
-  const sn=e.lev?'':pm!==m?(pv>0?srcNote():''):rxNote();return `<details class="fxd" ${e.fxOpen?'open':''}><summary><span>Pagamento${sn?`<small class="fxsrc">${esc(sn)}</small>`:''}</span><b>${esc(t)}</b></summary>${r}</details>`}
+  const t=e.lev?'💵 Dinheiro':pm!==m?(pv>0?'💳 '+fmt(pv,pm):'💳 ≈ '+(()=>{const g=G(),r=parseFloat(String(e.rx||'').replace(',','.'));if(!(r>0&&e.total>0))return pm;const b=Math.round(e.total/r);return fmt(pm===g.base?b:Math.round(b*(g.taxas[pm]||1)/(g.taxas[g.base]||1)),pm)})()):(()=>{const r=parseFloat(String(e.rx||'').replace(',','.'));return r>0&&e.total>0?'≈ '+fmt(Math.round(e.total/r),G().base):'Taxa'})();
+  const sn=e.lev?'':pm!==m?(pv>0?srcNote():''):rxNote();return `<details class="fxd" ${e.fxOpen?'open':''}><summary><span>Como pagaste?${sn?`<small class="fxsrc">${esc(sn)}</small>`:''}</span><b>${esc(t)}</b></summary>${r}</details>`}
 function rateRow0(){const g=G(),e=edit,m=e.moeda;if(m===g.base)return '';
   const dk=dayRate(g,m,e.data||today()),mk=dk||(typeof liveRate==='function'?liveRate(g,m):null);
   if(!e.rx){let r=null,src='';if(e.tx&&e.tx.b===g.base&&e.tx.m===m){r=e.tx.r;src='gravada'}else if(dk){r=dk;src='dia'}else if(mk){r=mk;src='mercado'}else if(g.taxas[m]){r=g.taxas[m]/g.taxas[g.base];src='grupo'}
     if(r){e.rx=fmtRate(r);e.rxSrc=src}}
+  if(!e.pm&&!e.lev){let c='';try{c=localStorage.getItem('ej-cardm')||''}catch(x){}e.pm=(c&&(g.taxas[c]||c===g.base))?c:g.base}
   const pm=e.pm||m,d=mktDate();
   const lo=levOpts();let h=`<div class="fx">`;
-  if(lo.length){h+=`<p class="fx-q">Pago com</p><div class="chips levc">${lo.map(x=>`<button type="button" class="pchip ${e.lev===x.l.id?'on':''}" data-lev="${esc(x.l.id)}">${levIc(x.l)} ${esc(levName(x.l))} ${esc(new Date(x.l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}))} · sobram ${fmt(x.rest,x.l.m)}</button>`).join('')}<button type="button" class="pchip ${e.lev?'':'on'}" data-lev="">💳 Cartão</button></div>`}
+  {h+=`<div class="chips levc" style="margin-top:4px">${lo.map(x=>`<button type="button" class="pchip ${e.lev===x.l.id?'on':''}" data-lev="${esc(x.l.id)}">${levIc(x.l)} ${esc(levName(x.l))} ${esc(new Date(x.l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}))} · sobram ${fmt(x.rest,x.l.m)}</button>`).join('')}<button type="button" class="pchip ${e.lev?'':'on'}" data-lev="">💳 Cartão</button>${lo.length?'':'<span class="fxsrc" style="align-self:center">💵 Para pagar em dinheiro, regista primeiro um levantamento</span>'}</div>`}
   if(e.lev){const x=lo.find(y=>y.l.id===e.lev);if(x&&x.l.m!==m){
       return h+`<label class="fx-l" for="e-lv">Quanto saiu da conta ${esc(x.l.m)}?</label><div class="inline" style="margin:0"><input id="e-lv" inputmode="decimal" placeholder="0,00" value="${esc(e.lvs||'')}"><span style="white-space:nowrap">${flag(x.l.m)} ${esc(x.l.m)}</span></div><p class="hint" id="e-lvh">${lvHint()}</p></div>`}
     return h+`<p class="fx-sum">${fxSum()} <small>(taxa do levantamento)</small></p>${x&&e.total>x.rest?`<p class="hint">⚠️ Esta despesa é maior do que o dinheiro que te sobra.</p>`:''}</div>`}
-  h+=`<label class="fx-q" for="e-pm">Moeda paga</label><select id="e-pm">${allOpts(pm)}</select>`;
+  h+=`<label class="fx-q" for="e-pm">Moeda do cartão</label><select id="e-pm">${allOpts(pm)}</select>`;
   if(pm!==m){
-    h+=`<label class="fx-l" for="e-pv">Valor pago</label><div class="inline" style="margin:0"><input id="e-pv" inputmode="decimal" placeholder="0,00" value="${esc(e.pv||'')}"><span style="white-space:nowrap">${flag(pm)} ${esc(pm)}</span></div>
-    <label class="fx-l" for="e-pr">Taxa</label><div class="inline" style="margin:0"><span style="white-space:nowrap">1 ${flag(pm)} ${esc(pm)} =</span><input id="e-pr" inputmode="decimal" placeholder="taxa" value="${esc(prOf())}"><span style="white-space:nowrap">${flag(m)} ${esc(m)}</span></div>
+    h+=`<label class="fx-l" for="e-pv">Montante convertido <small class="fxsrc">(como aparece na app do banco)</small></label><div class="inline" style="margin:0"><input id="e-pv" inputmode="decimal" placeholder="0,00" value="${esc(e.pv||'')}"><span style="white-space:nowrap">${flag(pm)} ${esc(pm)}</span></div>
+    <label class="fx-l" for="e-pr">Taxa de câmbio <small class="fxsrc">(ou escreve a taxa do banco)</small></label><div class="inline" style="margin:0"><span style="white-space:nowrap">1 ${flag(pm)} ${esc(pm)} =</span><input id="e-pr" inputmode="decimal" placeholder="taxa" value="${esc(prOf())}"><span style="white-space:nowrap">${flag(m)} ${esc(m)}</span></div>
     <p class="hint" id="e-pvh">${pvHint()}</p>`}
   else{
     h+=`<p class="fx-sum" id="e-fxs">${fxSum()}</p>`;
@@ -1129,7 +1133,7 @@ sheet.addEventListener('input',ev=>{const t=ev.target;if(!edit)return;
   else if(t.dataset.amt){const r=edit[t.dataset.amt][t.dataset.k];r.v=Math.max(0,parse(t.value));r.fix=true;rebal(t.dataset.amt);refresh()}
   else if(t.dataset.part){edit.div[t.dataset.part].p=t.value.replace(',','.');rebal('div');refresh()}});
 sheet.addEventListener('change',ev=>{const t=ev.target;if(!edit)return;
-  if(t.id==='e-pm'){setPm(t.value);return}
+  if(t.id==='e-pm'){try{localStorage.setItem('ej-cardm',t.value)}catch(x){}setPm(t.value);return}
   if(t.id==='e-cur'){edit.moeda=t.value;edit.rx='';edit.pm='';edit.pv='';edit.lev='';$('#e-rate').innerHTML=rateRow();$('#e-items').innerHTML=itemsHTML();refresh()}
   else if(t.type==='checkbox'&&t.dataset.side){const r=edit[t.dataset.side][t.dataset.k];r.on=t.checked;if(!r.on){r.fix=false;r.v=0}rebal(t.dataset.side);
     $('#r-'+t.dataset.side).innerHTML=rowsHTML(t.dataset.side);if(t.dataset.side==='div')$('#e-items').innerHTML=itemsHTML();refresh()}
@@ -1650,11 +1654,14 @@ var wExp={};
 function gStat(g){try{const b=saldos(g),has=g.despesas.some(d=>d.tipo!=='reemb'),done=has&&transf(g,b).length===0,m=meOf(g);return {done,me:m&&m in b?b[m]:null}}catch(e){return {done:false,me:null}}}
 app.addEventListener('click',ev=>{if(ev.target.closest('button'))return;const x=ev.target.closest('.levx[data-wexp]');if(x){wExp[x.dataset.wexp]=false;render()}});
 var wEdit=null;function walletHTML(g,me){const ls=levsOf(g,me);
-  let h=`<div class="card wal"><button class="wal-h" id="wopen"><span>💵 Levantamentos</span><small>${(()=>{const at=ls.filter(l=>l.v-levUsed(g,me,l)>0);return !ls.length?'Regista um levantamento':at.length?'sobram '+at.map(l=>fmt(l.v-levUsed(g,me,l),l.m)).join(' · '):'tudo gasto'})()}</small><span class="pf-go">${wOpen?'⌃':'›'}</span></button>`;
+  let h=`<div class="card wal"><button class="wal-h" id="wopen"><span>💵 Levantamentos</span><small>${(()=>{const at=ls.filter(l=>l.v-levUsed(g,me,l)>0);return !ls.length?'Regista um levantamento':at.length?'sobram '+at.map(l=>fmt(l.v-levUsed(g,me,l),l.m)).join(' · ')+' · 1 '+g.base+' = '+fmtRate(at[at.length-1].r)+' '+at[at.length-1].m:'tudo gasto'})()}</small><span class="pf-go">${wOpen?'⌃':'›'}</span></button>`;
   if(!wOpen)return h+`</div>`;
-  h+=ls.map(l=>{const u=levUsed(g,me,l),rest=l.v-u;const dd=new Date(l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'});
-    if(rest<=0&&!wExp[l.id])return `<button class="lev levd" data-wexp="${esc(l.id)}"><s>${levIc(l)} ${fmt(l.v,l.m)} · ${esc(dd)}</s><span class="esg">gasto</span></button>`;
-    return `<div class="lev ${rest<=0?'levx':''}" ${rest<=0?`data-wexp="${esc(l.id)}"`:''}><div>${levIc(l)} <b>${esc(levName(l))} · ${esc(new Date(l.data+'T12:00').toLocaleDateString('pt-PT'))}</b> · ${fmt(l.v,l.m)} <small>(${fmt(l.pv,l.pm)}${l.fee?' + '+fmt(l.fee,l.pm)+' comissões':''})</small><div class="small">Taxa 1 ${esc(g.base)} = ${fmtRate(l.r)} ${esc(l.m)} · gasto ${fmt(u,l.m)} · <b>sobram ${fmt(rest,l.m)}</b></div></div><span class="levb"><button class="x" data-wedit="${esc(l.id)}" aria-label="Alterar levantamento">✏️</button><button class="x" data-wdel="${esc(l.id)}" aria-label="Apagar levantamento">${wDelAsk===l.id?'✓?':'×'}</button></span></div>`}).join('');
+  h+=ls.map(l=>{const u=levUsed(g,me,l),rest=Math.max(0,l.v-u),done=l.v-u<=0,pc=Math.min(100,Math.round(u/l.v*100));const dd=new Date(l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'});
+    return `<div class="lev2 ${done?'ldone':''}"><div class="l2t"><span class="l2v">${levIc(l)} ${fmt(l.v,l.m)}</span><span class="l2d">${esc(dd)}</span><span class="levb"><button class="x" data-wedit="${esc(l.id)}" aria-label="Alterar levantamento">✏️</button><button class="x" data-wdel="${esc(l.id)}" aria-label="Apagar levantamento">${wDelAsk===l.id?'✓?':'×'}</button></span></div>
+    <div class="l2r">📈 <b>1 ${esc(g.base)} = ${fmtRate(l.r)} ${esc(l.m)}</b></div>
+    <div class="l2s">Saiu da conta ${fmt(l.pv,l.pm)}${l.fee?' + '+fmt(l.fee,l.pm)+' de comissões':''}</div>
+    <div class="l2bar"><i style="width:${pc}%"></i></div>
+    <div class="l2u"><span>Gasto ${fmt(Math.min(u,l.v),l.m)}</span>${done?'<span class="l2end">✓ Acabou</span>':`<b>Sobram ${fmt(rest,l.m)}</b>`}</div></div>`}).join('');
   if(wForm){const lastNB=[...g.despesas].filter(d=>d.moeda!==g.base).sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b.cr||0)-(a.cr||0))[0];const mc=(levsOf(g,me).slice(-1)[0]||{}).m||(lastNB&&lastNB.moeda)||Object.keys(g.taxas).find(c=>c!==g.base)||'USD';
     const cta=false;wTipo='cash';
     h+=`<form id="wform" class="wform"><label class="scan alt" style="margin:10px 0 4px"><input type="file" accept="image/*" data-wfoto="1" hidden>📷 Ler talão do multibanco</label><p class="hint" id="w-scan" role="status">${wScanMsg?esc(wScanMsg):''}</p><label>${cta?'Quanto ficou na conta?':'Quanto levantaste?'}</label><div class="inline" style="margin:0"><input id="w-v" inputmode="decimal" placeholder="50000" required value="${esc(wPre.v||'')}"><select id="w-m">${allOpts(wPre.m||mc)}</select></div>
