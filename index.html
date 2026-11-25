@@ -394,6 +394,7 @@ p.dayh{display:flex;justify-content:space-between;align-items:baseline}.dayh .da
 .lev2{padding:12px 2px;border-top:1px solid var(--line)}.lev2:first-of-type{border-top:0}.l2t{display:flex;align-items:center;gap:8px}.l2v{font-weight:700;font-size:17px}.l2d{color:var(--mut);font-size:14px;flex:1}
 .l2r{margin-top:4px;font-size:15px}.l2s{font-size:13.5px;color:var(--mut);margin-top:2px}.l2bar{height:8px;border-radius:5px;background:rgba(127,127,127,.18);overflow:hidden;margin:8px 0 4px}.l2bar i{display:block;height:100%;background:var(--lavd);border-radius:5px}
 .l2u{display:flex;justify-content:space-between;font-size:14px}.ldone .l2v,.ldone .l2r,.ldone .l2s,.ldone .l2u span:first-child{text-decoration:line-through;opacity:.6}.ldone .l2bar i{background:var(--mut)}.l2end{color:#2a8a5a;font-weight:600}
+.plevs{margin-top:10px;display:grid;gap:8px}.plev{display:grid;gap:4px}.plev>span{font-size:13.5px;color:var(--mut);display:flex;align-items:center;gap:6px}.plev select{min-height:44px}
 </style>
 </head>
 <body>
@@ -502,7 +503,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-24z';
+const APPV='2026-11-25a';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -975,12 +976,16 @@ function check(side){const g=G(),rows=edit[side],on=order(g,rows),s=on.reduce((a
 function openEditor(d){if(modal.hidden)navPush('ed');const g=G();confirmDel=null;
   const mk=(src,fx,isPag,first)=>{const o={};g.membros.forEach((p,i)=>{const has=src?(p.id in src):(isPag?(meOf(g)?p.id===meOf(g):i===0):false);
     o[p.id]={on:has&&(!src||!isPag||src[p.id]>0),v:src&&src[p.id]||0,fix:!!(fx&&fx.includes(p.id)),p:(d&&d.partes&&d.partes[p.id])||1}});return o};
-  edit=d?{lev:d.lev||'',lvs:d.lv?val(d.lv):'',pm:d.pe?d.pe.m:'',pv:d.pe?val(d.pe.v-(d.pe.f||0)):'',pf:d.pe&&d.pe.f?val(d.pe.f):'',pvNote:d.pe&&d.pe.s||'',tx:d.tx||null,itens:clean(d.itens||[]),id:d.id,emoji:dEmo(d),emoFix:!!d.emoji,titulo:d.titulo,moeda:d.moeda,total:d.total,data:d.data,tipo:d.tipo||'desp',modo:d.modo||'valor',cr:d.cr,pag:mk(d.pag,d.fixP,true),div:mk(d.div,d.fixD,false)}
+  edit=d?{lev:d.lev||'',lvs:d.lv?val(d.lv):'',levs:d&&d.levs?{...d.levs}:{},pm:d.pe?d.pe.m:'',pv:d.pe?val(d.pe.v-(d.pe.f||0)):'',pf:d.pe&&d.pe.f?val(d.pe.f):'',pvNote:d.pe&&d.pe.s||'',tx:d.tx||null,itens:clean(d.itens||[]),id:d.id,emoji:dEmo(d),emoFix:!!d.emoji,titulo:d.titulo,moeda:d.moeda,total:d.total,data:d.data,tipo:d.tipo||'desp',modo:d.modo||'valor',cr:d.cr,pag:mk(d.pag,d.fixP,true),div:mk(d.div,d.fixD,false)}
         :{itens:[],id:null,emoji:'💸',emoFix:false,titulo:'',moeda:g.base,total:0,data:today(),tipo:'desp',modo:'valor',pag:mk(null,null,true),div:mk(null,null,false)};
   if(!d){rebal('pag');rebal('div')}
   edit.hasFoto=!!(d&&d.foto);edit.fotoN=(d&&d.fotos)||0;edit.fotoX=[];edit.priv=!!(d&&d.priv);edit.by=(d&&d.by)||meOf(G());edit.paga=false;edit.pg={...((d&&d.pg)||{})};if(d&&d.paga)Object.keys(d.div).forEach(k=>{if(d.div[k]>0&&!(d.pag[k]>0))edit.pg[k]=1});edit.fotoNew=null;edit.fotoRm=false;drawEditor();modal.hidden=false;setTimeout(()=>{if(edit&&!edit.snap)edit.snap=edSig()},400);setTimeout(()=>{const t=$('#e-t');if(t&&!d)t.focus()},50)}
+function plevHTML(){const g=G(),e=edit,me=meOf(g);if(!e||e.tipo==='reemb')return '';const out=[];
+  for(const k in e.pag){if(!e.pag[k].on||k===me)continue;const ls=levsOf(g,k).filter(l=>l.m===e.moeda).map(l=>({l,rest:l.v-levUsed(g,k,l,e.id)})).filter(x=>x.rest>0||(e.levs||{})[k]===x.l.id);if(!ls.length)continue;
+    const cur=(e.levs||{})[k]||'';out.push(`<div class="plev"><span>${avP(g,g.membros.find(x=>x.id===k),'sm')} ${esc(nome(g,k))} pagou com</span><select data-plev="${esc(k)}"><option value="">💳 cartão / outro</option>${ls.map(x=>`<option value="${esc(x.l.id)}" ${cur===x.l.id?'selected':''}>💵 levantamento ${esc(new Date(x.l.data+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}))} · sobram ${fmt(x.rest,x.l.m)}</option>`).join('')}</select></div>`)}
+  return out.length?`<div class="plevs">${out.join('')}</div>`:''}
 function rowsHTML(side){if(side!=='pag')return rowsHTML0(side);const on=Object.values(edit.pag).filter(r=>r.on).length,col=!edit.pagOpen&&on>0;
-  return `<div class="pagwrap ${col?'col':''}">${rowsHTML0(side)}</div><button type="button" class="linkbtn pagmore" id="pagmore">${col?'✏️ Mudar quem pagou':'Fechar lista'}</button>`}
+  return `<div class="pagwrap ${col?'col':''}">${rowsHTML0(side)}</div>${plevHTML()}<button type="button" class="linkbtn pagmore" id="pagmore">${col?'✏️ Mudar quem pagou':'Fechar lista'}</button>`}
 document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('#pagmore');if(!t||!edit)return;edit.pagOpen=!edit.pagOpen;const r=document.getElementById('r-pag');if(r)r.innerHTML=rowsHTML('pag')});
 function rowsHTML0(side){const g=G(),rows=edit[side],partes=side==='div'&&edit.modo==='partes',art=side==='div'&&edit.modo==='artigos';
   if(art)return g.membros.map(p=>{const r=rows[p.id];return `<div class="prow"><label class="chk"><input type="checkbox" data-side="div" data-k="${esc(p.id)}" ${r.on?'checked':''}><span>${avP(g,p,'sm')} ${esc(p.nome)}</span></label><div class="vwrap">${(()=>{const sp=r.on&&!(edit.pag[p.id]&&edit.pag[p.id].on),pd=sp&&edit.pg&&edit.pg[p.id];return sp?`<button type="button" class="pgo ${pd?'on':''}" data-pg="${esc(p.id)}" aria-pressed="${!!pd}" aria-label="${esc(p.nome)} já pagou"></button>`:'<span class="pgo-sp"></span>'})()}<span class="calc" data-calc="${esc(p.id)}" style="${r.on&&!(edit.pag[p.id]&&edit.pag[p.id].on)&&edit.pg&&edit.pg[p.id]?'text-decoration:line-through;opacity:.6':''}">${r.on?val(r.v):''}</span></div><span></span></div>`}).join('');
@@ -1115,7 +1120,7 @@ function saveEditor(){const g=G(),e=edit;if(ro(g)){note('🔒 O grupo está fech
     const w=document.getElementById('e-dupw')||document.createElement('p');w.id='e-dupw';w.className='dupw';w.textContent=`⚠️ Parece repetida: “${o.titulo||'Sem título'}” · ${fmt(o.total,o.moeda)} · ${o.data||''} · ${Object.keys(o.pag).filter(k=>o.pag[k]>0).map(k=>nome(g,k)).join(', ')} pagou.`;
     if(b&&!w.parentNode)b.closest('.actions').before(w);return}}if(e.pm&&e.pm!==e.moeda&&pvT(e)>0&&!e.lev){const rr=pvCalc();if(rr)e.rx=String(rr)}let tx=null;if(e.moeda!==g.base){const x=parseFloat(String(e.rx||'').replace(',','.'));if(x>0){tx={b:g.base,m:e.moeda,r:x};g.taxas[e.moeda]=x*g.taxas[g.base]}}const pick=(rows)=>{const o={};order(g,rows).forEach(k=>o[k]=rows[k].v);return o};
   const pe=e.pm&&e.pm!==e.moeda&&parse(e.pv||'')>0?{m:e.pm,v:pvT(e),...(pfV(e)>0?{f:pfV(e)}:{}),...(srcNote()?{s:srcNote()}:{})}:null;
-  const d={id:e.id||uid(),tx,pe,lev:e.lev||null,lv:e.lev&&parse(e.lvs||'')>0?parse(e.lvs):null,emoji:e.emoji,itens:e.itens||[],titulo:e.titulo.trim()||(e.tipo==='reemb'?'Reembolso':'Despesa'),moeda:e.moeda,total:e.total,data:e.data||today(),tipo:e.tipo,modo:e.modo,cr:e.cr||Date.now(),
+  const lvs={};for(const k in (e.levs||{}))if(e.pag[k]&&e.pag[k].on&&e.tipo!=='reemb')lvs[k]=e.levs[k];const d={id:e.id||uid(),tx,pe,lev:e.lev||null,...(Object.keys(lvs).length?{levs:lvs}:{}),lv:e.lev&&parse(e.lvs||'')>0?parse(e.lvs):null,emoji:e.emoji,itens:e.itens||[],titulo:e.titulo.trim()||(e.tipo==='reemb'?'Reembolso':'Despesa'),moeda:e.moeda,total:e.total,data:e.data||today(),tipo:e.tipo,modo:e.modo,cr:e.cr||Date.now(),
     pag:pick(e.pag),div:pick(e.div),fixP:order(g,e.pag).filter(k=>e.pag[k].fix),fixD:e.modo==='valor'?order(g,e.div).filter(k=>e.div[k].fix):[],
     partes:e.modo==='partes'?Object.fromEntries(order(g,e.div).map(k=>[k,+e.div[k].p||0])):{}};
   {const keep=e.hasFoto&&!e.fotoRm,nx=(e.fotoX||[]).length;if(e.fotoNew||keep||nx)d.foto=1;const ext=(keep?(e.fotoN||0):0)+nx+((!keep&&!e.fotoNew&&nx)?-1:0);if(ext>0)d.fotos=ext;else delete d.fotos}d.by=e.by||meOf(g);if(e.priv&&(e.itens||[]).length)d.priv=1;delete d.paga;{const pg={};for(const k in (e.pg||{}))if(e.pg[k]&&d.div[k]>0&&!(d.pag[k]>0))pg[k]=1;if(e.tipo!=='reemb'&&Object.keys(pg).length)d.pg=pg;else delete d.pg}const i=g.despesas.findIndex(x=>x.id===d.id);{const od=i>=0?g.despesas[i]:null,opg=(od&&od.pg)||{},npg=d.pg||{},T={...((od&&od.pgT)||{})},now=Date.now();new Set([...Object.keys(opg),...Object.keys(npg)]).forEach(k=>{if(!!opg[k]!==!!npg[k])T[k]=now});if(Object.keys(T).length)d.pgT=T;else delete d.pgT}{const dx=i>=0?diffD(g,g.despesas[i],d):'';if(i<0||dx)logH(g,i>=0?'mudou':'criou',d,dx)}if(i>=0)g.despesas[i]=d;else g.despesas.push(d);
@@ -1137,6 +1142,7 @@ sheet.addEventListener('input',ev=>{const t=ev.target;if(!edit)return;
   else if(t.dataset.amt){const r=edit[t.dataset.amt][t.dataset.k];r.v=Math.max(0,parse(t.value));r.fix=true;rebal(t.dataset.amt);refresh()}
   else if(t.dataset.part){edit.div[t.dataset.part].p=t.value.replace(',','.');rebal('div');refresh()}});
 sheet.addEventListener('change',ev=>{const t=ev.target;if(!edit)return;
+  if(t.dataset.plev!=null){edit.levs={...(edit.levs||{})};if(t.value)edit.levs[t.dataset.plev]=t.value;else delete edit.levs[t.dataset.plev];return}
   if(t.id==='e-pm'){try{localStorage.setItem('ej-cardm',t.value)}catch(x){}setPm(t.value);return}
   if(t.id==='e-cur'){edit.moeda=t.value;edit.rx='';edit.pm='';edit.pv='';edit.lev='';$('#e-rate').innerHTML=rateRow();$('#e-items').innerHTML=itemsHTML();refresh()}
   else if(t.type==='checkbox'&&t.dataset.side){const r=edit[t.dataset.side][t.dataset.k];r.on=t.checked;if(!r.on){r.fix=false;r.v=0}rebal(t.dataset.side);
@@ -1650,7 +1656,7 @@ document.addEventListener('change',ev=>{const t=ev.target;if(t&&t.id==='w-pm'){c
 let wOpen=false,wForm=false,wDelAsk=null,wTipo='cash',wFeeU='%',wPre={},wScanMsg='';
 const rBase=(g,c)=>c===g.base?1:((typeof liveRate==='function'&&liveRate(g,c))||(g.taxas[c]&&g.taxas[c]/g.taxas[g.base])||null);
 const levsOf=(g,mid)=>((g.cart||{})[mid]||[]).filter(l=>l.tipo!=='conta');
-function levUsed(g,mid,l,skip){return g.despesas.filter(d=>d.lev===l.id&&d.id!==skip).reduce((s,d)=>s+(d.moeda===l.m?(d.pag[mid]||0):Math.round((d.lv||0)*(d.pag[mid]||0)/(d.total||1))),0)}
+function levUsed(g,mid,l,skip){return g.despesas.filter(d=>(d.lev===l.id||(d.levs&&Object.values(d.levs).includes(l.id)))&&d.id!==skip).reduce((s,d)=>s+(d.moeda===l.m?(d.pag[mid]||0):Math.round((d.lv||0)*(d.pag[mid]||0)/(d.total||1))),0)}
 const levIc=l=>l.tipo==='conta'?'🏦':'💵';
 const levName=l=>l.tipo==='conta'?'Conta '+l.m:'Levantamento';
 const levRate=l=>l.r;
