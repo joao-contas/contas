@@ -409,7 +409,7 @@ p.dayh{display:flex;justify-content:space-between;align-items:baseline}.dayh .da
 .prow.merow{background:rgba(42,159,180,.10);border-radius:14px;margin:0 -8px;padding-left:8px;padding-right:8px}.tu{font-style:normal;font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--lavd);color:#fff;vertical-align:middle}
 body.offline #sync::after{content:'';position:absolute;top:6px;right:6px;width:11px;height:11px;border-radius:50%;background:#e8912d;box-shadow:0 0 0 2px var(--bg)}
 #conv svg,#sync svg,#more svg{display:block;margin:auto;width:22px;height:22px}#conv,#sync,#more{width:40px!important;height:40px!important}#conv,#sync,#more{color:var(--ink)!important;box-shadow:inset 0 0 0 2px var(--line),inset 0 0 0 3.5px #fff,var(--shadow)!important}#more.on{color:#fff!important}html[data-theme=dark] #conv,html[data-theme=dark] #more,html[data-theme=dark] #sync{box-shadow:inset 0 0 0 2px #2a3e57,inset 0 0 0 3.5px rgba(255,255,255,.35),var(--shadow)!important}body.offline #sync{background:#e8912d!important;color:#fff!important;box-shadow:inset 0 0 0 2px #e8912d,inset 0 0 0 3.5px #fff,var(--shadow)!important}body.offline #sync::after{display:none}
-#ppov{padding-bottom:var(--kb,0px)!important;transition:padding-bottom .15s}#ppov .whobox{max-height:min(86vh,calc(var(--vvh,100vh) - 24px))!important;overflow:auto}body.kbopen #ppov .pph .e{display:none}body.kbopen #ppov .whobox{padding-top:14px}.cvic{width:52px;height:52px;border-radius:50%;background:var(--line);color:var(--ink);display:flex;align-items:center;justify-content:center;flex:0 0 52px}.cursug{display:inline-flex;align-items:center;gap:4px;width:auto;min-height:34px;margin:8px 0 0;padding:0 14px;border-radius:999px;background:var(--lav)!important;color:var(--lavd)!important;font-size:14px;font-weight:400;box-shadow:none!important}.cursug b{font-weight:600}.cvx .cursug{margin:2px auto 0;display:flex}.pchip .ucnt{font-weight:700;margin-left:2px}</style>
+#ppov{padding-bottom:var(--kb,0px)!important;transition:padding-bottom .15s}#ppov .whobox{max-height:min(86vh,calc(var(--vvh,100vh) - 24px))!important;overflow:auto}body.kbopen #ppov .pph .e{display:none}body.kbopen #ppov .whobox{padding-top:14px}.cvic{width:52px;height:52px;border-radius:50%;background:var(--line);color:var(--ink);display:flex;align-items:center;justify-content:center;flex:0 0 52px}.cursug{display:inline-flex;align-items:center;gap:4px;width:auto;min-height:34px;margin:8px 0 0;padding:0 14px;border-radius:999px;background:var(--lav)!important;color:var(--lavd)!important;font-size:14px;font-weight:400;box-shadow:none!important}.cursug b{font-weight:600}.cvx .cursug{margin:2px auto 0;display:flex}.pchip .ucnt{font-weight:700;margin-left:2px}.txupd .linkbtn{margin-left:6px}.txlog{display:grid;gap:6px;margin:4px 0 12px}.txl{padding:8px 12px;border-radius:12px;background:var(--card,#fff);box-shadow:var(--shadow);font-size:14px}.txc{display:block}.txl small{display:block;color:var(--mut,#6b7280);font-size:12.5px;margin-top:2px}.dchk{display:none}.datechk .dchk{display:inline;margin-left:6px;color:#c0603a;font-weight:600;font-size:13px}.datechk input{border:2px solid #e8912d!important;background:rgba(232,145,45,.10)!important}</style>
 </head>
 <body>
 <div id="offbar" class="offbar" hidden title="Sem rede: tudo fica guardado e é enviado quando houver rede">📴 Sem rede · fica guardado</div>
@@ -517,7 +517,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-26b';
+const APPV='2026-11-26f';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -592,11 +592,11 @@ function pgMerge(w,a,b){const pa=a.pg||{},pb=b.pg||{},ta=a.pgT||{},tb=b.pgT||{},
   new Set([...Object.keys(pa),...Object.keys(pb),...Object.keys(ta),...Object.keys(tb)]).forEach(k=>{const A=ta[k]||0,B=tb[k]||0;const on=A!==B?(A>B?!!pa[k]:!!pb[k]):(!!pa[k]||!!pb[k]);if(on)pg[k]=1;if(A||B)T[k]=Math.max(A,B)});
   const r={...w};if(Object.keys(pg).length)r.pg=pg;else delete r.pg;if(Object.keys(T).length)r.pgT=T;else delete r.pgT;return r}
 function mergeG(S,L,B){if(!S)return L;if(!L)return S;const J=x=>JSON.stringify(x),M={...S};
-  for(const k of ['nome','emoji','base','taxas','taxasUpd','taxasDia','peRev','criador','ownerMid','iaKey','fechado'])if(J(L[k])!==J(B?B[k]:undefined)){if(L[k]===undefined)delete M[k];else M[k]=L[k]}
+  for(const k of ['nome','emoji','base','taxas','taxasUpd','taxasDia','taxasSrc','peRev','criador','ownerMid','iaKey','fechado'])if(J(L[k])!==J(B?B[k]:undefined)){if(L[k]===undefined)delete M[k];else M[k]=L[k]}
   for(const k of ['cart','claims']){const lo=L[k]||{},bo=(B&&B[k])||{},o={...(S[k]||{})};let ch=false;for(const sk of new Set([...Object.keys(lo),...Object.keys(bo)]))if(J(lo[sk])!==J(bo[sk])){ch=true;if(lo[sk]===undefined)delete o[sk];else o[sk]=lo[sk]}if(ch||S[k])M[k]=o;if(!Object.keys(o).length&&!S[k])delete M[k]}
   const mx=(a,b)=>{const o={...(a||{})};for(const k in (b||{}))o[k]=Math.max(o[k]||0,b[k]);const e=Object.entries(o).sort((x,y)=>y[1]-x[1]).slice(0,300);return Object.fromEntries(e)};
   const mg=(sa,la,del)=>{const m=new Map();(sa||[]).forEach(x=>m.set(x.id,x));(la||[]).forEach(x=>{const s=m.get(x.id);if(!s){m.set(x.id,x);return}const w=(x.u||0)>(s.u||0)?x:s;m.set(x.id,(x.pg||s.pg||x.pgT||s.pgT)?pgMerge(w,s,x):w)});return [...m.values()].filter(x=>!del[x.id]||(x.u||0)>del[x.id])};
-  M.del=mx(S.del,L.del);{const ok=new Set([...(S.lixo||[]),...(L.lixo||[])].map(d=>d.id));[...(S.log||[]),...(L.log||[])].forEach(h=>{if(h.i&&/apagou|anulou/.test(h.a))ok.add(h.i)});for(const k in M.del)if(!ok.has(k))delete M.del[k]}M.mdel=mx(S.mdel,L.mdel);M.despesas=mg(S.despesas,L.despesas,M.del);M.membros=mg(S.membros,L.membros,M.mdel);
+  M.del=mx(S.del,L.del);{const ok=new Set([...(S.lixo||[]),...(L.lixo||[])].map(d=>d.id));[...(S.log||[]),...(L.log||[])].forEach(h=>{if(h.i&&/apagou|anulou/.test(h.a))ok.add(h.i)});for(const k in M.del)if(!ok.has(k))delete M.del[k]}M.mdel=mx(S.mdel,L.mdel);{const tm=new Map();[...(S.taxasLog||[]),...(L.taxasLog||[])].forEach(x=>tm.set(x.t+'|'+x.by+'|'+x.k,x));const tl=[...tm.values()].sort((a,b)=>a.t-b.t).slice(-40);if(tl.length)M.taxasLog=tl}M.despesas=mg(S.despesas,L.despesas,M.del);M.membros=mg(S.membros,L.membros,M.mdel);
   const lm=new Map();[...(S.log||[]),...(L.log||[])].forEach(h=>lm.set(h.t+'|'+h.a+'|'+h.ti,h));M.log=[...lm.values()].sort((a,b)=>b.t-a.t).slice(0,80);
   const live=new Set(M.despesas.map(d=>d.id)),xm=new Map();[...(L.lixo||[]),...(S.lixo||[])].forEach(d=>{if(!xm.has(d.id))xm.set(d.id,d)});M.lixo=[...xm.values()].filter(d=>!live.has(d.id)).slice(0,20);
   M.upd=Math.max(S.upd||0,L.upd||0);M.id=L.id||S.id;return M}
@@ -616,10 +616,11 @@ let live=lsGet('contas-taxas',null);
 async function fetchRates(force){
   if(!force&&live&&Date.now()-live.at<6*3600e3)return live;
   /* duas fontes grátis; fica a mais recente */
-  const er=(async()=>{const r=await fetch('https://open.er-api.com/v6/latest/EUR',{cache:'no-store'});const j=await r.json();if(j.result!=='success'||!j.rates)throw 0;return {upd:new Date(j.time_last_update_utc).toISOString(),rates:j.rates}})();
-  const fz=(async()=>{for(const u of['https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.min.json','https://latest.currency-api.pages.dev/v1/currencies/eur.min.json']){try{const r=await fetch(u,{cache:'no-store'});if(!r.ok)continue;const j=await r.json();if(!j||!j.eur||!j.date)continue;const o={};for(const k in j.eur)o[k.toUpperCase()]=j.eur[k];o.EUR=1;return {upd:j.date+'T12:00:00.000Z',rates:o}}catch(e){}}throw 0})();
-  const got=(await Promise.allSettled([er,fz])).filter(x=>x.status==='fulfilled').map(x=>x.value).sort((a,b)=>new Date(b.upd)-new Date(a.upd));
-  if(got.length){const best=got[0],o=got[1];if(o)for(const k in o.rates)if(!best.rates[k])best.rates[k]=o.rates[k];live={at:Date.now(),upd:best.upd,rates:best.rates};lsSet('contas-taxas',live)}
+  const er=(async()=>{const r=await fetch('https://open.er-api.com/v6/latest/EUR',{cache:'no-store'});const j=await r.json();if(j.result!=='success'||!j.rates)throw 0;return {upd:new Date(j.time_last_update_utc).toISOString(),rates:j.rates,src:'ExchangeRate-API'}})();
+  const fz1=u=>(async()=>{const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw 0;const j=await r.json();if(!j||!j.eur||!j.date)throw 0;const o={};for(const k in j.eur)o[k.toUpperCase()]=j.eur[k];o.EUR=1;return {upd:j.date+'T12:00:00.000Z',rates:o,src:'currency-api'}})();
+  const fz=fz1('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.min.json'),fz2=fz1('https://latest.currency-api.pages.dev/v1/currencies/eur.min.json');
+  const got=(await Promise.allSettled([er,fz,fz2])).filter(x=>x.status==='fulfilled').map(x=>x.value).sort((a,b)=>new Date(b.upd)-new Date(a.upd));
+  if(got.length){const best=got[0],o=got[1];if(o)for(const k in o.rates)if(!best.rates[k])best.rates[k]=o.rates[k];live={at:Date.now(),upd:best.upd,rates:best.rates,src:best.src};lsSet('contas-taxas',live)}
   return live}
 /* taxas de mercado de um dia concreto (fawazahmed0/currency-api, grátis, com histórico) */
 let dayCache=lsGet('contas-taxas-dia',{}),dayLoad={};
@@ -632,8 +633,8 @@ function dayRates(date){if(!date)return null;if(dayCache[date])return dayCache[d
 const dayRate=(g,m,date)=>{const d=dayRates(date);return d&&d[m]&&d[g.base]?d[m]/d[g.base]:null};
 const liveRate=(g,m)=>live&&live.rates[m]&&live.rates[g.base]?live.rates[m]/live.rates[g.base]:null;
 async function updateRates(g){const L=await fetchRates(true);if(!L){note('Sem ligação para atualizar as taxas.',4000);return}
-  freezeTx(g);let n=0;for(const m in g.taxas){if(L.rates[m]){g.taxas[m]=L.rates[m];n++}}
-  g.taxasUpd=L.upd||'';g.taxasDia=today();save(g);note(n+' taxas atualizadas.',3000)}
+  const dd=new Date(L.upd).toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit',timeZone:'UTC'});if(L.upd&&L.upd===g.taxasUpd){note('Já estão atualizadas.',2500);return}
+  const n=applyMkt(g,L,'botao');save(g);note(n+' taxas atualizadas',3000)}
 const G=()=>groups[cur];
 const pn=p=>p.nome;
 const nome=(g,k)=>{const p=g.membros.find(p=>p.id===k);return p?pn(p):'?'};
@@ -714,7 +715,20 @@ document.addEventListener('click',async ev=>{const t=ev.target.closest&&ev.targe
   note('Confirma quem pagou e a divisão e carrega em Guardar.',5000)});
 var autoTried={};
 function rStale(g){const x=g&&g.taxasUpd,u=x?+new Date(isNaN(+x)?x:+x):0;return !u||isNaN(u)||Date.now()-u>24*3600e3+15*60e3}
-async function autoRates(g0){let g=g0;if(!g||!rStale(g)||!meOf(g))return;const L=await fetchRates(true);if(!L||!L.rates)return;g=groups[g0.id]||g0;if(!rStale(g)||(L.upd&&L.upd===g.taxasUpd))return;freezeTx(g);let n=0;for(const m in g.taxas){if(L.rates[m]){g.taxas[m]=L.rates[m];n++}}g.taxasUpd=L.upd||'';g.taxasDia=today();save(g)}
+
+/* ---------- registo das taxas: cada mudança fica escrita (quando, quem, de onde, o quê) ---------- */
+let txLogOpen=false;
+function rNow(g,c){return c===g.base?1:(g.taxas[c]&&g.taxas[g.base]?g.taxas[c]/g.taxas[g.base]:null)}
+const rP=x=>x==null?null:+(+x).toPrecision(6);
+function rLog(g,o){const L=(g.taxasLog||[]).slice(-39);L.push({t:Date.now(),by:meOf(g)||'',...o});g.taxasLog=L}
+function applyMkt(g,L,how){freezeTx(g);const ks=Object.keys(g.taxas).filter(m=>m!==g.base),old={};ks.forEach(m=>old[m]=rNow(g,m));let n=0;
+  for(const m in g.taxas){if(L.rates[m]){g.taxas[m]=L.rates[m];n++}}const ch={};ks.forEach(m=>{const b=rNow(g,m);if(b&&old[m]&&Math.abs(b-old[m])/old[m]>1e-7)ch[m]=[rP(old[m]),rP(b)]});
+  g.taxasUpd=L.upd||'';g.taxasSrc=L.src||'';g.taxasDia=today();rLog(g,{k:how,d:L.upd||'',src:L.src||'',ch});return n}
+function txLogHTML(g){const L=(g.taxasLog||[]).slice().reverse().slice(0,20);const K={auto:'🔄 automática',botao:'↻ botão',manual:'✍️ à mão',nova:'➕ moeda nova',lev:'💵 levantamento',despesa:'🧾 despesa'};
+  const dd=x=>{const d=new Date(x);return isNaN(d)?'':d.toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit',timeZone:'UTC'})};
+  if(!L.length)return '<div class="txlog"><p class="small">Ainda sem mudanças.</p></div>';
+  return '<div class="txlog">'+L.map(x=>{const w=new Date(x.t),c=Object.entries(x.ch||{});return `<div class="txl"><div><b>${w.toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'})} ${w.toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}</b> · ${K[x.k]||esc(x.k)} · ${esc(x.by?nome(g,x.by):'?')}</div><small>${c.length?c.map(([m,[a,b]])=>`${esc(m)} ${a==null?'':fmtRate(a)+' → '}<b>${fmtRate(b)}</b>`).join(' · '):'sem alterações'}</small></div>`}).join('')+'</div>'}
+async function autoRates(g0){let g=g0;if(!g||!rStale(g)||!meOf(g))return;const L=await fetchRates(true);if(!L||!L.rates)return;g=groups[g0.id]||g0;if(!rStale(g)||(L.upd&&L.upd===g.taxasUpd))return;applyMkt(g,L,'auto');save(g)}
 var meAsk=false,pickC=null;
 document.addEventListener('click',ev=>{const b=ev.target.closest&&ev.target.closest('#e-privb');if(!b||!edit)return;edit.priv=!edit.priv;b.classList.toggle('on',edit.priv);b.setAttribute('aria-pressed',edit.priv);b.textContent=edit.priv?'🔒 Privado':'🔓 Visível a todos'});
 app.addEventListener('click',ev=>{const t=ev.target.closest('#meswap');if(!t)return;const g=G();if(!g)return;if(gLocked(g)&&!isOwner(g))return;if(!meAsk){meAsk=true;render();setTimeout(()=>{if(meAsk){meAsk=false;render()}},4000);return}meAsk=false;if(tab==='conf'){navPop('conf');tab=confPrev||'desp'}claim(g,null);setMe(g.id,null);skipMe[g.id]=false;noAuto[g.id]=true;bkOpen=false;render()});
@@ -961,8 +975,8 @@ function render(){if(typeof cur!=='undefined'&&cur&&groups[cur]&&rStale(groups[c
     h+=`${(()=>{const mp=g.membros.find(x=>x.id===meOf(g));return mp?`<h2 class="sec" style="margin-top:4px">Tu</h2><div class="card mecard"><span class="mechip">${avP(g,mp)}${esc(mp.nome)}</span>${gLocked(g)&&!isOwner(g)?`<span class="lockt">🔒 Fechado${ii('Todos já escolheram quem são e já há despesas, por isso os nomes ficaram fechados. Se houver um engano, pede a quem criou o grupo.')}</span>`:`<button id="meswap" class="${meAsk?'danger':''}">${meAsk?'Confirmar troca':'⇄ Trocar de pessoa'}</button>`}</div>`:''})()}<h2 class="sec">Grupo</h2><div class="card"><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="g-emo" data-ein="grp" value="${esc(g.emoji||'💸')}" data-cur="${esc(g.emoji||'💸')}" aria-label="Emoji do grupo: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" id="g-emo-more" aria-label="Ver lista de emojis"></button></span><input id="g-nome" value="${esc(g.nome)}" aria-label="Nome do grupo" enterkeyhint="done"></div><div id="g-emos" hidden>${secPicker(g.emoji,'grp')}</div></div>
     <h2 class="sec">Participantes${ii(isOwner(g)?'Toca na bola para mudar a cor ou no nome para o mudar.':'Podes mudar o teu nome e cor. 🔒 Só '+esc(nome(g,ownerOf(g)))+' (quem criou o grupo) junta ou tira pessoas.')}</h2><div class="card">${g.membros.map(p=>`<div class="mrow"><button type="button" class="avpick" data-cpick="${esc(p.id)}" ${canEdit(g,p.id)?'':'disabled'} aria-label="Cor de ${esc(p.nome)}">${avP(g,p,'lg')}</button><input data-ren="${esc(p.id)}" value="${esc(p.nome)}" aria-label="Nome" enterkeyhint="done" ${canRen(g,p.id)?'':'disabled'}>${usados.has(p.id)||!isOwner(g)?'<span></span>':`<button class="x" data-rm="${esc(p.id)}" aria-label="Remover ${esc(p.nome)}">×</button>`}</div>${pickC===p.id?`<div class="cpal">${AVC.map(c=>{const tk=colTaken(g,c,p.id);return `<button type="button" data-col="${c}" data-colp="${esc(p.id)}" style="background:${c}" class="${colOf(p)===c?'on':''} ${tk?'taken':''}" aria-label="${tk?'Cor de '+esc(tk.nome):'Cor'}">${tk?esc(iniMap(g)[tk.id]||''):''}</button>`}).join('')}</div>`:''}`).join('')}
     ${isOwner(g)?'<form id="addm" class="mrow" style="grid-template-columns:minmax(0,1fr) 48px"><input id="am" placeholder="Juntar pessoa…" enterkeyhint="enter" autocomplete="off"><button class="plus" aria-label="Adicionar">+</button></form>':''}</div>
-    <h2 class="sec">Moedas e taxas${ii('Taxas de referência do mercado, atualizadas sozinhas uma vez por dia quando alguém abre o grupo. Cada despesa guarda a taxa do seu dia e não muda. Fonte: <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">ExchangeRate-API</a>')}</h2>
-    <p class="txupd">${(()=>{const u=g.taxasUpd?new Date(isNaN(+g.taxasUpd)?g.taxasUpd:+g.taxasUpd):null;const ok=u&&!isNaN(u);return ok?`📈 Taxas de ${u.toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit',timeZone:'UTC'})}${!rStale(g)?' · ✓ as mais recentes':''}`:'📈 Taxas ainda não atualizadas'})()}</p>
+    <h2 class="sec">Moedas e taxas${ii('Atualizadas sozinhas todos os dias (<a href="https://github.com/fawazahmed0/exchange-api" target="_blank" rel="noopener">currency-api</a> ou <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">ExchangeRate-API</a>, a mais recente). Cada despesa guarda a sua taxa.')}</h2>
+    <p class="txupd">${(()=>{const u=g.taxasUpd?new Date(isNaN(+g.taxasUpd)?g.taxasUpd:+g.taxasUpd):null;const ok=u&&!isNaN(u);return ok?`📈 Taxas de ${u.toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit',timeZone:'UTC'})}`:'📈 Taxas ainda não atualizadas'})()}<button type="button" class="linkbtn" id="txlog">📜 ${txLogOpen?'Fechar':'Registo'}</button></p>${txLogOpen?txLogHTML(g):''}
     <button id="rates" style="margin-bottom:10px">↻ Atualizar taxas</button>
     <div class="card"><label>Moeda principal<select id="basecur">${curOpts(g,g.base)}</select></label>
     ${Object.keys(g.taxas).filter(m=>m!==g.base).map(m=>`<div class="inline"><span style="white-space:nowrap">1 ${flag(g.base)} ${esc(g.base)} =</span><input inputmode="decimal" data-rate="${esc(m)}" value="${String(+(g.taxas[m]/g.taxas[g.base]).toFixed(4)).replace('.',',')}"><span style="white-space:nowrap" title="${esc(curName(m))}">${flag(m)} ${esc(m)}</span></div>`).join('')}
@@ -1100,8 +1114,8 @@ function rateRow(){const r=rateRow0();if(!r)return '';const e=edit,m=e.moeda,pm=
   const t=e.lev?'💵 Dinheiro':pm!==m?(pv>0?'💳 '+fmt(pv,pm):'💳 ≈ '+(()=>{const g=G(),r=parseFloat(String(e.rx||'').replace(',','.'));if(!(r>0&&e.total>0))return pm;const b=Math.round(e.total/r);return fmt(pm===g.base?b:Math.round(b*(g.taxas[pm]||1)/(g.taxas[g.base]||1)),pm)})()):(()=>{const r=parseFloat(String(e.rx||'').replace(',','.'));return r>0&&e.total>0?'≈ '+fmt(Math.round(e.total/r),G().base):'Taxa'})();
   const sn=e.lev?'':pm!==m?(pv>0?srcNote():''):rxNote();return `<details class="fxd" ${e.fxOpen?'open':''}><summary><span>${(()=>{const g=G(),tp=topPayer();return tp&&tp!==meOf(g)?'Como pagou '+esc(nome(g,tp))+'?':'Como pagaste?'})()}${sn?`<small class="fxsrc">${esc(sn)}</small>`:''}</span><b>${esc(t)}</b></summary>${r}</details>`}
 function rateRow0(){if(edit&&edit.lev){const g0=G();if(!levsOf(g0,topPayer()).some(l=>l.id===edit.lev)){edit.lev='';edit.lvs='';if(edit.rxSrc==='lev'){edit.rx='';edit.rxSrc=''}}}const g=G(),e=edit,m=e.moeda;if(m===g.base)return '';
-  const dk=dayRate(g,m,e.data||today()),mk=dk||(typeof liveRate==='function'?liveRate(g,m):null);
-  if(!e.rx){let r=null,src='';if(e.tx&&e.tx.b===g.base&&e.tx.m===m){r=e.tx.r;src='gravada'}else if(g.taxas[m]&&g.taxas[g.base]){r=g.taxas[m]/g.taxas[g.base];src='grupo'}else if(mk){r=mk;src='mercado'}
+  const dk=e.data&&e.data<today()?dayRate(g,m,e.data):null,mk=typeof liveRate==='function'?liveRate(g,m):null;
+  if(!e.rx){let r=null,src='';if(e.tx&&e.tx.b===g.base&&e.tx.m===m){r=e.tx.r;src='gravada'}else if(dk){r=dk;src='dia'}else if(g.taxas[m]&&g.taxas[g.base]){r=g.taxas[m]/g.taxas[g.base];src='grupo'}else if(mk){r=mk;src='mercado'}
     if(r){e.rx=fmtRate(r);e.rxSrc=src}}
   if(!e.pm&&!e.lev){let c='';try{c=localStorage.getItem('ej-cardm')||''}catch(x){}e.pm=(c&&(g.taxas[c]||c===g.base))?c:g.base}
   const pm=e.pm||m,d=mktDate();
@@ -1129,7 +1143,7 @@ function drawEditor(){const g=G(),e=edit,re=e.tipo==='reemb';
   <label for="e-t">Descrição</label><div class="inline" style="margin:0"><span class="ewrap"><input class="ein" id="e-emo" data-ein="exp" value="${esc(e.emoji)}" data-cur="${esc(e.emoji)}" aria-label="Emoji da despesa: toca e escolhe no teclado" inputmode="text" autocomplete="off" enterkeyhint="done"><button type="button" class="more" id="e-emo-more" aria-label="Ver lista de emojis"></button></span><input id="e-t" value="${esc(e.titulo)}" placeholder="Jantar, hotel, gasolina…"></div>
   <div id="e-emos" hidden>${picker([...EXP.map(x=>x[0]),'🤝'],e.emoji,'exp')}</div>
   <div class="row2"><label>Total<input id="e-tot" inputmode="decimal" value="${e.total?val(e.total):''}" placeholder="0,00"></label><label>Moeda<select id="e-cur">${curOpts(g,e.moeda)}<optgroup label="Outras moedas">${otherOpts(g,e.moeda)}</optgroup></select></label></div>${e.id?'':curSugHTML(g,curSug(g,[e.moeda]),'ed')}<div id="e-rate">${rateRow()}</div>
-  ${attHTML()}<label>Data<input type="date" id="e-dat" value="${esc(e.data)}"></label>
+  ${attHTML()}<label class="${e.dateChk?'datechk':''}">Data<span class="dchk">📅 do recibo · confirma</span><input type="date" id="e-dat" value="${esc(e.data)}"></label>
   <section><div class="h3row"><h3>${re?'Quem deu o dinheiro':'Pago por'+ii('Marca quem pagou. O resto acerta-se sozinho.')}</h3></div><div id="r-pag">${rowsHTML('pag')}</div><p class="sum" id="s-pag"></p></section>
   <section><div class="h3row"><h3>${re?'Quem recebeu':'Dividido por'+ii(e.modo==='partes'?'Partes por pessoa (ex.: casal = 2).':e.modo==='artigos'?'Cada um paga os artigos que consumiu.':'Muda só quem gastou diferente.')}</h3><button type="button" class="auto" style="padding:0 12px" data-all="div">Todos</button></div><div class="seg"><button data-modo="valor" aria-pressed="${e.modo==='valor'}">Valores</button><button data-modo="partes" aria-pressed="${e.modo==='partes'}">Partes</button>${e.itens&&e.itens.length?`<button data-modo="artigos" aria-pressed="${e.modo==='artigos'}">Artigos</button>`:''}</div>
   <div id="r-div">${rowsHTML('div')}</div><div id="e-items">${itemsHTML()}</div><p class="sum" id="s-div"></p></section>
@@ -1148,6 +1162,8 @@ function refresh(){const g=G(),act=document.activeElement;
   if(edit.moeda!==G().base&&!(parseFloat(String(edit.rx||'').replace(',','.'))>0))all=false;
   $('#e-ok').disabled=!all;try{payRefresh()}catch(x){}}
 
+
+document.addEventListener('focusin',ev=>{if(ev.target&&ev.target.id==='e-dat'&&edit&&edit.dateChk){edit.dateChk=false;const l=ev.target.closest('label');if(l)l.classList.remove('datechk')}});
 /* data lida do talão: corrige trocas de dia/ano (ex.: 25/11/26 lido como 2025-11-26) */
 function fixDate(d){const t=today(),ok=x=>{const a=(new Date(x+'T12:00')-new Date(t+'T12:00'))/864e5;return a<=1&&a>=-150};if(!/^\d{4}-\d{2}-\d{2}$/.test(d||''))return t;if(ok(d))return d;
   const [Y,M,D]=d.split('-'),yy=Y.slice(2),c=[`20${D}-${M}-${yy}`,`${t.slice(0,4)}-${M}-${D}`,`${t.slice(0,4)}-${M}-${yy}`].filter(x=>/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(x));return c.find(ok)||t}
@@ -1171,7 +1187,7 @@ async function scan(f,rIn){if(f&&edit&&(gkey()||aiKey())&&!(samp&&samp.gem))samp
     if(r.descricao)edit.titulo=String(r.descricao).slice(0,80);
     if(total>0)edit.total=total;
     if(g.taxas[m])edit.moeda=m;else if(ALLC.includes(m)){edit.moeda=m;msg=` ${curName(m)||m} é nova no grupo: indica a taxa de câmbio por baixo do total.`}
-    if(r.data)edit.data=fixDate(String(r.data));
+    if(r.data){edit.data=fixDate(String(r.data));edit.dateChk=edit.data!==today();const di=$('#e-dat');if(di){di.value=edit.data;di.closest('label').classList.toggle('datechk',edit.dateChk)}}if(!edit.rx||['mercado','grupo','dia'].includes(edit.rxSrc))edit.rx='';
     {const mp=String(r.moeda_paga||'').toUpperCase().trim(),tx=parseFloat(String(r.taxa||'').replace(',','.'))||0;let vp=Math.round((parseFloat(r.valor_pago)||0)*100);if(!(vp>0)&&tx>0&&edit.total>0)vp=Math.round(edit.total/tx);if(mp&&vp>0&&mp!==edit.moeda&&ALLC.includes(mp)){const fee=Math.round((parseFloat(r.comissao)||0)*100);edit.pm=mp;edit.pv=val(fee>0&&fee<vp?vp-fee:vp);edit.pf=fee>0&&fee<vp?val(fee):'';edit.pvSrc='scan';edit.lev=null;const rr=pvCalc();if(rr){edit.rx=String(rr);edit.rxSrc='pago'}}}
     if(r.tipo==='banco')r.itens=[];
     const gu=guess(edit.titulo),em=gu!=='💸'?gu:(r.emoji&&firstEmo(String(r.emoji)));if(em){edit.emoji=em;edit.emoFix=true}
@@ -1195,7 +1211,7 @@ function saveEditor(){const g=G(),e=edit;if(ro(g)){note('🔒 O grupo está fech
   if(e.lostFoto&&e.tipo!=='reemb'){const o=dupOf(g,e,e.id);if(o){const img=e.fotoNew||fotoC[g.id+'-f-'+e.lostFoto],nk=g.id+'-f-'+o.id;if(img&&!o.foto){fotoC[nk]=img;fotoPut(nk,img).catch(()=>{});o.foto=1;o.u=Date.now()}lostHide[e.lostFoto]=1;lsSet('ej-losthide',lostHide);fotoDel(g.id+'-f-'+e.lostFoto);closeEditor();save(g);note('Já estava nas despesas: “'+(o.titulo||'Despesa')+'”'+(img?' — juntei-lhe a foto.':'.'),5000);return}}
   if(!e.id&&!e.dupOk&&e.tipo!=='reemb'){const o=dupOf(g,e,null);if(o){e.dupOk=true;const b=$('#e-ok');if(b)b.textContent='Guardar na mesma';
     const w=document.getElementById('e-dupw')||document.createElement('p');w.id='e-dupw';w.className='dupw';w.textContent=`⚠️ Parece repetida: “${o.titulo||'Sem título'}” · ${fmt(o.total,o.moeda)} · ${o.data||''} · ${Object.keys(o.pag).filter(k=>o.pag[k]>0).map(k=>nome(g,k)).join(', ')} pagou.`;
-    if(b&&!w.parentNode)b.closest('.actions').before(w);return}}if(e.pm&&e.pm!==e.moeda&&pvT(e)>0&&!e.lev){const rr=pvCalc();if(rr)e.rx=String(rr)}let tx=null;const pays=paySave(g,e);if(e.moeda!==g.base){let x=parseFloat(String(e.rx||'').replace(',','.'));const mixed=payMixed(),B=payTotal(g);if(mixed&&B>0&&e.total>0)x=e.total/B;if(x>0){tx={b:g.base,m:e.moeda,r:x};if(!mixed)g.taxas[e.moeda]=x*g.taxas[g.base]}}const pick=(rows)=>{const o={};order(g,rows).forEach(k=>o[k]=rows[k].v);return o};
+    if(b&&!w.parentNode)b.closest('.actions').before(w);return}}if(e.pm&&e.pm!==e.moeda&&pvT(e)>0&&!e.lev){const rr=pvCalc();if(rr)e.rx=String(rr)}let tx=null;const pays=paySave(g,e);if(e.moeda!==g.base){let x=parseFloat(String(e.rx||'').replace(',','.'));const mixed=payMixed(),B=payTotal(g);if(mixed&&B>0&&e.total>0)x=e.total/B;if(x>0){tx={b:g.base,m:e.moeda,r:x};if(!mixed&&!g.taxas[e.moeda]){g.taxas[e.moeda]=x*g.taxas[g.base];rLog(g,{k:'despesa',ch:{[e.moeda]:[null,rP(x)]}})}}}const pick=(rows)=>{const o={};order(g,rows).forEach(k=>o[k]=rows[k].v);return o};
   const pe=e.pm&&e.pm!==e.moeda&&parse(e.pv||'')>0?{m:e.pm,v:pvT(e),...(pfV(e)>0?{f:pfV(e)}:{}),...(srcNote()?{s:srcNote()}:{})}:null;
   const lvs={};for(const k in pays)if(pays[k].lev)lvs[k]=pays[k].lev;const d={id:e.id||uid(),tx,pe,lev:e.lev||null,...(Object.keys(lvs).length?{levs:lvs}:{}),...(Object.keys(pays).length?{pays}:{}),lv:e.lev&&parse(e.lvs||'')>0?parse(e.lvs):null,emoji:e.emoji,itens:e.itens||[],titulo:e.titulo.trim()||(e.tipo==='reemb'?'Reembolso':'Despesa'),moeda:e.moeda,total:e.total,data:e.data||today(),tipo:e.tipo,modo:e.modo,cr:e.cr||Date.now(),
     pag:pick(e.pag),div:pick(e.div),fixP:order(g,e.pag).filter(k=>e.pag[k].fix),fixD:e.modo==='valor'?order(g,e.div).filter(k=>e.div[k].fix):[],
@@ -1209,7 +1225,7 @@ function saveEditor(){const g=G(),e=edit;if(ro(g)){note('🔒 O grupo está fech
 
 sheet.addEventListener('input',ev=>{const t=ev.target;if(!edit)return;
   if(t.id==='e-t'){edit.titulo=t.value;if(!edit.emoFix){edit.emoji=guess(t.value);setEin('#e-emo',edit.emoji);sheet.querySelectorAll('[data-emo=exp]').forEach(b=>b.classList.toggle('on',b.dataset.e===edit.emoji))}}
-  else if(t.id==='e-dat'){edit.data=t.value;if(!edit.rx||['mercado','grupo','dia'].includes(edit.rxSrc)){edit.rx='';const pvWas=edit.pm&&edit.pm!==edit.moeda;const er=$('#e-rate');if(er){er.innerHTML=rateRow();refresh()}}}
+  else if(t.id==='e-dat'){edit.data=t.value;edit.dateChk=false;t.closest('label').classList.remove('datechk');if(!edit.rx||['mercado','grupo','dia'].includes(edit.rxSrc)){edit.rx='';const pvWas=edit.pm&&edit.pm!==edit.moeda;const er=$('#e-rate');if(er){er.innerHTML=rateRow();refresh()}}}
   else if(t.id==='e-rx'){edit.rx=t.value;edit.rxSrc='manual';const f=$('#e-fxs');if(f)f.innerHTML=fxSum();refresh()}
   else if(t.id==='e-lv'){edit.lvs=t.value;lvApply();const h=$('#e-lvh');if(h)h.innerHTML=lvHint();refresh()}
   else if(t.id==='e-pr'){const pr=parseFloat(String(t.value).replace(',','.'));if(pr>0&&myAmt()>0){edit.pv=val(Math.round(myAmt()/pr));edit.pvSrc='taxa';const pv=$('#e-pv');if(pv)pv.value=edit.pv;const rp=rateOf(G(),edit.pm);if(rp){edit.rx=fmtRate(pr*rp);edit.rxSrc='pago'}const h=$('#e-pvh');if(h)h.innerHTML=pvHint()}refresh()}
@@ -1308,6 +1324,7 @@ app.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)retu
   else if(t.id==='expg'){const data=JSON.stringify({formato:'contas-do-grupo',...clean(g),id:undefined,iaKey:undefined},null,1);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=(g.nome||'grupo').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-').toLowerCase()+'.json';document.body.appendChild(a);a.click();a.remove()}
   else if(t.id==='leaveg'){forget(g.id);note('Saíste do grupo.',3000)}
   else if(t.id==='rates'){updateRates(g)}
+  else if(t.id==='txlog'){txLogOpen=!txLogOpen;render()}
   else if(t.id==='delg'){if(confirmDel===g.id){confirmDel=null;removeGroup(g.id)}else{confirmDel=g.id;render()}}});
 function setEin(q,e){const el=$(q);if(el){el.value=e;el.dataset.cur=e}}
 function setEmo(c,e,box){const g=G();
@@ -1337,7 +1354,7 @@ app.addEventListener('change',ev=>{const t=ev.target,g=G();
     else{p.banco=p.banco||{tipo:'revolut'};p.banco[f]=f==='limite'?t.checked:t.value}save(g)}
   else if(t.dataset.ren){if(!canRen(g,t.dataset.ren)){note('🔒 Os nomes estão fechados. Só quem criou o grupo os pode mudar.',4000);return}const p=g.membros.find(x=>x.id===t.dataset.ren),n=t.value.trim().slice(0,40);if(p&&n&&n!==p.nome){if(dupName(g,n,p.id)){note('Já existe alguém com o nome “'+n+'” neste grupo.',4000);t.value=p.nome;return}p.nome=n;save(g)}else if(p)t.value=p.nome}
   else if(t.id==='basecur'){g.base=t.value;save(g)}
-  else if(t.dataset.rate){const x=parseFloat(t.value.replace(',','.'));if(x>0){g.taxas[t.dataset.rate]=x*g.taxas[g.base];save(g)}else render()}});
+  else if(t.dataset.rate){const x=parseFloat(t.value.replace(',','.')),c=t.dataset.rate,a=rNow(g,c);if(x>0){g.taxas[c]=x*g.taxas[g.base];if(!a||Math.abs(a-x)/a>1e-7)rLog(g,{k:'manual',ch:{[c]:[rP(a),rP(x)]}});save(g)}else render()}});
 app.addEventListener('submit',ev=>{if(ev.target.id!=='joinlink')return;ev.preventDefault();const v=$('#jl').value||'';const m=v.match(/#g[=-]([a-z0-9]{12,40})/)||v.trim().match(/^([a-z0-9]{12,40})$/);
   if(!m){note('Esse link não parece ser de um grupo. Copia o link inteiro que recebeste.',5000);return}
   location.hash='g='+m[1];fromHash()});
@@ -1350,13 +1367,13 @@ app.addEventListener('change',async ev=>{const t=ev.target;if(t.id!=='impfile')r
 app.addEventListener('submit',ev=>{ev.preventDefault();const f=ev.target,g=G();
   if(f.id==='wform'){const me=meOf(g);if(!me)return;const v=parse($('#w-v').value),pv=parse($('#w-p').value),m=$('#w-m').value,pm=$('#w-pm').value;
     if(!(v>0)||!(pv>0)){note('Escreve o valor levantado e quanto te saiu da conta.',4000);return}const rb=rBase(g,pm);if(!rb){note('Não sei a taxa de '+pm+'. Junta essa moeda ao grupo primeiro.',5000);return}
-    const fv=($('#w-f')||{}).value||'';const fee=wFeeU==='%'?Math.round(pv*(parseFloat(String(fv).replace(',','.'))||0)/100):parse(fv);const r=v/((pv+(fee>0?fee:0))/rb);g.cart=g.cart||{};const nl={id:wEdit||uid(),tipo:wTipo,data:$('#w-d').value||today(),m,v,pm,pv,fee:fee>0?fee:0,r};g.cart[me]=wEdit&&levsOf(g,me).some(x=>x.id===wEdit)?levsOf(g,me).map(x=>x.id===wEdit?nl:x):[...levsOf(g,me),nl];const wasEdit=!!wEdit;wEdit=null;if(!g.taxas[m]){g.taxas[m]=r*g.taxas[g.base]}wForm=false;wPre={};wScanMsg='';save(g);note((wasEdit?'Levantamento alterado':wTipo==='conta'?'Conta guardada':'Levantamento guardado')+': 1 '+g.base+' = '+fmtRate(r)+' '+m+'.',4000);return}
+    const fv=($('#w-f')||{}).value||'';const fee=wFeeU==='%'?Math.round(pv*(parseFloat(String(fv).replace(',','.'))||0)/100):parse(fv);const r=v/((pv+(fee>0?fee:0))/rb);g.cart=g.cart||{};const nl={id:wEdit||uid(),tipo:wTipo,data:$('#w-d').value||today(),m,v,pm,pv,fee:fee>0?fee:0,r};g.cart[me]=wEdit&&levsOf(g,me).some(x=>x.id===wEdit)?levsOf(g,me).map(x=>x.id===wEdit?nl:x):[...levsOf(g,me),nl];const wasEdit=!!wEdit;wEdit=null;if(!g.taxas[m]){g.taxas[m]=r*g.taxas[g.base];rLog(g,{k:'lev',ch:{[m]:[null,rP(r)]}})}wForm=false;wPre={};wScanMsg='';save(g);note((wasEdit?'Levantamento alterado':wTipo==='conta'?'Conta guardada':'Levantamento guardado')+': 1 '+g.base+' = '+fmtRate(r)+' '+m+'.',4000);return}
   if(f.id==='newg'){if(newOpen)navPop('new');newOpen=false;addPending();const n=$('#ng-n').value.trim(),ps=newPeople;
     if(!n){note('Dá um nome ao grupo.',3000);return}if(!ps.length){note('Junta pelo menos uma pessoa.',3000);$('#ng-p').focus();return}const id=gid();cur=id;tab='desp';const ge=newGE;newPeople=[];newName='';newGE='✈️';
     save({id,nome:n,base:$('#ng-m').value,taxas:(()=>{const bm=$('#ng-m').value,t=DEF_RATES[bm]?{...DEF_RATES}:{[bm]:1};if(live){for(const m in t)if(live.rates[m])t[m]=live.rates[m];if(live.rates[bm])t[bm]=live.rates[bm]}return t})(),emoji:ge,membros:ps.map(q=>({id:uid(),nome:q.nome,emoji:q.emoji})),despesas:[],criador:myKey(),upd:Date.now()})}
   else if(f.id==='addm'){if(!isOwner(g))return;const n=$('#am').value.trim();if(n&&dupName(g,n)){note('Já existe alguém com o nome “'+n+'”.',4000);return}if(n){focusAdd=true;g.membros.push({id:uid(),nome:n,emoji:PEMO[g.membros.length%PEMO.length]});logH(g,'adicionou ao grupo',{titulo:n,emoji:'👤'});save(g)}}
   else if(f.id==='addc'){const c=$('#ac').value.trim().toUpperCase(),x=parseFloat($('#acr').value.replace(',','.'));
-    if(/^[A-Z]{3}$/.test(c)&&x>0){g.taxas[c]=x*g.taxas[g.base];save(g)}else note('Escolhe a moeda e indica a taxa de câmbio.',3000)}});
+    if(/^[A-Z]{3}$/.test(c)&&x>0){g.taxas[c]=x*g.taxas[g.base];rLog(g,{k:'nova',ch:{[c]:[null,rP(x)]}});save(g)}else note('Escolhe a moeda e indica a taxa de câmbio.',3000)}});
 
 groups=lsGet(LS,{});
 setTimeout(()=>{try{const bk=JSON.parse(sessionStorage.getItem('ej-back')||'null');sessionStorage.removeItem('ej-back');if(bk&&bk.cur&&groups[bk.cur]&&!cur){navPush('g');cur=bk.cur;tab=bk.tab||'desp';render()}}catch(e){}},0);
