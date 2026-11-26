@@ -517,7 +517,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-26g';
+const APPV='2026-11-26j';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -1212,7 +1212,9 @@ function edSig(){if(!edit)return '';const o={};for(const k in edit){if(k==='snap
 function askClose(){if(!edit||!edit.snap||edit.askClose)return false;if(edSig()===edit.snap)return false;edit.askClose=1;drawEditor();const a=document.querySelector('#modal .askc');if(a)a.scrollIntoView({block:'center',behavior:'smooth'});return true}
 function closeEditor(fp){if(!fp&&!modal.hidden)navPop('ed');modal.hidden=true;edit=null;confirmDel=null}
 function dupOf(g,x,skip){const t=x.total,m=x.moeda,dt=x.data?new Date(x.data):null;if(!(t>0))return null;
-  return g.despesas.find(d=>d.id!==skip&&d.tipo!=='reemb'&&d.moeda===m&&d.total===t&&(!dt||!d.data||Math.abs(new Date(d.data)-dt)<=864e5))||null}
+  return g.despesas.find(d=>d.id!==skip&&d.tipo!=='reemb'&&d.moeda===m&&d.total===t&&(!dt||!d.data||Math.abs(new Date(d.data)-dt)<=864e5)&&sameDesc(d.titulo,x.titulo))||null}
+/* repetida só se a descrição também for parecida */
+function sameDesc(a,b){const n=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();a=n(a);b=n(b);if(!a||!b||a==='sem titulo'||b==='sem titulo'||a===b||a.includes(b)||b.includes(a))return true;const W=x=>x.split(' ').filter(w=>w.length>=4&&!['restaurante','jantar','almoco','pequeno','almoco','compra','compras','despesa'].includes(w));const B=new Set(W(b));return W(a).some(w=>B.has(w))}
 function dupTag(g,d){if(d.tipo==='reemb')return false;const o=dupOf(g,d,d.id);if(!o)return false;const pa=x=>Object.keys(x.pag).filter(k=>x.pag[k]>0).sort().join();return pa(o)===pa(d)}
 function saveEditor(){const g=G(),e=edit;if(ro(g)){note('🔒 O grupo está fechado (só leitura).',3000);return}
   if(e.lostFoto&&e.tipo!=='reemb'){const o=dupOf(g,e,e.id);if(o){const img=e.fotoNew||fotoC[g.id+'-f-'+e.lostFoto],nk=g.id+'-f-'+o.id;if(img&&!o.foto){fotoC[nk]=img;fotoPut(nk,img).catch(()=>{});o.foto=1;o.u=Date.now()}lostHide[e.lostFoto]=1;lsSet('ej-losthide',lostHide);fotoDel(g.id+'-f-'+e.lostFoto);closeEditor();save(g);note('Já estava nas despesas: “'+(o.titulo||'Despesa')+'”'+(img?' — juntei-lhe a foto.':'.'),5000);return}}
