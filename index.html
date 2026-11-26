@@ -409,7 +409,7 @@ p.dayh{display:flex;justify-content:space-between;align-items:baseline}.dayh .da
 .prow.merow{background:rgba(42,159,180,.10);border-radius:14px;margin:0 -8px;padding-left:8px;padding-right:8px}.tu{font-style:normal;font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--lavd);color:#fff;vertical-align:middle}
 body.offline #sync::after{content:'';position:absolute;top:6px;right:6px;width:11px;height:11px;border-radius:50%;background:#e8912d;box-shadow:0 0 0 2px var(--bg)}
 #conv svg,#sync svg,#more svg{display:block;margin:auto;width:22px;height:22px}#conv,#sync,#more{width:40px!important;height:40px!important}#conv,#sync,#more{color:var(--ink)!important;box-shadow:inset 0 0 0 2px var(--line),inset 0 0 0 3.5px #fff,var(--shadow)!important}#more.on{color:#fff!important}html[data-theme=dark] #conv,html[data-theme=dark] #more,html[data-theme=dark] #sync{box-shadow:inset 0 0 0 2px #2a3e57,inset 0 0 0 3.5px rgba(255,255,255,.35),var(--shadow)!important}body.offline #sync{background:#e8912d!important;color:#fff!important;box-shadow:inset 0 0 0 2px #e8912d,inset 0 0 0 3.5px #fff,var(--shadow)!important}body.offline #sync::after{display:none}
-#ppov{padding-bottom:var(--kb,0px)!important;transition:padding-bottom .15s}#ppov .whobox{max-height:min(86vh,calc(var(--vvh,100vh) - 24px))!important;overflow:auto}body.kbopen #ppov .pph .e{display:none}body.kbopen #ppov .whobox{padding-top:14px}.cvic{width:52px;height:52px;border-radius:50%;background:var(--line);color:var(--ink);display:flex;align-items:center;justify-content:center;flex:0 0 52px}.cursug{display:inline-flex;align-items:center;gap:4px;width:auto;min-height:34px;margin:8px 0 0;padding:0 14px;border-radius:999px;background:var(--lav)!important;color:var(--lavd)!important;font-size:14px;font-weight:400;box-shadow:none!important}.cursug b{font-weight:600}.cvx .cursug{margin:2px auto 0;display:flex}</style>
+#ppov{padding-bottom:var(--kb,0px)!important;transition:padding-bottom .15s}#ppov .whobox{max-height:min(86vh,calc(var(--vvh,100vh) - 24px))!important;overflow:auto}body.kbopen #ppov .pph .e{display:none}body.kbopen #ppov .whobox{padding-top:14px}.cvic{width:52px;height:52px;border-radius:50%;background:var(--line);color:var(--ink);display:flex;align-items:center;justify-content:center;flex:0 0 52px}.cursug{display:inline-flex;align-items:center;gap:4px;width:auto;min-height:34px;margin:8px 0 0;padding:0 14px;border-radius:999px;background:var(--lav)!important;color:var(--lavd)!important;font-size:14px;font-weight:400;box-shadow:none!important}.cursug b{font-weight:600}.cvx .cursug{margin:2px auto 0;display:flex}.pchip .ucnt{font-weight:700;margin-left:2px}</style>
 </head>
 <body>
 <div id="offbar" class="offbar" hidden title="Sem rede: tudo fica guardado e é enviado quando houver rede">📴 Sem rede · fica guardado</div>
@@ -517,7 +517,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-25w';
+const APPV='2026-11-26b';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -615,8 +615,11 @@ addEventListener('hashchange',fromHash);
 let live=lsGet('contas-taxas',null);
 async function fetchRates(force){
   if(!force&&live&&Date.now()-live.at<6*3600e3)return live;
-  try{const r=await fetch('https://open.er-api.com/v6/latest/EUR');const j=await r.json();
-    if(j.result==='success'&&j.rates){live={at:Date.now(),upd:j.time_last_update_utc,rates:j.rates};lsSet('contas-taxas',live)}}catch(e){}
+  /* duas fontes grátis; fica a mais recente */
+  const er=(async()=>{const r=await fetch('https://open.er-api.com/v6/latest/EUR',{cache:'no-store'});const j=await r.json();if(j.result!=='success'||!j.rates)throw 0;return {upd:new Date(j.time_last_update_utc).toISOString(),rates:j.rates}})();
+  const fz=(async()=>{for(const u of['https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.min.json','https://latest.currency-api.pages.dev/v1/currencies/eur.min.json']){try{const r=await fetch(u,{cache:'no-store'});if(!r.ok)continue;const j=await r.json();if(!j||!j.eur||!j.date)continue;const o={};for(const k in j.eur)o[k.toUpperCase()]=j.eur[k];o.EUR=1;return {upd:j.date+'T12:00:00.000Z',rates:o}}catch(e){}}throw 0})();
+  const got=(await Promise.allSettled([er,fz])).filter(x=>x.status==='fulfilled').map(x=>x.value).sort((a,b)=>new Date(b.upd)-new Date(a.upd));
+  if(got.length){const best=got[0],o=got[1];if(o)for(const k in o.rates)if(!best.rates[k])best.rates[k]=o.rates[k];live={at:Date.now(),upd:best.upd,rates:best.rates};lsSet('contas-taxas',live)}
   return live}
 /* taxas de mercado de um dia concreto (fawazahmed0/currency-api, grátis, com histórico) */
 let dayCache=lsGet('contas-taxas-dia',{}),dayLoad={};
@@ -959,7 +962,7 @@ function render(){if(typeof cur!=='undefined'&&cur&&groups[cur]&&rStale(groups[c
     <h2 class="sec">Participantes${ii(isOwner(g)?'Toca na bola para mudar a cor ou no nome para o mudar.':'Podes mudar o teu nome e cor. 🔒 Só '+esc(nome(g,ownerOf(g)))+' (quem criou o grupo) junta ou tira pessoas.')}</h2><div class="card">${g.membros.map(p=>`<div class="mrow"><button type="button" class="avpick" data-cpick="${esc(p.id)}" ${canEdit(g,p.id)?'':'disabled'} aria-label="Cor de ${esc(p.nome)}">${avP(g,p,'lg')}</button><input data-ren="${esc(p.id)}" value="${esc(p.nome)}" aria-label="Nome" enterkeyhint="done" ${canRen(g,p.id)?'':'disabled'}>${usados.has(p.id)||!isOwner(g)?'<span></span>':`<button class="x" data-rm="${esc(p.id)}" aria-label="Remover ${esc(p.nome)}">×</button>`}</div>${pickC===p.id?`<div class="cpal">${AVC.map(c=>{const tk=colTaken(g,c,p.id);return `<button type="button" data-col="${c}" data-colp="${esc(p.id)}" style="background:${c}" class="${colOf(p)===c?'on':''} ${tk?'taken':''}" aria-label="${tk?'Cor de '+esc(tk.nome):'Cor'}">${tk?esc(iniMap(g)[tk.id]||''):''}</button>`}).join('')}</div>`:''}`).join('')}
     ${isOwner(g)?'<form id="addm" class="mrow" style="grid-template-columns:minmax(0,1fr) 48px"><input id="am" placeholder="Juntar pessoa…" enterkeyhint="enter" autocomplete="off"><button class="plus" aria-label="Adicionar">+</button></form>':''}</div>
     <h2 class="sec">Moedas e taxas${ii('Taxas de referência do mercado, atualizadas sozinhas uma vez por dia quando alguém abre o grupo. Cada despesa guarda a taxa do seu dia e não muda. Fonte: <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">ExchangeRate-API</a>')}</h2>
-    <p class="txupd">${(()=>{const u=g.taxasUpd?new Date(isNaN(+g.taxasUpd)?g.taxasUpd:+g.taxasUpd):null;const ok=u&&!isNaN(u);return ok?`📈 Taxas de ${u.toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'})} às ${u.toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}${!rStale(g)?' · ✓ as mais recentes':''}`:'📈 Taxas ainda não atualizadas'})()}</p>
+    <p class="txupd">${(()=>{const u=g.taxasUpd?new Date(isNaN(+g.taxasUpd)?g.taxasUpd:+g.taxasUpd):null;const ok=u&&!isNaN(u);return ok?`📈 Taxas de ${u.toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit',timeZone:'UTC'})}${!rStale(g)?' · ✓ as mais recentes':''}`:'📈 Taxas ainda não atualizadas'})()}</p>
     <button id="rates" style="margin-bottom:10px">↻ Atualizar taxas</button>
     <div class="card"><label>Moeda principal<select id="basecur">${curOpts(g,g.base)}</select></label>
     ${Object.keys(g.taxas).filter(m=>m!==g.base).map(m=>`<div class="inline"><span style="white-space:nowrap">1 ${flag(g.base)} ${esc(g.base)} =</span><input inputmode="decimal" data-rate="${esc(m)}" value="${String(+(g.taxas[m]/g.taxas[g.base]).toFixed(4)).replace('.',',')}"><span style="white-space:nowrap" title="${esc(curName(m))}">${flag(m)} ${esc(m)}</span></div>`).join('')}
@@ -1069,10 +1072,8 @@ function itemsHTML(){const g=G(),e=edit;if(!e.itens||!e.itens.length||e.tipo==='
   return tg+itemsHTML2()}
 function itemsHTML2(){const g=G(),e=edit;
   const on=g.membros.filter(p=>e.div[p.id].on);
-  return e.itens.map((it,i)=>{const q=Math.max(1,Math.round(+it.q||1));let body;
-    if(it.u){const U=on.reduce((a,p)=>a+(it.u[p.id]||0),0),un=fmt(Math.round(it.v/q),e.moeda);
-      body=`<div class="uch">${on.map(p=>`<div class="urow ${(it.u[p.id]||0)>0?'on':''}"><span>${esc(pn(p))}</span><button type="button" data-iu="${i}|${esc(p.id)}|-1" aria-label="Menos">−</button><b>${it.u[p.id]||0}</b><button type="button" data-iu="${i}|${esc(p.id)}|1" aria-label="Mais">+</button></div>`).join('')}</div><p class="uinfo ${U===q?'ok':''}">${U===q?'✓':'⚠️'} ${U} de ${q} unidades · ${un} cada <button type="button" class="linkbtn" data-iunits="${i}">voltar a dividir por igual</button></p>`}
-    else body=`<div class="pch">${on.map(p=>`<button type="button" class="pchip ${it.who.includes(p.id)?'on':''}" data-it="${i}" data-k="${esc(p.id)}">${esc(pn(p))}</button>`).join('')}</div>${q>1?`<button type="button" class="linkbtn uswitch" data-iunits="${i}">🔢 Dividir por unidades (${q})</button>`:''}`;
+  return e.itens.map((it,i)=>{const q=Math.max(1,Math.round(+it.q||1)),who=it.who||[],cnt=k=>it.u?(it.u[k]||0):(who.includes(k)?1:0);
+    const body=`<div class="pch">${on.map(p=>{const c=q>1?cnt(p.id):(who.includes(p.id)?1:0);return `<button type="button" class="pchip ${c>0?'on':''}" data-it="${i}" data-k="${esc(p.id)}">${esc(pn(p))}${c>1?` <b class="ucnt">×${c}</b>`:''}</button>`}).join('')}</div>`;
     return `<div class="it"><div class="ith"><span>${q>1?esc(q)+'× ':''}${esc(it.n)}</span><b>${fmt(it.v,e.moeda)}</b></div>${body}</div>`}).join('')}
 function mktDate(){const u=(typeof live!=='undefined'&&live&&live.upd)||(typeof market!=='undefined'&&market&&market.upd)||'';try{return u?new Date(u).toLocaleDateString('pt-PT'):''}catch(e){return ''}}
 const fmtRate=r=>String(+r.toFixed(r<10?4:2)).replace('.',',');
@@ -1227,7 +1228,13 @@ sheet.addEventListener('change',ev=>{const t=ev.target;if(!edit)return;
 sheet.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t||!edit)return;
   if(t.dataset.iunits!=null){const it=edit.itens[+t.dataset.iunits],q=Math.max(1,Math.round(+it.q||1));if(it.u){delete it.u}else{const on=G().membros.filter(p=>edit.div[p.id].on).map(p=>p.id),who=(it.who&&it.who.length?it.who:on).filter(k=>on.includes(k)),u={};who.forEach((k,j)=>u[k]=Math.floor(q/who.length)+(j<q%who.length?1:0));it.u=u}rebal('div');$('#e-items').innerHTML=itemsHTML();refresh();return}
   if(t.dataset.iu){const [i,k,d]=t.dataset.iu.split('|'),it=edit.itens[+i],q=Math.max(1,Math.round(+it.q||1)),cur=it.u[k]||0,U=Object.values(it.u).reduce((a,b)=>a+b,0);let n=cur+(+d);if(n<0)n=0;if(+d>0&&U>=q)return note('Já estão as '+q+' unidades distribuídas. Tira uma a outra pessoa primeiro.',2500);it.u={...it.u,[k]:n};it.who=Object.keys(it.u).filter(x=>it.u[x]>0);rebal('div');$('#e-items').innerHTML=itemsHTML();refresh();return}
-  if(t.dataset.it!=null&&t.dataset.k){const it=edit.itens[+t.dataset.it],k=t.dataset.k;it.who=it.who.includes(k)?it.who.filter(x=>x!==k):[...it.who,k];rebal('div');$('#e-items').innerHTML=itemsHTML();refresh();return}
+  if(t.dataset.it!=null&&t.dataset.k){const it=edit.itens[+t.dataset.it],k=t.dataset.k,q=Math.max(1,Math.round(+it.q||1));it.who=it.who||[];
+    if(q>1&&(it.u||it.who.includes(k))){/* 🔢 tocar de novo num nome = mais uma unidade */const u=it.u?{...it.u}:Object.fromEntries(it.who.map(x=>[x,1]));const c=u[k]||0;
+      if(c>=q)u[k]=0;else{u[k]=c+1;let tot=Object.values(u).reduce((a,b)=>a+b,0);while(tot>q){const o=Object.keys(u).filter(x=>x!==k&&u[x]>0).sort((a,b)=>u[b]-u[a])[0];if(!o)break;u[o]--;tot--}}
+      Object.keys(u).forEach(x=>{if(!u[x])delete u[x]});const ks=Object.keys(u);it.who=ks;if(ks.length&&ks.some(x=>u[x]>1))it.u=u;else delete it.u}
+    else if(it.u){it.u={...it.u,[k]:1};let tot=Object.values(it.u).reduce((a,b)=>a+b,0);while(tot>q){const o=Object.keys(it.u).filter(x=>x!==k&&it.u[x]>0).sort((a,b)=>it.u[b]-it.u[a])[0];if(!o)break;it.u[o]--;if(!it.u[o])delete it.u[o];tot--}it.who=Object.keys(it.u);if(!Object.values(it.u).some(v=>v>1))delete it.u}
+    else it.who=it.who.includes(k)?it.who.filter(x=>x!==k):[...it.who,k];
+    rebal('div');$('#e-items').innerHTML=itemsHTML();refresh();return}
   if(t.dataset.all){const side=t.dataset.all,rows=edit[side];G().membros.forEach(p=>{rows[p.id].on=true;rows[p.id].fix=false});rebal(side);$('#r-'+side).innerHTML=rowsHTML(side);$('#e-items').innerHTML=itemsHTML();refresh();return}
   if(t.dataset&&t.dataset.lev!=null&&t.closest('#e-rate')){setLev(t.dataset.lev);return}
   if(t.id==='e-rxed'){edit.rxOpen=true;$('#e-rate').innerHTML=rateRow();const i=$('#e-rx');if(i)i.focus();return}
