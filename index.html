@@ -429,7 +429,7 @@ import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,onAuthStat
 import {firebaseConfig} from "./config.js";
 {
 const DEF_RATES={EUR:1,USD:1.098,CRC:489.3,GBP:0.837,BRL:6.476};
-const EXP=[['💸','gorjeta gorjetas propina tip'],['🍕','pizza pizzeria pizzaria'],['🍣','sushi japones japonês ramen poke'],['🍔','hamburguer hambúrguer burger mcdonald burger king kfc wendy'],['🌮','taco tacos burrito nachos quesadilla mexicano tortilla'],['🍝','massa pasta lasanha italiano'],['🍤','marisco mariscos camarão camarao camarones ceviche peixe pescado'],['🥩','churrasco carne steak bife picanha asado grill'],['🍗','frango pollo chicken'],['🥗','salada ensalada vegan vegetariano'],['🥐','pequeno-almoço pequeno almoço desayuno breakfast brunch padaria panaderia panadería croissant pão'],['🍦','gelado helado sobremesa postre ice cream'],['🍰','bolo pastel tarta doce'],['☕','café cafe coffee cafetaria pastelaria starbucks'],['🍹','cocktail cocktails mojito margarita piña pina colada caipirinha'],['🍷','vinho vino wine'],['🍺','cerveja cerveza beer bar copos imperial pilsen imperial'],['🥤','sumo jugo refrigerante coca bebida bebidas água agua batido smoothie'],['🍽️','jantar almoço almoco cena comida restaurante refeição refeicao lunch dinner soda'],['🛒','supermercado super mercado compras walmart automercado mas x menos pricesmart minisuper pulperia pulpería'],['🛍️','loja tienda roupa ropa souvenir souvenirs recuerdo lembrança lembranças shopping'],['💊','farmácia farmacia medicamento'],['🧴','protetor protector solar repelente'],['🏨','hotel hostel hospedaje alojamento airbnb booking cabaña cabana cabin lodge resort'],['⛽','gasolina gasolinera combustível combustivel gasóleo diesel bomba'],['🅿️','estacionamento parqueo parking'],['🚗','carro aluguer rent a car rentacar portagem peaje'],['🚕','táxi taxi uber didi cabify'],['🚌','autocarro bus autobus autobús shuttle transfer transporte'],['⛴️','ferry barco lancha'],['✈️','voo vuelo avião aviao aeroporto aeropuerto'],['🦥','perezoso preguiça sloth'],['🐒','mono macaco monkey'],['🌋','vulcão volcan volcán arenal poás poas'],['🌿','parque nacional reserva trilho sendero hike caminhada'],['🏄','surf surfing aula de surf'],['🤿','snorkel mergulho buceo'],['🚣','rafting kayak caiaque canoa'],['🎢','zipline canopy tirolesa tirolina slide'],['🏊','piscina termas aguas termales hot springs'],['🎟️','entrada bilhete bilhetes ticket museu museo concerto tour excursão excursao'],['🏖️','praia playa beach'],['🎁','presente prenda regalo'],['💡','luz internet renda'],['💸','']];
+const EXP=[['💸','gorjeta gorjetas propina tip'],['🧆','falafel kebab shawarma doner döner libanes libanês arabe árabe'],['🍕','pizza pizzeria pizzaria'],['🍣','sushi japones japonês ramen poke'],['🍔','hamburguer hambúrguer burger mcdonald burger king kfc wendy'],['🌮','taco tacos burrito nachos quesadilla mexicano tortilla'],['🍝','massa pasta lasanha italiano'],['🍤','marisco mariscos camarão camarao camarones ceviche peixe pescado'],['🥩','churrasco carne steak bife picanha asado grill'],['🍗','frango pollo chicken'],['🥗','salada ensalada vegan vegetariano'],['🥐','pequeno-almoço pequeno almoço desayuno breakfast brunch padaria panaderia panadería croissant pão'],['🍦','gelado helado sobremesa postre ice cream'],['🍰','bolo pastel tarta doce'],['☕','café cafe coffee cafetaria pastelaria starbucks'],['🍹','cocktail cocktails mojito margarita piña pina colada caipirinha'],['🍷','vinho vino wine'],['🍺','cerveja cerveza beer bar copos imperial pilsen imperial'],['🥤','sumo jugo refrigerante coca bebida bebidas água agua batido smoothie'],['🍽️','jantar almoço almoco cena comida restaurante refeição refeicao lunch dinner soda'],['🛒','supermercado super mercado compras walmart automercado mas x menos pricesmart minisuper pulperia pulpería'],['🛍️','loja tienda roupa ropa souvenir souvenirs recuerdo lembrança lembranças shopping'],['💊','farmácia farmacia medicamento'],['🧴','protetor protector solar repelente'],['🏨','hotel hostel hospedaje alojamento airbnb booking cabaña cabana cabin lodge resort'],['⛽','gasolina gasolinera combustível combustivel gasóleo diesel bomba'],['🅿️','estacionamento parqueo parking'],['🚗','carro aluguer rent a car rentacar portagem peaje'],['🚕','táxi taxi uber didi cabify'],['🚌','autocarro bus autobus autobús shuttle transfer transporte'],['⛴️','ferry barco lancha'],['✈️','voo vuelo avião aviao aeroporto aeropuerto'],['🦥','perezoso preguiça sloth'],['🐒','mono macaco monkey'],['🌋','vulcão volcan volcán arenal poás poas'],['🌿','parque nacional reserva trilho sendero hike caminhada'],['🏄','surf surfing aula de surf'],['🤿','snorkel mergulho buceo'],['🚣','rafting kayak caiaque canoa'],['🎢','zipline canopy tirolesa tirolina slide'],['🏊','piscina termas aguas termales hot springs'],['🎟️','entrada bilhete bilhetes ticket museu museo concerto tour excursão excursao'],['🏖️','praia playa beach'],['🎁','presente prenda regalo'],['💡','luz internet renda'],['💸','']];
 const GSEC=[['Viagens','✈️ 🏖️ ⛰️ 🏕️ 🗺️ 🧳 🚗 🚐 🚆 🚢 🏝️ 🌋 🏰 🏙️ 🗽'],['Casa','🏠 🏡 🏘️ 🏢 🛋️ 🛏️ 🔑 🧹 🧺 🪴 🛠️ 💡 🛒 🧾'],['Animais','🐶 🐱 🐰 🐹 🐠 🐦 🐢 🐴 🐄 🐷 🐑 🐔 🦊 🐻 🐼 🦁 🐘 🦒 🦋 🐬'],['Países','🇵🇹 🇧🇷 🇨🇷 🇪🇸 🇫🇷 🇮🇹 🇩🇪 🇬🇧 🇮🇪 🇳🇱 🇨🇭 🇬🇷 🇺🇸 🇨🇦 🇲🇽 🇦🇷 🇨🇱 🇨🇴 🇵🇪 🇵🇦 🇨🇺 🇦🇴 🇲🇿 🇨🇻 🇲🇦 🇿🇦 🇯🇵 🇹🇭 🇮🇳 🇦🇺 🇳🇿 🇹🇷'],['Comida e bebida','🍽️ 🍕 🍣 🍔 🌮 🍻 🍷 ☕ 🍰'],['Festas','🎂 🎉 🎄 🎃 💍 👶 🎓'],['Lazer e desporto','💼 💻 📚 🎵 🎸 🎮 🎬 🎨 ⚽ 🏀 🎾 🚴 🏄 ⛷️ 🏋️ 🧘'],['Outros','🌿 🌸 ☀️ ❄️ ❤️ 👨‍👩‍👧 👯 🤝 🏥 💸 ⭐ 🍀']].map(([t,l])=>[t,l.split(' ')]);
 const GEMO=GSEC.flatMap(x=>x[1]);
 const PEMO=['😀','😎','🤓','🥳','😺','🐶','🦊','🐼','🐸','🦁','🌸','🌵','⭐','🍀','🎈','🍕'];
@@ -517,7 +517,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-25s';
+const APPV='2026-11-25u';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -693,7 +693,7 @@ async function scanMany(fs){if(!edit)return;if(!(samp&&samp.gem)&&typeof gkey===
     let m=ok[0];for(const r of ok.slice(1))m=mergeR(m,r);if(edit.mergeNext&&edit.lastR)m=mergeR(edit.lastR,m);edit.mergeNext=false;
     const ri=rs.findIndex(r=>r&&!r.erro&&r.tipo!=='banco');await scan(fs[ri>=0?ri:0],m)}
   finally{sheet.querySelectorAll('.scan').forEach(l=>l.classList.remove('busy'))}}
-function freezeTx(g){g.despesas.forEach(d=>{if(d.moeda!==g.base&&!(d.tx&&d.tx.r>0&&d.tx.b===g.base&&g.taxas[d.tx.b])&&g.taxas[d.moeda]&&g.taxas[g.base]){const dr=typeof dayRate==='function'&&d.data?dayRate(g,d.moeda,d.data):null;d.tx={b:g.base,m:d.moeda,r:dr||g.taxas[d.moeda]/g.taxas[g.base]}}})}
+function freezeTx(g){g.despesas.forEach(d=>{if(d.moeda!==g.base&&!(d.tx&&d.tx.r>0&&d.tx.b===g.base&&g.taxas[d.tx.b])&&g.taxas[d.moeda]&&g.taxas[g.base]){d.tx={b:g.base,m:d.moeda,r:g.taxas[d.moeda]/g.taxas[g.base]}}})}
 /* ---------- encontrar despesas que desapareceram (pelo registo de alterações e pelas fotos guardadas) ---------- */
 var lostL={},lostHide=lsGet('ej-losthide',{})||{};
 async function findLost(id){const g=groups[id];if(!g)return;const have=new Set(g.despesas.map(d=>d.id)),gone=new Set([...Object.keys(g.del||{}),...(g.lixo||[]).map(d=>d.id)]);
@@ -1075,7 +1075,7 @@ function itemsHTML2(){const g=G(),e=edit;
     return `<div class="it"><div class="ith"><span>${q>1?esc(q)+'× ':''}${esc(it.n)}</span><b>${fmt(it.v,e.moeda)}</b></div>${body}</div>`}).join('')}
 function mktDate(){const u=(typeof live!=='undefined'&&live&&live.upd)||(typeof market!=='undefined'&&market&&market.upd)||'';try{return u?new Date(u).toLocaleDateString('pt-PT'):''}catch(e){return ''}}
 const fmtRate=r=>String(+r.toFixed(r<10?4:2)).replace('.',',');
-const rateOf=(g,c)=>c===g.base?1:((edit&&dayRate(g,c,edit.data||today()))||(typeof liveRate==='function'&&liveRate(g,c))||(g.taxas[c]&&g.taxas[c]/g.taxas[g.base])||null);
+const rateOf=(g,c)=>c===g.base?1:((g.taxas[c]&&g.taxas[g.base]&&g.taxas[c]/g.taxas[g.base])||(typeof liveRate==='function'&&liveRate(g,c))||null);
 /* "Pagaste em": quando a conta é numa moeda e pagaste noutra (ex.: conta em colones, pago com cartão em euros) */
 function pfV(e){const t=String(e.pf||'').trim();if(!t)return 0;if(/%$/.test(t)){const pc=parseFloat(t.replace('%','').replace(',','.'))||0;return Math.round(parse(e.pv||'')*pc/100)}return parse(t)>0?parse(t):0}
 function pvT(e){const v=parse(e.pv||'');return v>0?v+pfV(e):0}
@@ -1099,7 +1099,7 @@ function rateRow(){const r=rateRow0();if(!r)return '';const e=edit,m=e.moeda,pm=
   const sn=e.lev?'':pm!==m?(pv>0?srcNote():''):rxNote();return `<details class="fxd" ${e.fxOpen?'open':''}><summary><span>${(()=>{const g=G(),tp=topPayer();return tp&&tp!==meOf(g)?'Como pagou '+esc(nome(g,tp))+'?':'Como pagaste?'})()}${sn?`<small class="fxsrc">${esc(sn)}</small>`:''}</span><b>${esc(t)}</b></summary>${r}</details>`}
 function rateRow0(){if(edit&&edit.lev){const g0=G();if(!levsOf(g0,topPayer()).some(l=>l.id===edit.lev)){edit.lev='';edit.lvs='';if(edit.rxSrc==='lev'){edit.rx='';edit.rxSrc=''}}}const g=G(),e=edit,m=e.moeda;if(m===g.base)return '';
   const dk=dayRate(g,m,e.data||today()),mk=dk||(typeof liveRate==='function'?liveRate(g,m):null);
-  if(!e.rx){let r=null,src='';if(e.tx&&e.tx.b===g.base&&e.tx.m===m){r=e.tx.r;src='gravada'}else if(dk){r=dk;src='dia'}else if(mk){r=mk;src='mercado'}else if(g.taxas[m]){r=g.taxas[m]/g.taxas[g.base];src='grupo'}
+  if(!e.rx){let r=null,src='';if(e.tx&&e.tx.b===g.base&&e.tx.m===m){r=e.tx.r;src='gravada'}else if(g.taxas[m]&&g.taxas[g.base]){r=g.taxas[m]/g.taxas[g.base];src='grupo'}else if(mk){r=mk;src='mercado'}
     if(r){e.rx=fmtRate(r);e.rxSrc=src}}
   if(!e.pm&&!e.lev){let c='';try{c=localStorage.getItem('ej-cardm')||''}catch(x){}e.pm=(c&&(g.taxas[c]||c===g.base))?c:g.base}
   const pm=e.pm||m,d=mktDate();
@@ -1145,13 +1145,17 @@ function refresh(){const g=G(),act=document.activeElement;
       `${fmt(c.s,edit.moeda)} de ${fmt(edit.total,edit.moeda)} — ${diff>0?'faltam '+fmt(diff,edit.moeda):'sobram '+fmt(-diff,edit.moeda)}`}
   if(edit.moeda!==G().base&&!(parseFloat(String(edit.rx||'').replace(',','.'))>0))all=false;
   $('#e-ok').disabled=!all;try{payRefresh()}catch(x){}}
+
+/* data lida do talão: corrige trocas de dia/ano (ex.: 25/11/26 lido como 2025-11-26) */
+function fixDate(d){const t=today(),ok=x=>{const a=(new Date(x+'T12:00')-new Date(t+'T12:00'))/864e5;return a<=1&&a>=-150};if(!/^\d{4}-\d{2}-\d{2}$/.test(d||''))return t;if(ok(d))return d;
+  const [Y,M,D]=d.split('-'),yy=Y.slice(2),c=[`20${D}-${M}-${yy}`,`${t.slice(0,4)}-${M}-${D}`,`${t.slice(0,4)}-${M}-${yy}`].filter(x=>/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(x));return c.find(ok)||t}
 const scanPrompt=g=>`Estás a ler a fotografia de um recibo, talão ou fatura para uma app que divide despesas entre amigos.
 Responde APENAS com um objeto JSON, sem mais texto, com esta forma:
 {"tipo": "recibo", "descricao": "descrição curta em português, ex. Jantar no Restaurante Sol", "total": 0.00, "moeda": "EUR", "data": "AAAA-MM-DD", "emoji": "🍽️", "itens": [{"nome": "Bife da casa", "quantidade": 1, "preco": 12.50}], "valor_pago": null, "moeda_paga": null, "taxa": null, "comissao": null}
 Regras:
 - "total" é o valor final pago (com impostos, taxa de serviço e gorjeta, se constarem).
 - "moeda" é o código ISO 4217 (EUR, USD, CRC, GBP, BRL…), deduzido pelo símbolo, país ou idioma do recibo. Moedas habituais deste grupo: ${Object.keys(g.taxas).join(', ')}.
-- "data" no formato AAAA-MM-DD, ou null se não aparecer.
+- "data" no formato AAAA-MM-DD, ou null se não aparecer. Datas curtas nos talões estão quase sempre em DIA/MÊS/ANO (ex.: 25/11/26 = 2026-11-25).
 - "itens": cada linha de produto, com "preco" = preço total da linha (já multiplicado pela quantidade). Não incluas subtotais, impostos nem trocos como itens.
 - Se a imagem for um ecrã de uma app de banco ou cartão (Revolut, Wise, N26, MB Way, extrato…) com um pagamento a um comerciante: "tipo": "banco"; "descricao" = só o nome do comerciante/local (sem "Pagamento a"); "total" e "moeda" = valor e moeda ORIGINAIS cobrados pelo comerciante (ex.: 17999 CRC); "valor_pago" e "moeda_paga" = o valor final que saiu da conta, já com comissões e impostos (ex.: "O seu total" 37.82 EUR); "itens": [] (comissões, impostos e taxas de câmbio NÃO são artigos); "emoji" de acordo com a categoria indicada. "taxa" = a taxa de câmbio mostrada no ecrã, em unidades da moeda original por 1 unidade da moeda paga (ex.: "1 € = 482,6190 ₡" → 482.619). "comissao" = taxa/comissão do banco mostrada à parte (ex.: "Taxa de câmbio ao fim de semana 2,47 €" → 2.47), na moeda paga; null se não houver. Se não houver conversão de moeda, "valor_pago", "moeda_paga", "taxa" e "comissao" ficam null.
 - "emoji": um único emoji que represente a despesa (comida, supermercado, hotel, transporte…).
@@ -1165,10 +1169,10 @@ async function scan(f,rIn){if(f&&edit&&(gkey()||aiKey())&&!(samp&&samp.gem))samp
     if(r.descricao)edit.titulo=String(r.descricao).slice(0,80);
     if(total>0)edit.total=total;
     if(g.taxas[m])edit.moeda=m;else if(ALLC.includes(m)){edit.moeda=m;msg=` ${curName(m)||m} é nova no grupo: indica a taxa de câmbio por baixo do total.`}
-    if(/^\d{4}-\d{2}-\d{2}$/.test(r.data||''))edit.data=r.data;
+    if(r.data)edit.data=fixDate(String(r.data));
     {const mp=String(r.moeda_paga||'').toUpperCase().trim(),tx=parseFloat(String(r.taxa||'').replace(',','.'))||0;let vp=Math.round((parseFloat(r.valor_pago)||0)*100);if(!(vp>0)&&tx>0&&edit.total>0)vp=Math.round(edit.total/tx);if(mp&&vp>0&&mp!==edit.moeda&&ALLC.includes(mp)){const fee=Math.round((parseFloat(r.comissao)||0)*100);edit.pm=mp;edit.pv=val(fee>0&&fee<vp?vp-fee:vp);edit.pf=fee>0&&fee<vp?val(fee):'';edit.pvSrc='scan';edit.lev=null;const rr=pvCalc();if(rr){edit.rx=String(rr);edit.rxSrc='pago'}}}
     if(r.tipo==='banco')r.itens=[];
-    const em=r.emoji&&firstEmo(String(r.emoji));if(em){edit.emoji=em;edit.emoFix=true}
+    const gu=guess(edit.titulo),em=gu!=='💸'?gu:(r.emoji&&firstEmo(String(r.emoji)));if(em){edit.emoji=em;edit.emoFix=true}
     edit.itens=(Array.isArray(r.itens)?r.itens:[]).map(it=>({n:String(it&&it.nome||'Artigo').slice(0,60),q:Math.max(1,Math.round(+(it&&it.quantidade)||1)),v:Math.round((parseFloat(it&&it.preco)||0)*100),who:[]})).filter(it=>it.v>0).slice(0,80);
     if(edit.modo==='artigos'&&!edit.itens.length)edit.modo='valor';if(edit.itens.length&&!Object.values(edit.div).some(r=>r.on))Object.values(edit.div).forEach(r=>r.on=true);
     for(const k in edit.div)edit.div[k].fix=false;
@@ -1696,7 +1700,7 @@ function kbFit(){const vv=window.visualViewport;if(!vv)return;const kb=Math.max(
 if(window.visualViewport){visualViewport.addEventListener('resize',kbFit);visualViewport.addEventListener('scroll',kbFit)}
 /* ---------- 💱 calculadora de câmbio ---------- */
 var cvA=null,cvB=null,cvLev='',cvX='',cvY='';
-function cvRate(g,c){if(c===g.base)return 1;if(cvLev){const l=levsOf(g,meOf(g)).find(x=>x.id===cvLev);if(l&&l.m===c&&l.r)return l.r}return (typeof liveRate==='function'&&liveRate(g,c))||(g.taxas[c]&&g.taxas[g.base]?g.taxas[c]/g.taxas[g.base]:null)}
+function cvRate(g,c){if(c===g.base)return 1;if(cvLev){const l=levsOf(g,meOf(g)).find(x=>x.id===cvLev);if(l&&l.m===c&&l.r)return l.r}return (g.taxas[c]&&g.taxas[g.base]?g.taxas[c]/g.taxas[g.base]:null)||(typeof liveRate==='function'&&liveRate(g,c))||null}
 function cvInit(g){const cs=Object.keys(g.taxas||{}).filter(c=>c!==g.base);if(!cvA||!(cvA===g.base||g.taxas[cvA])){const cnt={};g.despesas.forEach(d=>{if(d.moeda!==g.base)cnt[d.moeda]=(cnt[d.moeda]||0)+1});cvA=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]||cs[0]||g.base}if(!cvB||!(cvB===g.base||g.taxas[cvB]))cvB=g.base;if(cvA===cvB)cvB=cs.find(c=>c!==cvA)||g.base}
 function cvConv(g,v,a,b){const ra=cvRate(g,a),rb=cvRate(g,b);return ra&&rb?v/ra*rb:null}
 const cvFmt=(v,c)=>v==null||!isFinite(v)?'':(Math.round(v*100)/100).toLocaleString('pt-PT',{minimumFractionDigits:NODEC.test(c)?0:2,maximumFractionDigits:NODEC.test(c)?0:2}).replace(/\s/g,' ');
