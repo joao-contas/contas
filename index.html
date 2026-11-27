@@ -519,7 +519,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-26m';
+const APPV='2026-11-27a';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -1083,7 +1083,7 @@ function rowsHTML0(side){const g=G(),rows=edit[side],partes=side==='div'&&edit.m
 function privSee(g,e){return !e.priv||!e.by||e.by===meOf(g)}
 function itemsHTML(){const g=G(),e=edit;if(!e.itens||!e.itens.length||e.tipo==='reemb')return '';
   if(!privSee(g,e))return `<p class="privn">🔒 Artigos privados · só ${esc(nome(g,e.by))} os vê</p>`;
-  const tg=`<div class="itbar"><b>🧾 Artigos</b><button type="button" id="e-privb" class="privp ${e.priv?'on':''}" aria-pressed="${!!e.priv}">${e.priv?'🔒 Privado':'🔓 Visível a todos'}</button>${ii('Toca em quem consumiu cada artigo (sem ninguém = todos). Privado: os outros veem o total e quanto calhou a cada um, mas não a lista de produtos.')}</div>`;
+  const tg=`<div class="itbar"><b>🧾 Artigos</b>${itDupes(e.itens)?'<button type="button" class="linkbtn" id="e-imerge">🔗 Juntar iguais</button>':''}<button type="button" id="e-privb" class="privp ${e.priv?'on':''}" aria-pressed="${!!e.priv}">${e.priv?'🔒 Privado':'🔓 Visível a todos'}</button>${ii('Toca em quem consumiu cada artigo (sem ninguém = todos). Privado: os outros veem o total e quanto calhou a cada um, mas não a lista de produtos.')}</div>`;
   if(e.modo!=='artigos')return tg+`<details class="itlist"><summary>Ver ${e.itens.length} artigo${e.itens.length===1?'':'s'}</summary>${e.itens.map(it=>`<div class="ith"><span>${it.q>1?esc(it.q)+'× ':''}${esc(it.n)}</span><b>${fmt(it.v,e.moeda)}</b></div>`).join('')}</details><button type="button" class="linkbtn" data-modo="artigos" style="margin-top:6px">✂️ Dividir por produto</button>`;
   return tg+itemsHTML2()}
 function itemsHTML2(){const g=G(),e=edit;
@@ -1173,6 +1173,19 @@ function scanDate(raw,f,g){const t=today(),pd=f&&f.lastModified?locD(f.lastModif
   const okR=x=>!!x&&x<=t&&(!lo||x>=lo),near=(a,b)=>Math.abs(new Date(a+'T12:00')-new Date(b+'T12:00'))<=2*864e5;
   let d=raw?fixDate(String(raw)):'';if(!d)return okR(pd)?pd:'';if(pd&&okR(pd)&&!near(d,pd))d=pd;if(!okR(d))d=okR(pd)?pd:t;return d}
 const wkD=x=>{try{return new Date(x+'T12:00').toLocaleDateString('pt-PT',{weekday:'short',day:'2-digit',month:'2-digit'}).replace('.','')}catch(e){return ''}};
+
+/* ---------- juntar artigos iguais (mesmo nome) sem mudar quanto cada um paga ---------- */
+const itKey=n=>String(n||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,'');
+function itDupes(L){const s=new Set();for(const it of L||[]){const k=itKey(it.n);if(s.has(k))return true;s.add(k)}return false}
+function mergeItems(L){const out=[],idx=new Map();let skip=0;
+  const units=it=>{const q=Math.max(1,Math.round(+it.q||1));if(it.u)return {...it.u};const w=it.who||[];if(!w.length)return null;if(q%w.length)return false;return Object.fromEntries(w.map(k=>[k,q/w.length]))};
+  for(const it of L||[]){const k=itKey(it.n),j=idx.get(k);if(j==null){idx.set(k,out.length);out.push({...it,who:[...(it.who||[])],...(it.u?{u:{...it.u}}:{})});continue}
+    const a=out[j],ua=units(a),ub=units(it);
+    if(ua===false||ub===false||(ua===null)!==(ub===null)){skip++;out.push({...it});continue}
+    const q=(+a.q||1)+(+it.q||1),m={...a,q,v:a.v+it.v};delete m.u;
+    if(ua&&ub){const u={...ua};for(const x in ub)u[x]=(u[x]||0)+ub[x];m.who=Object.keys(u);if(Object.values(u).some(v=>v>1))m.u=u}else m.who=[];
+    out[j]=m}
+  mergeItems.skip=skip;return out}
 /* data lida do talão: corrige trocas de dia/ano (ex.: 25/11/26 lido como 2025-11-26) */
 function fixDate(d){const t=today(),ok=x=>{const a=(new Date(x+'T12:00')-new Date(t+'T12:00'))/864e5;return a<=1&&a>=-150};if(!/^\d{4}-\d{2}-\d{2}$/.test(d||''))return t;if(ok(d))return d;
   const [Y,M,D]=d.split('-'),yy=Y.slice(2),c=[`20${D}-${M}-${yy}`,`${t.slice(0,4)}-${M}-${D}`,`${t.slice(0,4)}-${M}-${yy}`].filter(x=>/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(x));return c.find(ok)||t}
@@ -1200,7 +1213,7 @@ async function scan(f,rIn){if(f&&edit&&(gkey()||aiKey())&&!(samp&&samp.gem))samp
     {const mp=String(r.moeda_paga||'').toUpperCase().trim(),tx=parseFloat(String(r.taxa||'').replace(',','.'))||0;let vp=Math.round((parseFloat(r.valor_pago)||0)*100);if(!(vp>0)&&tx>0&&edit.total>0)vp=Math.round(edit.total/tx);if(mp&&vp>0&&mp!==edit.moeda&&ALLC.includes(mp)){const fee=Math.round((parseFloat(r.comissao)||0)*100);edit.pm=mp;edit.pv=val(fee>0&&fee<vp?vp-fee:vp);edit.pf=fee>0&&fee<vp?val(fee):'';edit.pvSrc='scan';edit.lev=null;const rr=pvCalc();if(rr){edit.rx=String(rr);edit.rxSrc='pago'}}}
     if(r.tipo==='banco')r.itens=[];
     const gu=guess(edit.titulo),em=gu!=='💸'?gu:(r.emoji&&firstEmo(String(r.emoji)));if(em){edit.emoji=em;edit.emoFix=true}
-    edit.itens=(Array.isArray(r.itens)?r.itens:[]).map(it=>({n:String(it&&it.nome||'Artigo').slice(0,60),q:Math.max(1,Math.round(+(it&&it.quantidade)||1)),v:Math.round((parseFloat(it&&it.preco)||0)*100),who:[]})).filter(it=>it.v>0).slice(0,80);
+    edit.itens=(Array.isArray(r.itens)?r.itens:[]).map(it=>({n:String(it&&it.nome||'Artigo').slice(0,60),q:Math.max(1,Math.round(+(it&&it.quantidade)||1)),v:Math.round((parseFloat(it&&it.preco)||0)*100),who:[]})).filter(it=>it.v>0).slice(0,80);edit.itens=mergeItems(edit.itens);
     if(edit.modo==='artigos'&&!edit.itens.length)edit.modo='valor';if(edit.itens.length&&!Object.values(edit.div).some(r=>r.on))Object.values(edit.div).forEach(r=>r.on=true);
     for(const k in edit.div)edit.div[k].fix=false;
     edit.rx='';rebal('pag');rebal('div');drawEditor();
@@ -1255,6 +1268,7 @@ sheet.addEventListener('change',ev=>{const t=ev.target;if(!edit)return;
 sheet.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t||!edit)return;
   if(t.dataset.iunits!=null){const it=edit.itens[+t.dataset.iunits],q=Math.max(1,Math.round(+it.q||1));if(it.u){delete it.u}else{const on=G().membros.filter(p=>edit.div[p.id].on).map(p=>p.id),who=(it.who&&it.who.length?it.who:on).filter(k=>on.includes(k)),u={};who.forEach((k,j)=>u[k]=Math.floor(q/who.length)+(j<q%who.length?1:0));it.u=u}rebal('div');$('#e-items').innerHTML=itemsHTML();refresh();return}
   if(t.dataset.iu){const [i,k,d]=t.dataset.iu.split('|'),it=edit.itens[+i],q=Math.max(1,Math.round(+it.q||1)),cur=it.u[k]||0,U=Object.values(it.u).reduce((a,b)=>a+b,0);let n=cur+(+d);if(n<0)n=0;if(+d>0&&U>=q)return note('Já estão as '+q+' unidades distribuídas. Tira uma a outra pessoa primeiro.',2500);it.u={...it.u,[k]:n};it.who=Object.keys(it.u).filter(x=>it.u[x]>0);rebal('div');$('#e-items').innerHTML=itemsHTML();refresh();return}
+  if(t.id==='e-imerge'){const n0=edit.itens.length;edit.itens=mergeItems(edit.itens);rebal('div');$('#e-items').innerHTML=itemsHTML();refresh();note(mergeItems.skip?'Juntei '+(n0-edit.itens.length)+'. Alguns ficaram separados porque estão divididos de forma diferente.':'✓ Artigos iguais juntos.',3000);return}
   if(t.dataset.it!=null&&t.dataset.k){const it=edit.itens[+t.dataset.it],k=t.dataset.k,q=Math.max(1,Math.round(+it.q||1));it.who=it.who||[];
     if(q>1&&(it.u||it.who.includes(k))){/* 🔢 tocar de novo num nome = mais uma unidade */const u=it.u?{...it.u}:Object.fromEntries(it.who.map(x=>[x,1]));const c=u[k]||0;
       if(c>=q)u[k]=0;else{u[k]=c+1;let tot=Object.values(u).reduce((a,b)=>a+b,0);while(tot>q){const o=Object.keys(u).filter(x=>x!==k&&u[x]>0).sort((a,b)=>u[b]-u[a])[0];if(!o)break;u[o]--;tot--}}
