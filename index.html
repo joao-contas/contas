@@ -519,7 +519,7 @@ function restoreLost(id,back){const g=groups[id];if(!g)return;const have=new Set
   add.forEach((d,n)=>{d.u=t;g.despesas.push(d);g.log=[{t:t+n,q:'🛟 App',a:'repôs',ti:d.titulo||'',e:d.emoji||'',x:'tinha desaparecido sem ser apagada',i:d.id},...(g.log||[])].slice(0,80)});
   save(g);note('🛟 Repus '+add.length+(add.length>1?' despesas que tinham desaparecido.':' despesa que tinha desaparecido.'),6000)}
 /* ---------- atualiza sozinha quando há versão nova ---------- */
-const APPV='2026-11-27j';
+const APPV='2026-11-27k';
 var updBlk=false;
 function showUpd(){if(updBlk)return;updBlk=true;Object.keys(pend).forEach(flush);const o=document.createElement('div');o.id='updblk';o.innerHTML=`<div class="ub"><div class="ub-i">⬆️</div><h2>Há uma versão nova</h2><p>Para não se perderem despesas, a app só pode ser usada depois de atualizar.</p><button type="button" class="primary" id="ub-go">Atualizar agora</button><small>Demora 2 segundos. Nada do que puseste se perde.</small></div>`;document.body.appendChild(o);
   o.querySelector('#ub-go').onclick=async()=>{o.querySelector('#ub-go').textContent='A atualizar…';try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(e){}setTimeout(()=>location.reload(),600)}}
@@ -785,6 +785,7 @@ function attLoad(){const e=edit,g=G();if(!e||!g)return;attKeys().forEach(k=>{if(
 function fotoView(u){if(!u)return;navPush('fv');const o=document.createElement('div');o.id='fotov';o.innerHTML=`<img src="${u}" alt="Anexo"><button aria-label="Fechar">✕</button>`;o.addEventListener('click',()=>{navPop('fv');o.remove()});document.body.appendChild(o)}
 async function attSet(f,extra,force){if(!f||!edit)return;try{const u=await fotoShrink(f);if(force||(extra&&(edit.fotoNew||(edit.hasFoto&&!edit.fotoRm)))){edit.fotoX=[...(edit.fotoX||[]),u]}else{edit.fotoNew=u;edit.fotoRm=false}const a=sheet.querySelector('.att');if(a)a.outerHTML=attHTML()}catch(e){note('Não consegui usar essa foto.',3000)}}
 sheet.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t||!edit)return;
+  if(t.id==='e-divcur'){divInB=!divInB;t.innerHTML=divInB?flag(edit.moeda)+' '+esc(edit.moeda):flag(G().base)+' '+esc(G().base);$('#r-div').innerHTML=rowsHTML('div');refresh();return}
   if(t.id==='e-attb'){const i=document.getElementById('e-attf');if(i)i.click()}
   else if(t.id==='e-attx'){edit.fotoNew=null;edit.fotoX=[];edit.fotoRm=true;const a=sheet.querySelector('.att');if(a)a.outerHTML=attHTML()}
   else if(t.dataset.attn!=null){const nw=[edit.fotoNew,...(edit.fotoX||[])].filter(Boolean);fotoView(nw[+t.dataset.attn])}
@@ -1092,12 +1093,18 @@ function plevHTML(){const g=G(),e=edit,me=meOf(g);if(!e||e.tipo==='reemb')return
 function rowsHTML(side){if(side!=='pag')return rowsHTML0(side);const on=Object.values(edit.pag).filter(r=>r.on).length,col=!edit.pagOpen&&on>0;
   return `<div class="pagwrap ${col?'col':''}">${rowsHTML0(side)}</div><button type="button" class="linkbtn pagmore" id="pagmore">${col?'✏️ Mudar quem pagou':'Fechar lista'}</button>`}
 document.addEventListener('click',ev=>{const t=ev.target.closest&&ev.target.closest('#pagmore');if(!t||!edit)return;edit.pagOpen=!edit.pagOpen;const r=document.getElementById('r-pag');if(r)r.innerHTML=rowsHTML('pag')});
+
+/* ver a divisão na moeda da conta ou na moeda principal (só para ver) */
+var divInB=false;
+function divB(){const g=G();return divInB&&edit&&edit.moeda!==g.base&&edit.tipo!=='reemb'}
+function kB(){const g=G(),e=edit;try{const pv=typeof pvT==='function'?pvT(e):0,my=typeof myAmt==='function'?myAmt():0;if((e.pm||'')===g.base&&pv>0&&my>0&&!e.lev)return pv/my}catch(x){}const rx=parseFloat(String(e.rx||'').replace(',','.'));return rx>0?1/rx:(rateOf(g,e.moeda)?1/rateOf(g,e.moeda):1)}
+const dv=(side,v)=>side==='div'&&divB()?val(Math.round(v*kB())):val(v);
 function rowsHTML0(side){const g=G(),rows=edit[side],partes=side==='div'&&edit.modo==='partes',art=side==='div'&&edit.modo==='artigos';
-  if(art)return g.membros.map(p=>{const r=rows[p.id];return `<div class="prow"><label class="chk"><input type="checkbox" data-side="div" data-k="${esc(p.id)}" ${r.on?'checked':''}><span>${avP(g,p,'sm')} ${esc(p.nome)}</span></label><div class="vwrap">${(()=>{const sp=r.on&&!(edit.pag[p.id]&&edit.pag[p.id].on),pd=sp&&edit.pg&&edit.pg[p.id];return sp?`<button type="button" class="pgo ${pd?'on':''}" data-pg="${esc(p.id)}" aria-pressed="${!!pd}" aria-label="${esc(p.nome)} já pagou"></button>`:'<span class="pgo-sp"></span>'})()}<span class="calc" data-calc="${esc(p.id)}" style="${r.on&&!(edit.pag[p.id]&&edit.pag[p.id].on)&&edit.pg&&edit.pg[p.id]?'text-decoration:line-through;opacity:.6':''}">${r.on?val(r.v):''}</span></div><span></span></div>`}).join('');
+  if(art)return g.membros.map(p=>{const r=rows[p.id];return `<div class="prow"><label class="chk"><input type="checkbox" data-side="div" data-k="${esc(p.id)}" ${r.on?'checked':''}><span>${avP(g,p,'sm')} ${esc(p.nome)}</span></label><div class="vwrap">${(()=>{const sp=r.on&&!(edit.pag[p.id]&&edit.pag[p.id].on),pd=sp&&edit.pg&&edit.pg[p.id];return sp?`<button type="button" class="pgo ${pd?'on':''}" data-pg="${esc(p.id)}" aria-pressed="${!!pd}" aria-label="${esc(p.nome)} já pagou"></button>`:'<span class="pgo-sp"></span>'})()}<span class="calc" data-calc="${esc(p.id)}" style="${r.on&&!(edit.pag[p.id]&&edit.pag[p.id].on)&&edit.pg&&edit.pg[p.id]?'text-decoration:line-through;opacity:.6':''}">${r.on?dv('div',r.v):''}</span></div><span></span></div>`}).join('');
   return g.membros.map(p=>{const r=rows[p.id],sp=side==='div'&&edit.tipo!=='reemb'&&r.on&&!(edit.pag[p.id]&&edit.pag[p.id].on),pd=sp&&edit.pg&&edit.pg[p.id];return `<div class="prow ${pd?'pgd':''} ${p.id===meOf(g)?'merow':''}"><div class="pcell"><label class="chk"><input type="checkbox" data-side="${side}" data-k="${esc(p.id)}" ${r.on?'checked':''}><span>${avP(g,p,'sm')} ${esc(p.nome)}${p.id===meOf(g)?' <em class="tu">tu</em>':''}</span></label></div>
   <div class="vwrap">${side==='div'&&edit.tipo!=='reemb'?(sp?`<button type="button" class="pgo ${pd?'on':''}" data-pg="${esc(p.id)}" aria-pressed="${!!pd}" aria-label="${esc(p.nome)} já pagou" title="Já pagou"></button>`:'<span class="pgo-sp"></span>'):''}${partes?`<span class="pt"><input class="v" inputmode="numeric" data-part="${esc(p.id)}" value="${r.on?r.p:''}" ${r.on?'':'disabled'} aria-label="Partes de ${esc(p.nome)}"></span>`
-          :`<input class="v" inputmode="decimal" data-amt="${side}" data-k="${esc(p.id)}" value="${r.on?val(r.v):''}" ${r.on?'':'disabled'} aria-label="Valor de ${esc(p.nome)}">`}</div>
-  ${partes?`<span class="calc" data-calc="${esc(p.id)}">${r.on?val(r.v):''}</span>`:`<button class="auto" data-auto="${side}" data-k="${esc(p.id)}" ${r.fix&&r.on?'':'hidden'} title="Voltar a calcular automaticamente">auto</button>`}</div>${side==='pag'?payFor(p.id):''}`}).join('')}
+          :`<input class="v" inputmode="decimal" data-amt="${side}" data-k="${esc(p.id)}" value="${r.on?dv(side,r.v):''}" ${r.on?'':'disabled'} ${side==='div'&&divB()?'readonly':''} aria-label="Valor de ${esc(p.nome)}">`}</div>
+  ${partes?`<span class="calc" data-calc="${esc(p.id)}">${r.on?dv('div',r.v):''}</span>`:`<button class="auto" data-auto="${side}" data-k="${esc(p.id)}" ${r.fix&&r.on?'':'hidden'} title="Voltar a calcular automaticamente">auto</button>`}</div>${side==='pag'?payFor(p.id):''}`}).join('')}
 function privSee(g,e){return !e.priv||!e.by||e.by===meOf(g)}
 function itemsHTML(){const g=G(),e=edit;if(!e.itens||!e.itens.length||e.tipo==='reemb')return '';
   if(!privSee(g,e))return `<p class="privn">🔒 Artigos privados · só ${esc(nome(g,e.by))} os vê</p>`;
@@ -1169,20 +1176,21 @@ function drawEditor(){const g=G(),e=edit,re=e.tipo==='reemb';
   <div class="row2"><label>Total<input id="e-tot" inputmode="decimal" value="${e.total?val(e.total):''}" placeholder="0,00"></label><label>Moeda<select id="e-cur">${curOpts(g,e.moeda)}<optgroup label="Outras moedas">${otherOpts(g,e.moeda)}</optgroup></select></label></div>${e.id?'':curSugHTML(g,curSug(g,[e.moeda]),'ed')}<div id="e-rate">${rateRow()}</div>
   ${attHTML()}<label class="${e.dateChk?'datechk':''}">Data <span class="dwk">${wkD(e.data)}</span><span class="dchk">📅 do recibo · confirma</span><input type="date" id="e-dat" value="${esc(e.data)}"></label>
   <section><div class="h3row"><h3>${re?'Quem deu o dinheiro':'Pago por'+ii('Marca quem pagou. O resto acerta-se sozinho.')}</h3></div><div id="r-pag">${rowsHTML('pag')}</div><p class="sum" id="s-pag"></p></section>
-  <section><div class="h3row"><h3>${re?'Quem recebeu':'Dividido por'+ii(e.modo==='partes'?'Partes por pessoa (ex.: casal = 2).':e.modo==='artigos'?'Cada um paga os artigos que consumiu.':'Muda só quem gastou diferente.')}</h3><button type="button" class="auto" style="padding:0 12px" data-all="div">Todos</button></div><div class="seg"><button data-modo="valor" aria-pressed="${e.modo==='valor'}">Valores</button><button data-modo="partes" aria-pressed="${e.modo==='partes'}">Partes</button>${e.itens&&e.itens.length?`<button data-modo="artigos" aria-pressed="${e.modo==='artigos'}">Artigos</button>`:''}</div>
+  <section><div class="h3row"><h3>${re?'Quem recebeu':'Dividido por'+ii(e.modo==='partes'?'Partes por pessoa (ex.: casal = 2).':e.modo==='artigos'?'Cada um paga os artigos que consumiu.':'Muda só quem gastou diferente.')}</h3>${e.moeda!==g.base&&e.tipo!=='reemb'?`<button type="button" class="auto" id="e-divcur" style="padding:0 12px;margin-left:auto;margin-right:6px">${divInB?flag(e.moeda)+' '+esc(e.moeda):flag(g.base)+' '+esc(g.base)}</button>`:''}<button type="button" class="auto" style="padding:0 12px" data-all="div">Todos</button></div><div class="seg"><button data-modo="valor" aria-pressed="${e.modo==='valor'}">Valores</button><button data-modo="partes" aria-pressed="${e.modo==='partes'}">Partes</button>${e.itens&&e.itens.length?`<button data-modo="artigos" aria-pressed="${e.modo==='artigos'}">Artigos</button>`:''}</div>
   <div id="r-div">${rowsHTML('div')}</div><div id="e-items">${itemsHTML()}</div><p class="sum" id="s-div"></p></section>
   ${e.askClose?'<p class="askc">Tens alterações por guardar.</p>':''}<div class="actions">${e.askClose?'':e.id?`<button class="danger" id="e-del">${confirmDel===e.id?'Confirmar apagar':'Apagar'}</button>`:''}${e.askClose?'<button id="e-disc">Descartar</button>':'<button id="e-x">Cancelar</button>'}<button class="primary" id="e-ok">Guardar</button></div>`;
   refresh()}
 function refresh(){const g=G(),act=document.activeElement;
-  sheet.querySelectorAll('[data-amt]').forEach(i=>{const r=edit[i.dataset.amt][i.dataset.k];if(i!==act)i.value=r.on?val(r.v):''});
-  sheet.querySelectorAll('[data-calc]').forEach(s=>{const r=edit.div[s.dataset.calc];s.textContent=r.on?val(r.v):''});
+  sheet.querySelectorAll('[data-amt]').forEach(i=>{const r=edit[i.dataset.amt][i.dataset.k];if(i!==act)i.value=r.on?dv(i.dataset.amt,r.v):''});
+  sheet.querySelectorAll('[data-calc]').forEach(s=>{const r=edit.div[s.dataset.calc];s.textContent=r.on?dv('div',r.v):''});
   sheet.querySelectorAll('[data-auto]').forEach(bt=>{const r=edit[bt.dataset.auto][bt.dataset.k];bt.hidden=!(r.fix&&r.on)});
   let all=edit.total>0;
   for(const side of ['pag','div']){const c=check(side),el=$('#s-'+side);all=all&&c.ok;
     const diff=edit.total-c.s;
     el.className='sum'+(c.ok?'':' bad');
-    el.textContent=!c.n?(side==='pag'?'Falta escolher quem pagou':'Falta escolher quem divide'):c.ok?`${fmt(c.s,edit.moeda)} de ${fmt(edit.total,edit.moeda)} ✓`:
-      `${fmt(c.s,edit.moeda)} de ${fmt(edit.total,edit.moeda)} — ${diff>0?'faltam '+fmt(diff,edit.moeda):'sobram '+fmt(-diff,edit.moeda)}`}
+    const B=side==='div'&&divB(),kk=B?kB():1,cc=B?G().base:edit.moeda,F=v=>fmt(Math.round(v*kk),cc);
+    el.textContent=!c.n?(side==='pag'?'Falta escolher quem pagou':'Falta escolher quem divide'):c.ok?`${F(c.s)} de ${F(edit.total)} ✓`:
+      `${F(c.s)} de ${F(edit.total)} — ${diff>0?'faltam '+F(diff):'sobram '+F(-diff)}`}
   if(edit.moeda!==G().base&&!(parseFloat(String(edit.rx||'').replace(',','.'))>0))all=false;
   $('#e-ok').disabled=!all;try{payRefresh()}catch(x){}}
 
